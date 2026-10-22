@@ -1,5 +1,7 @@
 """Path rule: writes (direct or via Bash) must stay inside the active project."""
 
+from pathlib import Path
+
 from afc.hooks.common import (
     WRITE_TOOLS,
     Context,
@@ -8,7 +10,6 @@ from afc.hooks.common import (
     check_paths_reason,
     target_path,
 )
-from pathlib import Path
 
 
 def check_paths(event: dict, ctx: Context) -> str | None:
@@ -24,8 +25,7 @@ def check_paths(event: dict, ctx: Context) -> str | None:
         command = tool_input.get("command") if isinstance(tool_input, dict) else None
         if not isinstance(command, str):
             return None
-        cwd = event.get("cwd") or "/"
-        targets = [_bash_target(raw, cwd) for raw in bash_write_targets(command)]
+        targets = [Path(t) for t in bash_write_targets(command, event.get("cwd") or "/")]
     else:
         return None
     for path in targets:
@@ -33,10 +33,3 @@ def check_paths(event: dict, ctx: Context) -> str | None:
         if reason:
             return reason
     return None
-
-
-def _bash_target(raw: str, cwd: str) -> Path:
-    path = Path(raw).expanduser()
-    if not path.is_absolute():
-        path = Path(cwd) / path
-    return path.resolve()

@@ -1,7 +1,7 @@
 """PreToolUse guard. Run as `python3 -m afc.hooks.pretool`.
 
 Exit 0 allows the tool call; exit 2 blocks it and writes the reason to stderr.
-Any internal error blocks (fail closed).
+Any internal error, including a failed stdin read, blocks (fail closed).
 """
 
 import sys
@@ -34,5 +34,14 @@ def main(stdin_text: str, stderr) -> int:
         return 2
 
 
+def run(stderr) -> int:
+    """Read the hook event from stdin and decide. Read errors also fail closed."""
+    try:
+        return main(sys.stdin.read(), stderr)
+    except Exception as exc:
+        print(f"Flight Control guard error: {exc}", file=stderr)
+        return 2
+
+
 if __name__ == "__main__":
-    sys.exit(main(sys.stdin.read(), sys.stderr))
+    sys.exit(run(sys.stderr))

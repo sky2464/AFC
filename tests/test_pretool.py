@@ -64,6 +64,17 @@ class TestMain(PreToolTestCase):
         self.assertEqual(code, 2)
         self.assertIn("Flight Control guard error: boom", err.getvalue())
 
+    def test_stdin_read_error_exits_2(self):
+        class BrokenStdin:
+            def read(self):
+                raise OSError("stdin gone")
+
+        err = io.StringIO()
+        with patch("sys.stdin", BrokenStdin()):
+            code = pretool.run(err)
+        self.assertEqual(code, 2)
+        self.assertIn("Flight Control guard error", err.getvalue())
+
     def test_rules_list_starts_with_path_rule(self):
         from afc.hooks.rules_paths import check_paths
 

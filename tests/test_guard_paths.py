@@ -1,5 +1,7 @@
+import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from afc.config import afc_root
 from afc.hooks.common import (
@@ -15,6 +17,7 @@ from afc.registry import Project
 from tests.helpers import AfcTestCase, bash, ev
 
 ROOT = afc_root()
+POLICY = "can't be changed this way"
 
 
 class GuardPathTestCase(AfcTestCase):
@@ -61,8 +64,25 @@ class TestCheckPaths(GuardPathTestCase):
         )
 
     def test_tmp_symlink_allowed(self):
+        # A symlink in the temp dir that points into the active project is allowed.
+        link = self.tmp / "link_in"
+        link.symlink_to(self.app)
         self.assertIsNone(
-            check_paths(ev("Write", {"file_path": "/tmp/scratch.txt"}), self.ctx)
+            check_paths(ev("Write", {"file_path": str(link / "x.py")}), self.ctx)
+        )
+
+    def test_tmp_symlink_outside_blocked(self):
+        # A symlink in the temp dir that points outside every allowed root is blocked.
+        link = self.tmp / "link_out"
+        link.symlink_to(Path.home() / "afc-probe-outside-link")
+        self.assertIn(
+            "outside",
+            check_paths(ev("Write", {"file_path": str(link / "a.txt")}), self.ctx),
+        )
+
+    def test_tmp_write_allowed_without_active_project(self):
+        self.assertIsNone(
+            check_paths(ev("Write", {"file_path": str(self.tmp / "scratch.txt")}), self.ctx_none)
         )
 
     def test_no_active_project_message(self):
@@ -70,11 +90,6 @@ class TestCheckPaths(GuardPathTestCase):
         self.assertIn(
             "type /afc",
             check_paths(ev("Write", {"file_path": str(probe)}), self.ctx_none),
-        )
-
-    def test_tmp_write_allowed_without_active_project(self):
-        self.assertIsNone(
-            check_paths(ev("Write", {"file_path": str(self.tmp / "scratch.txt")}), self.ctx_none)
         )
 
     def test_afc_root_without_maintain_and_no_project_says_maintenance(self):
@@ -95,9 +110,64 @@ class TestCheckPaths(GuardPathTestCase):
             check_paths(ev("Write", {"file_path": str(ROOT / "CLAUDE.md")}), ctx)
         )
 
-    def test_write_event_without_path_blocked(self):
-        with self.assertRaises(GuardInputError):
-            check_paths(ev("Write", {"content": "x"}), self.ctx)
+    def test_project_parent_of_afc_root_cannot_write_into_afc(self):
+        # An active project whose code_path contains A-FC must not reach into A-FC.
+        project = Project(
+            name="parent", code_path=str(ROOT.parent), workspace_path=str(self.workspace)
+        )
+        ctx = Context(home=self.home, root=ROOT, active=project, maintain=False)
+        self.assertIn(
+            "maintenance mode",
+            check_paths(ev("Write", {"file_path": str(ROOT / "CLAUDE.md")}), ctx),
+        )
+
+    def test_project_parent_still_allows_siblings(self):
+        project = Project(
+            name="parent", code_path=str(ROOT.parent), workspace_path=str(self.workspace)
+        )
+        ctx = Context(home=self.home, root=ROOT, active=project, maintain=False)
+        sibling = ROOT.parent / "sibling-project" / "a.py"
+        self.assertIsNone(check_paths(ev("Write", {"file_path": str(sibling)}), ctx))
+
+    def test_home_maintain_file_blocked(self):
+        self.assertIn(
+            POLICY,
+            check_paths(ev("Write", {"file_path": str(self.home / "maintain")}), self.ctx),
+        )
+
+    def test_home_projects_json_blocked(self):
+        self.assertIn(
+            POLICY,
+            check_paths(ev("Write", {"file_path": str(self.home / "projects.json")}), self.ctx),
+        )
+
+    def test_home_projects_md_blocked(self):
+        self.assertIn(
+            POLICY,
+            check_paths(ev("Edit", {"file_path": str(self.home / "projects.md")}), self.ctx),
+        )
+
+    def test_claude_settings_blocked(self):
+        path = str(Path.home() / ".claude" / "settings.json")
+        self.assertIn(POLICY, check_paths(ev("Write", {"file_path": path}), self.ctx))
+
+    def test_claude_settings_local_blocked_even_in_maintain(self):
+        path = str(Path.home() / ".claude" / "settings.local.json")
+        ctx = Context(home=self.home, root=ROOT, active=self.ctx.active, maintain=True)
+        self.assertIn(POLICY, check_paths(ev("Write", {"file_path": path}), ctx))
+
+    def test_afc_claude_settings_blocked_without_maintain(self):
+        path = str(ROOT / ".claude" / "settings.json")
+        self.assertIn(POLICY, check_paths(ev("Write", {"file_path": path}), self.ctx))
+
+    def test_afc_claude_settings_allowed_with_maintain(self):
+        path = str(ROOT / ".claude" / "settings.json")
+        ctx = Context(home=self.home, root=ROOT, active=self.ctx.active, maintain=True)
+        self.assertIsNone(check_paths(ev("Write", {"file_path": path}), ctx))
+
+    def test_project_plan_file_under_home_allowed(self):
+        path = self.home / "projects" / "demo" / "plan" / "intent.md"
+        self.assertIsNone(check_paths(ev("Write", {"file_path": str(path)}), self.ctx))
 
     def test_notebook_path_checked(self):
         self.assertIn(
@@ -105,33 +175,31 @@ class TestCheckPaths(GuardPathTestCase):
             check_paths(ev("NotebookEdit", {"notebook_path": "/Users/x/n.ipynb"}), self.ctx),
         )
 
+    def test_write_event_without_path_blocked(self):
+        with self.assertRaises(GuardInputError):
+            check_paths(ev("Write", {"content": "x"}), self.ctx)
+
     def test_bash_redirect_outside_blocked(self):
-        self.assertIsNotNone(
-            check_paths(bash("echo hi > /Users/x/o.txt"), self.ctx)
-        )
+        self.assertIsNotNone(check_paths(bash("echo hi > /Users/x/o.txt"), self.ctx))
 
     def test_bash_redirect_into_code_allowed(self):
-        self.assertIsNone(
-            check_paths(bash(f"echo hi > {self.app}/o.txt"), self.ctx)
-        )
+        self.assertIsNone(check_paths(bash(f"echo hi > {self.app}/o.txt"), self.ctx))
 
     def test_bash_cp_into_code_allowed(self):
-        self.assertIsNone(
-            check_paths(bash(f"cp notes.txt {self.app}/"), self.ctx)
-        )
+        self.assertIsNone(check_paths(bash(f"cp notes.txt {self.app}/"), self.ctx))
 
     def test_bash_cp_outside_blocked(self):
-        self.assertIsNotNone(
-            check_paths(bash("cp notes.txt /Users/x/elsewhere/"), self.ctx)
-        )
+        self.assertIsNotNone(check_paths(bash("cp notes.txt /Users/x/elsewhere/"), self.ctx))
+
+    def test_bash_write_to_home_control_file_blocked(self):
+        command = f"echo x > {self.home / 'projects.json'}"
+        self.assertIn(POLICY, check_paths(bash(command), self.ctx))
 
     def test_bash_without_write_targets_passes(self):
         self.assertIsNone(check_paths(bash("ls -la /Users/x"), self.ctx))
 
     def test_read_tool_not_checked(self):
-        self.assertIsNone(
-            check_paths(ev("Read", {"file_path": "/Users/x/o.txt"}), self.ctx)
-        )
+        self.assertIsNone(check_paths(ev("Read", {"file_path": "/Users/x/o.txt"}), self.ctx))
 
 
 class TestBashWriteTargets(unittest.TestCase):
@@ -141,13 +209,61 @@ class TestBashWriteTargets(unittest.TestCase):
 
     def test_cp_mv_rsync_take_last_argument(self):
         self.assertEqual(bash_write_targets("mv a b /x/dir"), ["/x/dir"])
-        self.assertEqual(bash_write_targets("rsync -av src/ /x/dst/"), ["/x/dst/"])
+        self.assertEqual(bash_write_targets("rsync -av src/ /x/dst/"), ["/x/dst"])
 
     def test_dev_null_and_fd_dup_ignored(self):
         self.assertEqual(bash_write_targets("cmd 2>&1 > /dev/null"), [])
 
+    def test_fd_prefix_is_not_a_tee_argument(self):
+        self.assertEqual(bash_write_targets("tee /x/a 2>&1"), ["/x/a"])
+
     def test_unparseable_returns_empty(self):
         self.assertEqual(bash_write_targets('echo "unclosed > /x'), [])
+
+    def test_ampersand_greater_than_word_is_file_target(self):
+        self.assertEqual(bash_write_targets("echo hi >& /Users/x/o.txt"), ["/Users/x/o.txt"])
+
+    def test_numeric_dup_is_not_a_file(self):
+        self.assertEqual(bash_write_targets("echo hi >&2"), [])
+
+    def test_cp_dash_t_destination(self):
+        self.assertEqual(
+            bash_write_targets("cp -t /Users/x/elsewhere src.txt"), ["/Users/x/elsewhere"]
+        )
+
+    def test_cp_target_directory_equals(self):
+        self.assertEqual(bash_write_targets("cp --target-directory=/x src"), ["/x"])
+
+    def test_hash_is_not_a_comment(self):
+        self.assertEqual(bash_write_targets("echo x#y > /Users/x/o"), ["/Users/x/o"])
+
+    def test_cd_changes_base_for_later_targets(self):
+        self.assertEqual(
+            bash_write_targets("cd /Users/x && echo hi > o.txt"), ["/Users/x/o.txt"]
+        )
+
+    def test_sudo_wrapper_before_tee(self):
+        self.assertEqual(bash_write_targets("sudo tee /x"), ["/x"])
+
+    def test_assignment_prefix_before_cp(self):
+        self.assertEqual(bash_write_targets("FOO=1 cp a /x"), ["/x"])
+
+    def test_shell_dash_c_is_parsed_recursively(self):
+        self.assertEqual(bash_write_targets("bash -c 'echo x > /x'"), ["/x"])
+
+    def test_tilde_is_expanded(self):
+        expected = str(Path.home().resolve() / "afc-probe" / "o")
+        self.assertEqual(bash_write_targets("echo hi > ~/afc-probe/o"), [expected])
+
+    def test_environment_variable_is_expanded(self):
+        with patch.dict(os.environ, {"AFC_TEST_DIR": "/Users/x"}):
+            self.assertEqual(bash_write_targets("echo hi > $AFC_TEST_DIR/o"), ["/Users/x/o"])
+
+    def test_unexpanded_variable_is_skipped(self):
+        self.assertEqual(bash_write_targets("echo hi > $AFC_UNSET_VAR_XYZ/o"), [])
+
+    def test_backtick_target_is_skipped(self):
+        self.assertEqual(bash_write_targets("echo hi > `pwd`/o"), [])
 
 
 class TestHelpers(unittest.TestCase):
