@@ -131,6 +131,16 @@ class TestGitRule(AfcTestCase):
         c = f"cd /nope-afc-missing; git -C {self.repo} commit -m x"
         self.assertIsNotNone(check_git(bash(c, cwd=self.tmp), self.ctx))
 
+    def test_shell_forms_followed_or_blocked(self):
+        for c in ["bash -c -- 'git reset --hard'", "sudo -u x bash -c 'git reset --hard'",
+                  "ksh -c 'git reset --hard'", "busybox sh -c 'git reset --hard'",
+                  "echo 'git reset --hard' | bash", "bash <<< 'git status'", "bash < run.sh",
+                  "bash script.sh", "bash", "env -u X bash -c 'git rebase'"]:
+            self.assertIsNotNone(check_git(bash(c), self.ctx), c)
+        for c in ["bash -c 'git status'", "bash -c -o pipefail 'git status'",
+                  "sudo -u x ls", "env -i A=1 git status", "ls -la"]:
+            self.assertIsNone(check_git(bash(c), self.ctx), c)
+
     def test_commit_outside_repo_allowed(self):
         plain = self.tmp / "plain"
         plain.mkdir()

@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 from afc.hooks.common import (
+    CANT_FOLLOW,
     UNREADABLE_REASON,
     Context,
     cd_base,
@@ -64,6 +65,8 @@ def simple_commands(command: str, cwd: str) -> list[tuple[list[str], Path]] | No
         if name == "cd":
             base = cd_base(words[1:], base)
         elif (script := shell_script(words)) is not None:
+            if script is CANT_FOLLOW:
+                return None
             inner = simple_commands(script, str(base))
             if inner is None:
                 return None

@@ -53,6 +53,14 @@ class TestCheckPaths(GuardPathTestCase):
                     "eval echo x '>' /x"):
             self.assertIsNotNone(check_paths(bash(cmd), self.ctx), cmd)
 
+    def test_shell_script_extraction(self):
+        for cmd in ("bash -c -- 'echo x > /x'", "bash -c -o pipefail 'echo x > /x'"):
+            self.assertEqual(bash_write_targets_or_none(cmd), ["/x"], cmd)
+        for cmd in ("bash <<< 'echo x > /x'", "echo 'echo x > /x' | bash", "bash script.sh"):
+            self.assertIsNone(bash_write_targets_or_none(cmd), cmd)
+            self.assertIsNotNone(check_paths(bash(cmd), self.ctx), cmd)
+        self.assertEqual(bash_write_targets_or_none("bash -c 'git status'"), [])
+
     def test_heredoc_with_apostrophes_allowed(self):
         cmd = "cat <<'EOF' >> /tmp/f\ndon't\nEOF"
         self.assertIsNone(check_paths(bash(cmd), self.ctx))

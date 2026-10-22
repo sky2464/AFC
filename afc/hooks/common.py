@@ -27,8 +27,16 @@ _FD_DUP = ">&"
 _SEPARATORS = {";", "&&", "||", "|", "&", "(", ")"}
 _FILE_COMMANDS = {"cp", "mv", "rsync"}
 _WRAPPERS = {"sudo", "env", "nohup", "command", "exec", "time"}
-_SHELLS = {"bash", "sh", "zsh", "dash"}
+_SHELLS = {"bash", "sh", "zsh", "dash", "ksh", "fish", "ash"}
 _C_FLAG = re.compile(r"^-[A-Za-z]*c[A-Za-z]*$")
+_SHELL_VALUE_OPTS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
+_WRAPPER_VALUE_OPTS = {
+    "sudo": {"-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U", "-T", "-R"},
+    "env": {"-u", "-C", "-S", "--unset", "--chdir", "--split-string"},
+    "time": {"-f", "-o"},
+    "exec": {"-a"},
+}
+CANT_FOLLOW = object()  # shell_script result: shell code the guard can't see
 _ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 _FD_WORD = re.compile(r"^(\d+|-)$")
 _SETTINGS_NAMES = ("settings.json", "settings.local.json")
@@ -281,6 +289,8 @@ def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None
         if name == "cd":
             base = cd_base(args, base)
         elif (script := shell_script(words)) is not None:
+            if script is CANT_FOLLOW:
+                return None
             inner = bash_write_targets_or_none(script, str(base))
             if inner is None:
                 return None
@@ -295,17 +305,35 @@ def _within(path: Path, root: Path) -> bool:
     return path == root or path.is_relative_to(root)
 
 
-def shell_script(words: list[str]) -> str | None:
-    """Script text a command runs as shell code: `sh|bash|zsh|dash -<flags with c> SCRIPT`
-    (e.g. -c, -lc, -xec) or `eval ARGS...`; None for any other command."""
+def shell_script(words: list[str]):
+    """Script text a command runs as shell code, CANT_FOLLOW, or None when it isn't a shell.
+
+    `eval ARGS` gives the joined args. A shell (sh, bash, zsh, dash, ksh, fish, busybox
+    sh/ash) is followed only as `SHELL [options] -<cluster with c> [options] [--] SCRIPT`.
+    Any other shell form — script from stdin or a file, or options it can't parse — is
+    CANT_FOLLOW, which callers block.
+    """
     name = Path(words[0]).name
     if name == "eval":
         return " ".join(words[1:])
-    if name in _SHELLS:
-        for i, word in enumerate(words[1:], start=1):
-            if _C_FLAG.match(word):
-                return words[i + 1] if i + 1 < len(words) else ""
-    return None
+    if name == "busybox" and len(words) > 1 and words[1] in ("sh", "ash"):
+        words, name = words[1:], words[1]
+    if name not in _SHELLS:
+        return None
+    found_c, i = False, 1
+    while i < len(words):
+        word = words[i]
+        if word == "--":
+            return words[i + 1] if found_c and i + 1 < len(words) else CANT_FOLLOW
+        if word in _SHELL_VALUE_OPTS:
+            i += 2
+            continue
+        if word.startswith("--") or (word[:1] in "-+" and len(word) > 1):
+            found_c = found_c or bool(_C_FLAG.match(word))
+            i += 1
+            continue
+        return word if found_c else CANT_FOLLOW
+    return CANT_FOLLOW
 
 
 def split_commands(tokens: list[str]):
@@ -340,11 +368,18 @@ def split_commands(tokens: list[str]):
 
 def strip_prefix(words: list[str]) -> list[str]:
     """Drop leading VAR=value assignments, wrapper commands and options."""
-    i = 0
-    while i < len(words) and (
-        _ASSIGNMENT.match(words[i]) or words[i] in _WRAPPERS or words[i].startswith("-")
-    ):
-        i += 1
+    i, wrapper = 0, None
+    while i < len(words):
+        word = words[i]
+        if _ASSIGNMENT.match(word):
+            i += 1
+        elif Path(word).name in _WRAPPERS:
+            wrapper = Path(word).name
+            i += 1
+        elif word.startswith("-"):
+            i += 2 if word in _WRAPPER_VALUE_OPTS.get(wrapper, ()) else 1
+        else:
+            break
     return words[i:]
 
 
