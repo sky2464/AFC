@@ -59,8 +59,6 @@ def simple_commands(
     out: list[tuple[list[str], Path]] = []
     for words, _ in split_commands(tokens):
         words = strip_prefix(words)
-        while words and Path(words[0]).name == "xargs":
-            words = strip_prefix(words[1:])
         if not words:
             continue
         name = Path(words[0]).name

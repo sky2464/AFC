@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 from unittest.mock import patch
 
 from afc.hooks.common import Context
@@ -22,6 +23,9 @@ ALLOWED = ["git push origin main", "git commit -m 'feat: x'", "gh repo create x 
            'docker push img && echo "not prod"', 'git commit -m "mention git rebase and --public"',
            "git rebase --abort", "git rebase --continue", "git rebase --quit",
            "cat > notes.md <<'EOF'\ngit rebase -i\ngh repo create x --public\nEOF"]
+
+REVIEW_PACKAGE = (Path.home() / ".claude/plugins/cache/claude-plugins-official/superpowers/7.0.0"
+                  "/skills/subagent-driven-development/scripts/review-package")
 
 SECRET = "AKIA" + "ABCDEFGHIJKLMNOP"
 
@@ -159,6 +163,43 @@ class TestGitRule(AfcTestCase):
                   "bash bin.sh", "bash outer.sh", "bash l1.sh", "bash -s ok.sh",
                   "cat ok.sh | bash", "bash < ok.sh", "source"]:
             self.assertIsNotNone(check_git(bash(c, cwd=d), self.ctx), c)
+
+    def test_comments_stripped(self):
+        script = Path(REVIEW_PACKAGE).read_text()
+        (self.tmp / "rp").write_text(script)
+        self.assertIsNone(check_git(bash(f"bash {self.tmp}/rp a b c", cwd=self.tmp), self.ctx))
+        (self.tmp / "s.sh").write_text("#!/usr/bin/env bash\n# it's (named per range).\ngit status\n")
+        self.assertIsNone(check_git(bash("bash s.sh", cwd=self.tmp), self.ctx))
+        for c in ["echo $# && git status", "echo hi # git reset --hard", "echo ${#x}"]:
+            self.assertIsNone(check_git(bash(c), self.ctx), c)
+        for c in ["echo x#y; git reset --hard", "echo '# q'; git reset --hard",
+                  "# note\ngit reset --hard"]:
+            self.assertIsNotNone(check_git(bash(c), self.ctx), c)
+
+    def test_sudo_long_options_skipped(self):
+        for c in ["sudo --user x bash -c 'git reset --hard'", "sudo --group g git reset --hard",
+                  "sudo --chdir /tmp --prompt p git reset --hard", "sudo --user=x git reset --hard",
+                  "sudo --close-from 3 --role r --type t --host h --other-user u git reset --hard"]:
+            self.assertIsNotNone(check_git(bash(c), self.ctx), c)
+        self.assertIsNone(check_git(bash("sudo --user x git status"), self.ctx))
+
+    def test_env_split_string_inspected(self):
+        for c in ["env -S 'git reset --hard'", "env --split-string 'git reset --hard'",
+                  "env --split-string='git reset --hard'", "env -S\"git reset --hard\"",
+                  "env -S \"bash -c 'git reset --hard'\" x", "env -S \"echo 'open\""]:
+            self.assertIsNotNone(check_git(bash(c), self.ctx), c)
+        self.assertIsNone(check_git(bash("env -S 'git status'"), self.ctx))
+
+    def test_more_wrappers_followed(self):
+        for c in ["timeout 5 git reset --hard", "timeout -s KILL -k 2 5s git reset --hard",
+                  "nice -n 5 git reset --hard", "nice git reset --hard", "stdbuf -oL git reset --hard",
+                  "stdbuf -o L git reset --hard", "ionice -c 3 git reset --hard",
+                  "doas -u x git reset --hard", "chronic git reset --hard",
+                  "nohup git reset --hard", "xargs -n 1 -I {} git reset --hard",
+                  "timeout 5 bash -c 'git reset --hard'", "nice -n 1 timeout 3 xargs git clean -fd"]:
+            self.assertIsNotNone(check_git(bash(c), self.ctx), c)
+        for c in ["timeout 5 git status", "nice -n 5 ls", "xargs -n 1 echo"]:
+            self.assertIsNone(check_git(bash(c), self.ctx), c)
 
     def test_commit_outside_repo_allowed(self):
         plain = self.tmp / "plain"

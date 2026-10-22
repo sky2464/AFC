@@ -12,6 +12,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from afc.hooks.shell_text import strip_heredoc_bodies  # noqa: F401 (re-export)
 from afc.config import afc_home, afc_root, maintain_enabled
 from afc.registry import Project, RegistryError, load_registry
 
@@ -26,16 +27,27 @@ _REDIRECTS = {">", ">>", ">|", "&>", "&>>"}
 _FD_DUP = ">&"
 _SEPARATORS = {";", "&&", "||", "|", "&", "(", ")"}
 _FILE_COMMANDS = {"cp", "mv", "rsync"}
-_WRAPPERS = {"sudo", "env", "nohup", "command", "exec", "time"}
+_WRAPPERS = {"sudo", "env", "nohup", "command", "exec", "time", "timeout", "nice",
+             "stdbuf", "ionice", "doas", "chronic", "xargs"}
 _SHELLS = {"bash", "sh", "zsh", "dash", "ksh", "fish", "ash"}
 _C_FLAG = re.compile(r"^-[A-Za-z]*c[A-Za-z]*$")
 _SHELL_VALUE_OPTS = {"-o", "+o", "-O", "+O", "--rcfile", "--init-file"}
 _WRAPPER_VALUE_OPTS = {
-    "sudo": {"-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U", "-T", "-R"},
-    "env": {"-u", "-C", "-S", "--unset", "--chdir", "--split-string"},
+    "sudo": {"-u", "-g", "-C", "-D", "-h", "-p", "-r", "-t", "-U", "-T", "-R", "--user",
+             "--group", "--chdir", "--host", "--prompt", "--role", "--type", "--other-user",
+             "--close-from"},
+    "env": {"-u", "-C", "--unset", "--chdir"},
     "time": {"-f", "-o"},
     "exec": {"-a"},
+    "timeout": {"-s", "-k", "--signal", "--kill-after"},
+    "nice": {"-n", "--adjustment"},
+    "stdbuf": {"-i", "-o", "-e", "--input", "--output", "--error"},
+    "ionice": {"-c", "-n", "-p", "-P", "-u", "--class", "--classdata"},
+    "doas": {"-u", "-C"},
+    "xargs": {"-I", "-L", "-n", "-P", "-s", "-d", "-E", "-a", "--arg-file", "--delimiter",
+              "--max-args", "--max-procs", "--max-chars", "--max-lines", "--replace", "--eof"},
 }
+_WRAPPER_POSITIONALS = {"timeout": 1}  # timeout DURATION cmd
 CANT_FOLLOW = object()  # shell_script result: shell code the guard can't see
 _ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 _FD_WORD = re.compile(r"^(\d+|-)$")
@@ -153,100 +165,6 @@ def check_paths_reason(path: Path, ctx: Context) -> str | None:
     if ctx.active is None:
         return f"no active project: pick a project — type /afc before writing {path}"
     return f"{path} is outside the active project, so the write is blocked"
-
-
-_HEREDOC = re.compile(r"<<(-?)[ \t]*(?:'([^'\n]*)'|\"([^\"\n]*)\"|\\?([A-Za-z0-9_.-]+))")
-
-
-_OPENERS = (("$((", "(("), ("((", "(("), ("$[", "["), ("${", "{"))
-_CLOSERS = {"((": "))", "(": ")", "[": "]", "{": "}"}
-
-
-def _skip_body(text: str, i: int, pending: list) -> int:
-    """From the start of a line, skip each pending heredoc body through its terminator."""
-    for tabs, tag in pending:
-        while i < len(text):
-            end = text.find("\n", i)
-            end = len(text) if end < 0 else end
-            line = text[i:end].lstrip("\t") if tabs else text[i:end]
-            i = end + 1
-            if line == tag:
-                break
-    return min(i, len(text))
-
-
-def strip_heredoc_bodies(command: str) -> str:
-    """Drop heredoc body lines (up to and including each terminator); keep operator lines.
-
-    One pass over the whole text; quote, escape, comment and arithmetic/brace state carry
-    across newlines. `<<` counts only in plain command context; `<<<` is ignored. An
-    unterminated heredoc drops the rest. If the text ends inside an unclosed quote or
-    bracket construct, the original text is returned unchanged.
-    """
-    text = command
-    out: list[str] = []
-    stack: list[str] = []
-    pending: list = []
-    start = i = 0
-    while i < len(text):
-        top = stack[-1] if stack else None
-        ch = text[i]
-        if top == "'":
-            if ch == "'":
-                stack.pop()
-        elif top == "$'" and ch == "\\":
-            i += 1
-        elif top == "$'" and ch == "'":
-            stack.pop()
-        elif top == "$'":
-            pass
-        elif top != '"' and ch == "'" and i > 0 and text[i - 1] == "$" and not _escaped(text, i - 1):
-            stack.append("$'")
-        elif ch == "\\":
-            i += 1
-        elif top == '"' and ch == '"':
-            stack.pop()
-        elif top in _CLOSERS and text.startswith(_CLOSERS[top], i):
-            i += len(_CLOSERS[top]) - 1
-            stack.pop()
-        elif top in ("((", "(") and ch == "(":
-            stack.append("(")
-        elif top != '"' and ch in "'\"":
-            stack.append(ch)
-        elif any(text.startswith(op, i) for op, _ in _OPENERS if top != '"' or op[0] == "$"):
-            op, kind = next(p for p in _OPENERS if text.startswith(p[0], i))
-            stack.append(kind)
-            i += len(op) - 1
-        elif top is not None:
-            pass
-        elif ch == "#" and (i == 0 or text[i - 1] in " \t\n;&|()"):
-            end = text.find("\n", i)
-            i = (len(text) if end < 0 else end) - 1
-        elif text.startswith("<<<", i):
-            i += 2
-        elif text.startswith("<<", i) and (match := _HEREDOC.match(text, i)):
-            tag = next(g for g in match.groups()[1:] if g is not None)
-            pending.append((match.group(1) == "-", tag))
-            i = match.end()
-            continue
-        elif ch == "\n" and pending:
-            out.append(text[start : i + 1])
-            i = start = _skip_body(text, i + 1, pending)
-            pending = []
-            continue
-        i += 1
-    if stack:
-        return command
-    out.append(text[start:])
-    return "".join(out)
-
-
-def _escaped(text: str, i: int) -> bool:
-    """True when text[i] is preceded by an odd number of backslashes."""
-    count = 0
-    while i - count - 1 >= 0 and text[i - count - 1] == "\\":
-        count += 1
-    return count % 2 == 1
 
 
 def lex(command: str) -> list[str] | None:
@@ -400,20 +318,45 @@ def split_commands(tokens: list[str]):
 
 
 def strip_prefix(words: list[str]) -> list[str]:
-    """Drop leading VAR=value assignments, wrapper commands and options."""
-    i, wrapper = 0, None
+    """Drop leading VAR=value assignments, wrapper commands and their options.
+
+    `env -S STRING` becomes `eval STRING ARGS`, so the split string is inspected as shell code.
+    """
+    i, wrapper, positionals = 0, None, 0
     while i < len(words):
         word = words[i]
-        if _ASSIGNMENT.match(word):
+        split = _env_split(wrapper, words, i)
+        if split is not None:
+            value, i = split
+            return ["eval", value, *words[i:]]
+        if _ASSIGNMENT.match(word) and wrapper not in ("xargs",):
+            i += 1
+        elif word.startswith("-") and wrapper is not None:
+            i += 2 if word in _WRAPPER_VALUE_OPTS.get(wrapper, ()) else 1
+        elif positionals:
+            positionals -= 1
             i += 1
         elif Path(word).name in _WRAPPERS:
             wrapper = Path(word).name
+            positionals = _WRAPPER_POSITIONALS.get(wrapper, 0)
             i += 1
-        elif word.startswith("-"):
-            i += 2 if word in _WRAPPER_VALUE_OPTS.get(wrapper, ()) else 1
         else:
             break
     return words[i:]
+
+
+def _env_split(wrapper, words: list[str], i: int):
+    """(STRING, next index) for env's -S/--split-string at words[i], else None."""
+    if wrapper != "env":
+        return None
+    word = words[i]
+    if word in ("-S", "--split-string"):
+        return (words[i + 1], i + 2) if i + 1 < len(words) else ("'", i + 1)
+    if word.startswith("--split-string="):
+        return word.split("=", 1)[1], i + 1
+    if word.startswith("-S") and len(word) > 2:
+        return word[2:], i + 1
+    return None
 
 
 def _command_targets(name: str, args: list[str]) -> list[str]:

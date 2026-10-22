@@ -309,6 +309,27 @@ class TestBashWriteTargets(unittest.TestCase):
         self.assertEqual(bash_write_targets("echo hi > `pwd`/o"), [])
 
 
+class TestCommentsAndWrappers(GuardPathTestCase):
+    def test_real_script_with_comments_passes(self):
+        from tests.test_guard_git import REVIEW_PACKAGE
+        (self.app / "rp").write_text(Path(REVIEW_PACKAGE).read_text())
+        self.assertIsNone(check_paths(bash(f"bash {self.app}/rp a b c", cwd=self.app), self.ctx))
+
+    def test_comment_cases(self):
+        for cmd in ("#!/usr/bin/env bash\necho x", "echo hi # it's (a note) > /x", "echo $#"):
+            self.assertEqual(bash_write_targets_or_none(cmd), [], cmd)
+        self.assertEqual(bash_write_targets_or_none("echo x#y > /x"), ["/x"])
+        self.assertEqual(bash_write_targets_or_none("echo '#' > /x"), ["/x"])
+
+    def test_wrappers_and_options_followed(self):
+        for cmd in ("sudo --user x bash -c 'echo > /x'", "env -S 'tee /x'",
+                    "env --split-string='tee /x'", "timeout -k 1 5 tee /x", "nice -n 3 tee /x",
+                    "stdbuf -oL tee /x", "ionice -c 2 tee /x", "doas -u r tee /x",
+                    "chronic tee /x", "nohup tee /x", "xargs -I {} tee /x"):
+            self.assertEqual(bash_write_targets_or_none(cmd), ["/x"], cmd)
+        self.assertIsNone(bash_write_targets_or_none("env -S \"echo 'open\""))
+
+
 class TestHelpers(unittest.TestCase):
     def test_read_event_rejects_empty_and_non_object(self):
         for text in ("", "   ", "not json", "[1, 2]"):
@@ -426,7 +447,8 @@ class TestHeredocBodies(unittest.TestCase):
 
     def test_ansi_c_escaped_quote_hides_no_target(self):
         cmd = "echo $'\\'' '<<EOF' #'\necho hi > real.txt"
-        self.assertIn("/private/tmp/real.txt", bash_write_targets(cmd, "/private/tmp"))
+        found = bash_write_targets_or_none(cmd, "/private/tmp")
+        self.assertTrue(found is None or "/private/tmp/real.txt" in found)  # blocked or seen
 
     def test_here_string_unaffected(self):
         cmd = "cat <<< word > /x/f\necho > /x/g"
