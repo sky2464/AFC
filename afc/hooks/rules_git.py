@@ -48,7 +48,9 @@ _WHOLE_TREE = {".", "./", ":/", "*"}
 _DIFF = ("-U0", "--no-color", "--no-ext-diff", "--no-textconv")
 
 
-def simple_commands(command: str, cwd: str) -> list[tuple[list[str], Path]] | None:
+def simple_commands(
+    command: str, cwd: str, depth: int = 0
+) -> list[tuple[list[str], Path]] | None:
     """(words, directory) for each simple command, following `cd` and `sh -c`; None if unlexable."""
     tokens = lex(command)
     if tokens is None:
@@ -64,10 +66,10 @@ def simple_commands(command: str, cwd: str) -> list[tuple[list[str], Path]] | No
         name = Path(words[0]).name
         if name == "cd":
             base = cd_base(words[1:], base)
-        elif (script := shell_script(words)) is not None:
+        elif (script := shell_script(words, base, depth)) is not None:
             if script is CANT_FOLLOW:
                 return None
-            inner = simple_commands(script, str(base))
+            inner = simple_commands(script, str(base), depth + 1)
             if inner is None:
                 return None
             out.extend(inner)

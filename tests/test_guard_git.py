@@ -141,6 +141,25 @@ class TestGitRule(AfcTestCase):
                   "sudo -u x ls", "env -i A=1 git status", "ls -la"]:
             self.assertIsNone(check_git(bash(c), self.ctx), c)
 
+    def test_script_files_followed(self):
+        d = self.tmp / "scripts"
+        d.mkdir()
+        (d / "ok.sh").write_text("git status\n")
+        (d / "bad.sh").write_text("git reset --hard\n")
+        (d / "bin.sh").write_bytes(b"git status\0\xff")
+        (d / "inner.sh").write_text("git reset --hard\n")
+        (d / "outer.sh").write_text("bash inner.sh\n")
+        for i in range(5):  # l4 runs git status; l2 is 3 scripts deep, l1 is 4
+            (d / f"l{i}.sh").write_text(f"bash l{i + 1}.sh\n" if i < 4 else "git status\n")
+        for c in ["bash ok.sh", "source ok.sh", ". ok.sh", "bash -e ok.sh arg",
+                  "sh -- ok.sh", f"bash {d}/ok.sh", "bash l2.sh"]:
+            self.assertIsNone(check_git(bash(c, cwd=d), self.ctx), c)
+        self.assertIsNone(check_git(bash(f"cd {d} && bash ok.sh", cwd=self.tmp), self.ctx))
+        for c in ["bash bad.sh", "source bad.sh", ". bad.sh", "bash missing.sh",
+                  "bash bin.sh", "bash outer.sh", "bash l1.sh", "bash -s ok.sh",
+                  "cat ok.sh | bash", "bash < ok.sh", "source"]:
+            self.assertIsNotNone(check_git(bash(c, cwd=d), self.ctx), c)
+
     def test_commit_outside_repo_allowed(self):
         plain = self.tmp / "plain"
         plain.mkdir()

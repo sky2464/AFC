@@ -266,11 +266,13 @@ def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
     return bash_write_targets_or_none(command, cwd) or []
 
 
-def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None:
+def bash_write_targets_or_none(
+    command: str, cwd: str = "/", depth: int = 0
+) -> list[str] | None:
     """Best-effort absolute paths a shell command writes to; None when it can't be lexed.
 
     Covers redirects (>, >>, >|, &>, >&word), tee, cp/mv/rsync (last argument or -t DIR),
-    leading assignments and wrappers, `bash|sh|zsh -c`, and `cd` earlier in the chain.
+    leading assignments and wrappers, shell scripts (`-c`, files, source), and `cd` earlier in the chain.
     Targets with an unexpanded `$` or a backtick are skipped.
     """
     tokens = lex(command)
@@ -288,10 +290,10 @@ def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None
         args = words[1:]
         if name == "cd":
             base = cd_base(args, base)
-        elif (script := shell_script(words)) is not None:
+        elif (script := shell_script(words, base, depth)) is not None:
             if script is CANT_FOLLOW:
                 return None
-            inner = bash_write_targets_or_none(script, str(base))
+            inner = bash_write_targets_or_none(script, str(base), depth + 1)
             if inner is None:
                 return None
             targets.extend(inner)
@@ -305,34 +307,65 @@ def _within(path: Path, root: Path) -> bool:
     return path == root or path.is_relative_to(root)
 
 
-def shell_script(words: list[str]):
+_MAX_SCRIPT_BYTES = 1_000_000
+MAX_FOLLOW_DEPTH = 3
+
+
+def _read_script(raw: str, base: Path):
+    """Text of a script file the shell would run, or CANT_FOLLOW if it can't be read as text."""
+    if "$" in raw or "`" in raw:
+        return CANT_FOLLOW
+    path = resolve_path(raw, str(base))
+    try:
+        if not path.is_file() or path.stat().st_size > _MAX_SCRIPT_BYTES:
+            return CANT_FOLLOW
+        data = path.read_bytes()
+        if b"\0" in data:
+            return CANT_FOLLOW
+        return data.decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return CANT_FOLLOW
+
+
+def shell_script(words: list[str], base: Path | None = None, depth: int = 0):
     """Script text a command runs as shell code, CANT_FOLLOW, or None when it isn't a shell.
 
-    `eval ARGS` gives the joined args. A shell (sh, bash, zsh, dash, ksh, fish, busybox
-    sh/ash) is followed only as `SHELL [options] -<cluster with c> [options] [--] SCRIPT`.
-    Any other shell form — script from stdin or a file, or options it can't parse — is
-    CANT_FOLLOW, which callers block.
+    `eval ARGS` gives the joined args. `source FILE` / `. FILE` and
+    `SHELL [options] FILE [args]` (sh, bash, zsh, dash, ksh, fish, ash, busybox sh/ash)
+    give FILE's text, resolved against `base`. `SHELL [options] -<cluster with c>
+    [options] [--] SCRIPT` gives SCRIPT. Everything else — script from stdin, a missing,
+    binary or >1 MB file, or following deeper than MAX_FOLLOW_DEPTH — is CANT_FOLLOW,
+    which callers block. `depth` is how many scripts deep the caller already is.
     """
-    name = Path(words[0]).name
-    if name == "eval":
-        return " ".join(words[1:])
+    name = words[0] if words[0] == "." else Path(words[0]).name
     if name == "busybox" and len(words) > 1 and words[1] in ("sh", "ash"):
         words, name = words[1:], words[1]
-    if name not in _SHELLS:
+    if name != "eval" and name not in _SHELLS and name not in ("source", "."):
         return None
+    if depth >= MAX_FOLLOW_DEPTH:
+        return CANT_FOLLOW
+    base = base or Path("/")
+    if name == "eval":
+        return " ".join(words[1:])
+    if name in ("source", "."):
+        return _read_script(words[1], base) if len(words) > 1 else CANT_FOLLOW
     found_c, i = False, 1
     while i < len(words):
         word = words[i]
         if word == "--":
-            return words[i + 1] if found_c and i + 1 < len(words) else CANT_FOLLOW
+            if i + 1 >= len(words):
+                return CANT_FOLLOW
+            return words[i + 1] if found_c else _read_script(words[i + 1], base)
         if word in _SHELL_VALUE_OPTS:
             i += 2
             continue
         if word.startswith("--") or (word[:1] in "-+" and len(word) > 1):
+            if word[:1] == "-" and not word.startswith("--") and "s" in word:
+                return CANT_FOLLOW  # -s: script comes from stdin
             found_c = found_c or bool(_C_FLAG.match(word))
             i += 1
             continue
-        return word if found_c else CANT_FOLLOW
+        return word if found_c else _read_script(word, base)
     return CANT_FOLLOW
 
 

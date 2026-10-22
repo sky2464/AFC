@@ -61,6 +61,20 @@ class TestCheckPaths(GuardPathTestCase):
             self.assertIsNotNone(check_paths(bash(cmd), self.ctx), cmd)
         self.assertEqual(bash_write_targets_or_none("bash -c 'git status'"), [])
 
+    def test_script_files_followed(self):
+        d = self.tmp / "scripts"
+        d.mkdir()
+        (d / "w.sh").write_text("echo x > /x\n")
+        (d / "ok.sh").write_text("git status\n")
+        (d / "bin.sh").write_bytes(b"\0\xff")
+        for cmd in ("bash w.sh", "source w.sh", ". w.sh"):
+            self.assertEqual(bash_write_targets_or_none(cmd, str(d)), ["/x"], cmd)
+            self.assertIsNotNone(check_paths(bash(cmd, cwd=d), self.ctx), cmd)
+        self.assertEqual(bash_write_targets_or_none("bash ok.sh", str(d)), [])
+        for cmd in ("bash missing.sh", "bash bin.sh"):
+            self.assertIsNone(bash_write_targets_or_none(cmd, str(d)), cmd)
+            self.assertIsNotNone(check_paths(bash(cmd, cwd=d), self.ctx), cmd)
+
     def test_heredoc_with_apostrophes_allowed(self):
         cmd = "cat <<'EOF' >> /tmp/f\ndon't\nEOF"
         self.assertIsNone(check_paths(bash(cmd), self.ctx))
