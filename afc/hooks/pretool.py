@@ -10,11 +10,12 @@ from collections.abc import Callable
 from afc.hooks.common import WRITE_TOOLS, Context, load_context, read_event
 from afc.hooks.rules_git import check_git
 from afc.hooks.rules_paths import check_paths
+from afc.hooks.rules_resources import check_resources
 from afc.hooks.rules_secrets import check_secrets
 
 Rule = Callable[[dict, Context], str | None]
 
-RULES: list[Rule] = [check_paths, check_secrets, check_git]
+RULES: list[Rule] = [check_paths, check_secrets, check_resources, check_git]
 
 GUARDED_TOOLS = (*WRITE_TOOLS, "Bash")
 

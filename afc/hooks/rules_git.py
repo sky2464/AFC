@@ -21,11 +21,15 @@ from afc.hooks.common import (
     split_commands,
     strip_prefix,
 )
+from afc.fingerprint import leaks
+from afc.hooks.rules_resources import active_fingerprints
 from afc.secrets import find_secrets
 
 GIT_REASON = "this git command can lose work or rewrite history — run it yourself if you mean it"
 PUBLIC_REASON = "this would make something public — repos stay private; change it yourself if you mean it"
 DEPLOY_REASON = "this looks like a production deploy — run it yourself if you mean it"
+COMMIT_RESOURCE_REASON = ("the changes being committed contain company resource text "
+                          "— keep it in the project workspace")
 GIT_MISSING_REASON = "Flight Control couldn't check this commit for secrets because git didn't run"
 
 # (tool, words that must all appear after it) — one deploy verb each.
@@ -178,12 +182,17 @@ def unstaged_diff(repo: Path, location: list[str], paths: list[str]) -> str:
     return added_lines(result.stdout)
 
 
-def scan_commit_text(text: str) -> str | None:
-    """Reason to block a commit whose added lines are text, or None. Task 8 extends this."""
+def scan_commit_text(text: str, ctx: Context | None = None) -> str | None:
+    """Reason to block a commit whose added lines are text, or None.
+
+    Checks for secrets, and for company resource text of the active workspace (ctx).
+    """
     names = find_secrets(text)
     if names:
         return (f"the changes being committed look like they contain a secret ({', '.join(names)}) "
                 "— remove it and use an environment variable instead")
+    if ctx is not None and leaks(text, active_fingerprints(ctx)):
+        return COMMIT_RESOURCE_REASON
     return None
 
 
@@ -213,7 +222,8 @@ def commit_scope(args: list[str]) -> tuple[bool, list[str]]:
     return extra or bool(paths), paths
 
 
-def _scan_commit(location: list[str], base: Path, args: list[str], fallback: str) -> str | None:
+def _scan_commit(location: list[str], base: Path, args: list[str], fallback: str,
+                 ctx: Context | None = None) -> str | None:
     expanded = []
     for value in location:
         value = expand_vars(value)
@@ -233,7 +243,7 @@ def _scan_commit(location: list[str], base: Path, args: list[str], fallback: str
             text += "\n" + unstaged_diff(base, expanded, paths)
     except (OSError, subprocess.CalledProcessError):
         return GIT_MISSING_REASON
-    return scan_commit_text(text)
+    return scan_commit_text(text, ctx)
 
 
 def check_git(event: dict, ctx: Context) -> str | None:
@@ -261,7 +271,7 @@ def check_git(event: dict, ctx: Context) -> str | None:
         elif not git and "git" in words and "commit" in words[words.index("git") :]:
             return UNREADABLE_REASON  # a commit we can't locate, e.g. find -exec git commit
     for location, base, args in commits:
-        reason = _scan_commit(location, base, args, event.get("cwd") or "/")
+        reason = _scan_commit(location, base, args, event.get("cwd") or "/", ctx)
         if reason:
             return reason
     return None
