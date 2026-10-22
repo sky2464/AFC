@@ -1,0 +1,223 @@
+"""Delivery decisions, git wrappers and the deliver/create-remote/detect-team commands."""
+
+import json
+import subprocess
+from pathlib import Path
+from unittest import mock
+
+from afc import cli_delivery
+from afc.git_ops import (
+    AI_TRAILER,
+    commit_message,
+    commit_slice,
+    decide_branch,
+    decide_mode,
+    github_repo,
+    remote_create_command,
+)
+from afc.registry import Project, Registry, load_registry, save_registry
+from tests.helpers import AfcTestCase, run_cli
+
+REAL_RUN = subprocess.run
+
+
+def git(code: Path, *args: str) -> str:
+    return REAL_RUN(["git", *args], cwd=code, capture_output=True, text=True, check=True).stdout.strip()
+
+
+class DecisionTests(AfcTestCase):
+    def test_mode(self):
+        self.assertEqual(decide_mode("unknown", 1, 1), "solo")
+        self.assertEqual(decide_mode("unknown", 3, 1), "team")
+        self.assertEqual(decide_mode("unknown", 0, 2), "team")
+        self.assertEqual(decide_mode("solo", 5, 5), "solo")
+        self.assertEqual(decide_mode("team", 1, 1), "team")
+
+    def test_branch(self):
+        self.assertEqual(decide_branch("solo", "main", False, False), "main")
+        self.assertEqual(decide_branch("solo", "main", True, False), "afc-work")
+        self.assertEqual(decide_branch("solo", "main", False, True), "afc-work")
+        self.assertIsNone(decide_branch("team", "main", False, False))
+
+    def test_trailer_off_by_default(self):
+        self.assertNotIn("Co-Authored-By", commit_message("feat: x", False))
+        self.assertEqual(commit_message("feat: x", True), "feat: x\n\n" + AI_TRAILER)
+
+    def test_github_remote_is_private(self):
+        cmd = remote_create_command("github", "kong-gateway-lab")
+        self.assertIn("--private", cmd)
+        self.assertNotIn("--public", cmd)
+        self.assertIn("acme/kong-gateway-lab", remote_create_command("github", "kong-gateway-lab", "acme"))
+
+    def test_azure_command_and_unknown_host(self):
+        self.assertEqual(
+            remote_create_command("azure", "lab", "https://dev.azure.com/acme"),
+            ["az", "repos", "create", "--name", "lab", "--org", "https://dev.azure.com/acme"],
+        )
+        with self.assertRaises(ValueError):
+            remote_create_command("gitlab", "lab")
+
+    def test_github_repo_parse(self):
+        self.assertEqual(github_repo("git@github.com:sky/lab.git"), ("sky", "lab"))
+        self.assertEqual(github_repo("https://github.com/sky/lab"), ("sky", "lab"))
+        self.assertIsNone(github_repo("https://dev.azure.com/acme/_git/lab"))
+
+
+class RepoTestCase(AfcTestCase):
+    def setUp(self):
+        super().setUp()
+        self.code = self.tmp / "lab"
+        self.code.mkdir()
+        git(self.code, "init", "-q", "-b", "main")
+        (self.code / "README.md").write_text("hi\n")
+
+    def project(self, **kw) -> Project:
+        fields = dict(name="lab", code_path=str(self.code), workspace_path=str(self.tmp / "ws"),
+                      git_name="Sky", git_email="s@example.com")
+        fields.update(kw)
+        return Project(**fields)
+
+    def register(self, **kw) -> None:
+        reg = Registry()
+        reg.add(self.project(**kw))
+        reg.set_active("lab")
+        save_registry(self.home, reg)
+
+    def bare_remote(self) -> Path:
+        bare = self.tmp / "remote.git"
+        REAL_RUN(["git", "init", "-q", "--bare", str(bare)], check=True)
+        git(self.code, "remote", "add", "origin", str(bare))
+        return bare
+
+
+class CommitTests(RepoTestCase):
+    def test_commit_uses_project_identity(self):
+        sha = commit_slice(self.project(), "feat: first slice")
+        self.assertEqual(git(self.code, "log", "-1", "--format=%an%ae"), "Skys@example.com")
+        self.assertEqual(git(self.code, "rev-parse", "HEAD"), sha)
+        self.assertNotIn("Co-Authored-By", git(self.code, "log", "-1", "--format=%B"))
+
+    def test_commit_adds_trailer_when_on(self):
+        commit_slice(self.project(ai_trailer=True), "feat: x")
+        self.assertIn(AI_TRAILER, git(self.code, "log", "-1", "--format=%B"))
+
+    def test_commit_refuses_without_identity(self):
+        with self.assertRaisesRegex(RuntimeError, "no git name/email"):
+            commit_slice(self.project(git_email=""), "feat: x")
+        with self.assertRaises(RuntimeError):
+            commit_slice(self.project(git_name=""), "feat: x")
+
+
+class DeliverCliTests(RepoTestCase):
+    def test_deliver_without_remote_commits_only(self):
+        self.register()
+        code, out = run_cli(["deliver", "--message", "feat: x"])
+        self.assertEqual(code, 0, out)
+        self.assertFalse(out["pushed"])
+        self.assertEqual(out["commit"], git(self.code, "rev-parse", "HEAD"))
+
+    def test_deliver_without_identity_is_plain_error(self):
+        self.register(git_name="")
+        code, out = run_cli(["deliver", "--message", "feat: x"])
+        self.assertEqual(code, 1)
+        self.assertIn("tell me which to use", out["error"])
+
+    def test_deliver_without_active_project(self):
+        code, out = run_cli(["deliver", "--message", "feat: x"])
+        self.assertEqual(code, 1)
+        self.assertIn("/afc", out["error"])
+
+    def test_solo_pushes_default_branch(self):
+        self.register(team_mode="solo")
+        bare = self.bare_remote()
+        code, out = run_cli(["deliver", "--message", "feat: x"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual((out["branch"], out["pr_needed"]), ("main", False))
+        self.assertEqual(git(bare, "rev-parse", "main"), out["commit"])
+
+    def test_solo_with_deploying_default_pushes_work_branch(self):
+        self.register(team_mode="solo")
+        bare = self.bare_remote()
+        code, out = run_cli(["deliver", "--message", "feat: x", "--default-deploys"])
+        self.assertEqual(out["branch"], "afc-work")
+        self.assertEqual(git(bare, "rev-parse", "afc-work"), out["commit"])
+
+    def test_team_pushes_feature_branch_and_needs_pr(self):
+        self.register(team_mode="team")
+        bare = self.bare_remote()
+        code, out = run_cli(["deliver", "--message", "feat: Add login page"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(out, {"commit": out["commit"], "pushed": True,
+                               "branch": "afc/feat-add-login-page", "pr_needed": True})
+        self.assertEqual(git(bare, "rev-parse", "afc/feat-add-login-page"), out["commit"])
+
+
+def fake_run(outputs: dict):
+    """Patch subprocess.run in cli_delivery: gh/az return canned output, git runs for real."""
+    calls = []
+
+    def run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[0] in outputs:
+            return subprocess.CompletedProcess(cmd, 0, outputs[cmd[0]], "")
+        return REAL_RUN(cmd, **kw)
+
+    return mock.patch.object(cli_delivery.subprocess, "run", side_effect=run), calls
+
+
+def ext(calls):
+    return [c for c in calls if c[0] != "git"]
+
+
+class RemoteCliTests(RepoTestCase):
+    def test_create_github_remote_is_private_and_recorded(self):
+        self.register()
+        patch, calls = fake_run({"gh": ""})
+        with patch:
+            code, out = run_cli(["create-remote", "--host", "github", "--org", "acme"])
+        self.assertEqual(code, 0, out)
+        self.assertIn("--private", ext(calls)[0])
+        self.assertIn("acme/lab", ext(calls)[0])
+        self.assertEqual(load_registry(self.home).get("lab").remote, "github")
+
+    def test_create_azure_remote_adds_origin_and_pushes(self):
+        self.register()
+        git(self.code, "-c", "user.name=S", "-c", "user.email=s@e", "commit", "-qam", "x", "--allow-empty")
+        bare = self.tmp / "az.git"
+        REAL_RUN(["git", "init", "-q", "--bare", str(bare)], check=True)
+        patch, calls = fake_run({"az": json.dumps({"remoteUrl": str(bare)})})
+        with patch:
+            code, out = run_cli(["create-remote", "--host", "azure"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(ext(calls)[0][:3], ["az", "repos", "create"])
+        self.assertEqual(git(self.code, "remote", "get-url", "origin"), str(bare))
+        self.assertEqual(load_registry(self.home).get("lab").remote, "azure")
+
+    def test_missing_tool_is_plain_error(self):
+        self.register()
+        with mock.patch.object(cli_delivery.subprocess, "run", side_effect=FileNotFoundError):
+            code, out = run_cli(["create-remote", "--host", "github"])
+        self.assertEqual(code, 1)
+        self.assertEqual(out["error"], "gh is not installed.")
+
+    def test_detect_team_github_uses_collaborators(self):
+        self.register()
+        git(self.code, "remote", "add", "origin", "git@github.com:sky/lab.git")
+        patch, calls = fake_run({"gh": "3\n"})
+        with patch:
+            code, out = run_cli(["detect-team"])
+        self.assertEqual(code, 0, out)
+        self.assertIn("repos/sky/lab/collaborators", ext(calls)[-1])
+        self.assertEqual((out["team_mode"], out["confirm"]), ("team", False))
+        self.assertEqual(load_registry(self.home).get("lab").team_mode, "team")
+
+    def test_detect_team_local_only_asks_to_confirm(self):
+        self.register()
+        git(self.code, "-c", "user.name=S", "-c", "user.email=s@e", "commit", "-qm", "x", "--allow-empty")
+        patch, calls = fake_run({"gh": "9"})
+        with patch:
+            code, out = run_cli(["detect-team"])
+        self.assertEqual(code, 0, out)
+        self.assertFalse([c for c in calls if c[0] == "gh"])
+        self.assertEqual(out, {"team_mode": "solo", "recent_authors": 1, "confirm": True})
+        self.assertEqual(load_registry(self.home).get("lab").team_mode, "solo")

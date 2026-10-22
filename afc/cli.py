@@ -17,7 +17,7 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root, maintain_enabled, set_maintain
 from afc.profile import PROFILES, modules_for
-from afc import scan
+from afc import cli_delivery, scan
 from afc.registry import (
     Project,
     RegistryError,
@@ -31,7 +31,7 @@ from afc.workspace import create_workspace
 
 TEAM_MODES = ("solo", "team", "unknown")
 REMOTES = ("none", "github", "azure")
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan")
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -486,4 +486,5 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--slice", required=True)
     p.set_defaults(handler=cmd_scan)
 
+    cli_delivery.register(sub)
     return parser
