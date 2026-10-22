@@ -329,6 +329,26 @@ class TestHeredocBodies(unittest.TestCase):
         cmd = "cat <<EOF > /x/f\n> /y/z"
         self.assertEqual(bash_write_targets(cmd), ["/x/f"])
 
+    def test_single_quoted_operator_not_heredoc(self):
+        cmd = "echo '<<EOF' > /x\necho hi > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/x", "/real"])
+
+    def test_double_quoted_operator_not_heredoc(self):
+        cmd = 'echo "<<EOF"\necho hi > /real'
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_comment_operator_not_heredoc(self):
+        cmd = "# <<EOF\necho hi > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_escaped_operator_not_heredoc(self):
+        cmd = "echo a\\<<EOF\necho > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_arithmetic_shift_not_heredoc(self):
+        cmd = "x=$((1<<EOF))\necho > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
     def test_here_string_unaffected(self):
         cmd = "cat <<< word > /x/f\necho > /x/g"
         self.assertEqual(bash_write_targets(cmd), ["/x/f", "/x/g"])

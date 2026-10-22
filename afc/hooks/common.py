@@ -142,7 +142,45 @@ def check_paths_reason(path: Path, ctx: Context) -> str | None:
     return f"{path} is outside the active project, so the write is blocked"
 
 
-_HEREDOC = re.compile(r"(?<!<)<<(-?)[ \t]*(?:'([^'\n]*)'|\"([^\"\n]*)\"|\\?([A-Za-z0-9_.-]+))")
+_HEREDOC = re.compile(r"<<(-?)[ \t]*(?:'([^'\n]*)'|\"([^\"\n]*)\"|\\?([A-Za-z0-9_.-]+))")
+
+
+def _heredoc_ops(line: str):
+    """Heredoc operator matches bash would honour: unquoted, unescaped, not in $((..)) or a comment."""
+    quote = ""
+    arith = 0
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if quote == "'":
+            if ch == "'":
+                quote = ""
+        elif ch == "\\":
+            i += 1
+        elif quote == '"':
+            if ch == '"':
+                quote = ""
+        elif ch in "'\"":
+            quote = ch
+        elif line.startswith("$((", i):
+            arith += 1
+            i += 2
+        elif arith and line.startswith("))", i):
+            arith -= 1
+            i += 1
+        elif arith:
+            pass
+        elif ch == "#" and (i == 0 or line[i - 1] in " \t;&|()"):
+            return
+        elif line.startswith("<<<", i):
+            i += 2
+        elif line.startswith("<<", i):
+            match = _HEREDOC.match(line, i)
+            if match:
+                yield match
+                i = match.end()
+                continue
+        i += 1
 
 
 def strip_heredoc_bodies(command: str) -> str:
@@ -157,9 +195,7 @@ def strip_heredoc_bodies(command: str) -> str:
         line = lines[i]
         kept.append(line)
         i += 1
-        for match in _HEREDOC.finditer(line):
-            if line[match.end(0):match.end(0) + 1] == "<" or line[match.start():].startswith("<<<"):
-                continue
+        for match in _heredoc_ops(line):
             tabs = match.group(1) == "-"
             tag = next(g for g in match.groups()[1:] if g is not None)
             while i < len(lines):
