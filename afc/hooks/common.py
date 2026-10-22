@@ -240,6 +240,18 @@ def _escaped(text: str, i: int) -> bool:
     return count % 2 == 1
 
 
+def lex(command: str) -> list[str] | None:
+    """Shell tokens of command with heredoc bodies dropped; None when it can't be lexed."""
+    command = strip_heredoc_bodies(command)
+    try:
+        lexer = shlex.shlex(command.replace("\n", " ; "), posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        return list(lexer)
+    except ValueError:
+        return None
+
+
 def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
     """Same as bash_write_targets_or_none, but unparseable input gives []."""
     return bash_write_targets_or_none(command, cwd) or []
@@ -252,26 +264,21 @@ def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None
     leading assignments and wrappers, `bash|sh|zsh -c`, and `cd` earlier in the chain.
     Targets with an unexpanded `$` or a backtick are skipped.
     """
-    command = strip_heredoc_bodies(command)
-    try:
-        lexer = shlex.shlex(command.replace("\n", " ; "), posix=True, punctuation_chars=True)
-        lexer.whitespace_split = True
-        lexer.commenters = ""
-        tokens = list(lexer)
-    except ValueError:
+    tokens = lex(command)
+    if tokens is None:
         return None
     base = resolve_path(cwd)
     targets: list[str] = []
-    for words, redirects in _commands(tokens):
+    for words, redirects in split_commands(tokens):
         for raw in redirects:
             _add_target(targets, raw, base)
-        words = _strip_prefix(words)
+        words = strip_prefix(words)
         if not words:
             continue
         name = Path(words[0]).name
         args = words[1:]
         if name == "cd":
-            base = _cd_base(args, base)
+            base = cd_base(args, base)
         elif name in _SHELLS and "-c" in args:
             index = args.index("-c")
             if index + 1 < len(args):
@@ -289,7 +296,7 @@ def _within(path: Path, root: Path) -> bool:
     return path == root or path.is_relative_to(root)
 
 
-def _commands(tokens: list[str]):
+def split_commands(tokens: list[str]):
     """Yield (words, redirect_targets) for each simple command in a token stream."""
     words: list[str] = []
     redirects: list[str] = []
@@ -319,7 +326,7 @@ def _commands(tokens: list[str]):
         yield words, redirects
 
 
-def _strip_prefix(words: list[str]) -> list[str]:
+def strip_prefix(words: list[str]) -> list[str]:
     """Drop leading VAR=value assignments, wrapper commands and options."""
     i = 0
     while i < len(words) and (
@@ -353,24 +360,24 @@ def _target_dir_option(args: list[str]) -> str | None:
     return None
 
 
-def _cd_base(args: list[str], base: Path) -> Path:
+def cd_base(args: list[str], base: Path) -> Path:
     positional = [a for a in args if not a.startswith("-")]
     if not positional:
         return Path.home()
-    expanded = _expand(positional[0])
+    expanded = expand_vars(positional[0])
     if expanded is None:
         return base  # cannot know the directory; keep the current base (best effort)
     return resolve_path(expanded, str(base))
 
 
 def _add_target(targets: list[str], raw: str, base: Path) -> None:
-    expanded = _expand(raw)
+    expanded = expand_vars(raw)
     if not expanded or expanded == "/dev/null":
         return
     targets.append(str(resolve_path(expanded, str(base))))
 
 
-def _expand(raw: str) -> str | None:
+def expand_vars(raw: str) -> str | None:
     """Expand ~ and environment variables; None when something is still unexpanded."""
     expanded = os.path.expandvars(os.path.expanduser(raw))
     if "$" in expanded or "`" in expanded:

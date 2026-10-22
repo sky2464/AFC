@@ -2,7 +2,7 @@ import subprocess
 from unittest.mock import patch
 
 from afc.hooks.common import Context
-from afc.hooks.rules_git import check_git, staged_diff
+from afc.hooks.rules_git import check_git, scan_commit_text, staged_diff
 from tests.helpers import AfcTestCase, bash, ev
 
 BLOCKED = ["git push --force origin main", "cd app && git push -f", "git reset --hard HEAD~1",
@@ -10,9 +10,18 @@ BLOCKED = ["git push --force origin main", "cd app && git push -f", "git reset -
            "gh repo create x", "gh repo edit --visibility public", "terraform apply -var env=prod",
            "kubectl apply -f k8s/ --context production", "git commit --amend -m x",
            "git push origin +main", "git -C /x reset --hard", "git checkout .",
-           "docker push img:prd", "az devops project create p --visibility public"]
+           "docker push img:prd", "az devops project create p --visibility public",
+           # formatting bypasses
+           "git  reset --hard", "git\treset --hard", "git reset HEAD~1 --hard", "git clean -d -f",
+           "git clean --force", "git checkout -- .", "git restore -- .",
+           "git --no-pager reset --hard", 'git -C "/a b" reset --hard', "git push origin :main",
+           "sh -c 'git reset --hard'"]
 ALLOWED = ["git push origin main", "git commit -m 'feat: x'", "gh repo create x --private --source .",
-           "terraform apply -var env=dev", "git status", "kubectl get pods"]
+           "terraform apply -var env=dev", "git status", "kubectl get pods",
+           "git push origin main && rm -f build.log", "git push && echo a+b",
+           'docker push img && echo "not prod"', 'git commit -m "mention git rebase and --public"',
+           "git rebase --abort", "git rebase --continue", "git rebase --quit",
+           "cat > notes.md <<'EOF'\ngit rebase -i\ngh repo create x --public\nEOF"]
 
 SECRET = "AKIA" + "ABCDEFGHIJKLMNOP"
 
@@ -65,6 +74,43 @@ class TestGitRule(AfcTestCase):
         self.stage(f"key = {SECRET}\n")
         self.assertIsNotNone(check_git(bash(f"git -C {self.repo} commit -m x"), self.ctx))
         self.assertIsNotNone(check_git(bash(f"cd {self.repo} && git commit -m x"), self.ctx))
+
+    def commit_tracked_then_edit(self, text):
+        self.stage("clean\n")
+        git(self.repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
+        (self.repo / "f.txt").write_text(text)
+
+    def test_commit_forms_scan_unstaged(self):
+        self.commit_tracked_then_edit(f"key = {SECRET}\n")
+        for c in ["git commit -a -m x", "git commit -am x", "git commit --all -m x",
+                  "git commit -i f.txt -m x", "git commit -o f.txt -m x", "git commit f.txt -m x",
+                  "git commit -m x -- f.txt"]:
+            self.assertIsNotNone(check_git(bash(c, cwd=self.repo), self.ctx), c)
+        self.assertIsNone(check_git(bash("git commit -m x", cwd=self.repo), self.ctx))
+
+    def test_commit_repo_located_through_global_options(self):
+        self.stage(f"key = {SECRET}\n")
+        r = self.repo
+        for c in [f"git --git-dir={r}/.git --work-tree={r} commit -m x",
+                  f"git --git-dir {r}/.git --work-tree {r} commit -m x",
+                  "git --no-pager commit -m x", "sh -c 'git commit -m x'", "xargs git commit -m x"]:
+            self.assertIsNotNone(check_git(bash(c, cwd=r), self.ctx), c)
+
+    def test_commit_unlocatable_blocks(self):
+        self.assertIsNotNone(check_git(bash("find . -exec git commit -m x ;", cwd=self.repo), self.ctx))
+        self.assertIsNotNone(check_git(bash("git -C $NOPE_UNSET commit -m x", cwd=self.repo), self.ctx))
+
+    def test_staged_diff_keeps_plus_plus_lines(self):
+        self.stage("++plus\n+++ also\n")
+        self.assertEqual(staged_diff(self.repo), "++plus\n+++ also")
+
+    def test_scan_commit_text_seam(self):
+        self.assertIsNone(scan_commit_text("hello"))
+        self.assertIsNotNone(scan_commit_text(SECRET))
+
+    def test_prod_token_must_share_command(self):
+        self.assertIsNone(check_git(bash("terraform apply && echo prod"), self.ctx))
+        self.assertIsNotNone(check_git(bash("echo x && kubectl --context prd apply -f k"), self.ctx))
 
     def test_commit_outside_repo_allowed(self):
         plain = self.tmp / "plain"
