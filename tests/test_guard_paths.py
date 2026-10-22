@@ -299,5 +299,40 @@ class TestLoadContext(AfcTestCase):
         self.assertFalse(ctx.maintain)
 
 
+class TestHeredocBodies(unittest.TestCase):
+    def test_reviewer_example_only_tmp_target(self):
+        cmd = "cat <<'EOF' >> /x/f\na <b>/c\nEOF"
+        self.assertEqual(bash_write_targets(cmd), ["/x/f"])
+
+    def test_quoted_and_unquoted_tags(self):
+        for op in ('<<"T"', "<<T", "<< T", "<<\\T"):
+            cmd = f"cat {op} > /x/f\nx > /y/z\nT"
+            self.assertEqual(bash_write_targets(cmd), ["/x/f"], op)
+
+    def test_dash_heredoc_allows_tab_terminator(self):
+        cmd = "cat <<-T > /x/f\n\tx > /y/z\n\tT\necho > /x/after"
+        self.assertEqual(bash_write_targets(cmd), ["/x/f", "/x/after"])
+
+    def test_two_heredocs(self):
+        cmd = "cat <<A > /x/1\n> /y/a\nA\ncat <<'B' > /x/2\n> /y/b\nB"
+        self.assertEqual(bash_write_targets(cmd), ["/x/1", "/x/2"])
+
+    def test_two_heredocs_one_line(self):
+        cmd = "cat <<A <<B > /x/1\n> /y/a\nA\n> /y/b\nB\necho > /x/2"
+        self.assertEqual(bash_write_targets(cmd), ["/x/1", "/x/2"])
+
+    def test_redirect_after_terminator_detected(self):
+        cmd = "cat <<EOF\nbody\nEOF\necho hi > /x/after"
+        self.assertEqual(bash_write_targets(cmd), ["/x/after"])
+
+    def test_unterminated_drops_rest(self):
+        cmd = "cat <<EOF > /x/f\n> /y/z"
+        self.assertEqual(bash_write_targets(cmd), ["/x/f"])
+
+    def test_here_string_unaffected(self):
+        cmd = "cat <<< word > /x/f\necho > /x/g"
+        self.assertEqual(bash_write_targets(cmd), ["/x/f", "/x/g"])
+
+
 if __name__ == "__main__":
     unittest.main()

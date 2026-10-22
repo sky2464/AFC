@@ -142,6 +142,34 @@ def check_paths_reason(path: Path, ctx: Context) -> str | None:
     return f"{path} is outside the active project, so the write is blocked"
 
 
+_HEREDOC = re.compile(r"(?<!<)<<(-?)[ \t]*(?:'([^'\n]*)'|\"([^\"\n]*)\"|\\?([A-Za-z0-9_.-]+))")
+
+
+def strip_heredoc_bodies(command: str) -> str:
+    """Drop heredoc body lines (up to and including each terminator); keep operator lines.
+
+    `<<<` (here-string) is ignored. An unterminated heredoc drops the rest of the text.
+    """
+    lines = command.split("\n")
+    kept: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        kept.append(line)
+        i += 1
+        for match in _HEREDOC.finditer(line):
+            if line[match.end(0):match.end(0) + 1] == "<" or line[match.start():].startswith("<<<"):
+                continue
+            tabs = match.group(1) == "-"
+            tag = next(g for g in match.groups()[1:] if g is not None)
+            while i < len(lines):
+                body = lines[i].lstrip("\t") if tabs else lines[i]
+                i += 1
+                if body == tag:
+                    break
+    return "\n".join(kept)
+
+
 def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
     """Best-effort absolute paths a shell command writes to. Unparseable input gives [].
 
@@ -149,6 +177,7 @@ def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
     leading assignments and wrappers, `bash|sh|zsh -c`, and `cd` earlier in the chain.
     Targets with an unexpanded `$` or a backtick are skipped.
     """
+    command = strip_heredoc_bodies(command)
     try:
         lexer = shlex.shlex(command.replace("\n", " ; "), posix=True, punctuation_chars=True)
         lexer.whitespace_split = True
