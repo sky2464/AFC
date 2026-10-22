@@ -24,11 +24,13 @@ from afc.registry import (
     save_registry,
     validate_name,
 )
-from afc.session_dirs import GrantError, grant_dirs
+from afc.session_dirs import GrantError, check_settings, grant_dirs, settings_path
+from afc.undo import Undo
 from afc.workspace import create_workspace
 
 TEAM_MODES = ("solo", "team", "unknown")
 REMOTES = ("none", "github", "azure")
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set")
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -44,12 +46,12 @@ class CliError(Exception):
 
 
 class _UsageError(Exception):
-    """Bad arguments. Raised instead of argparse printing to stderr and exiting."""
+    """Bad arguments, already in plain words. Raised instead of argparse printing."""
 
 
 class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
-        raise _UsageError(message)
+        raise _UsageError(_plain_usage(message))
 
 
 def main(argv: list[str]) -> int:
@@ -92,22 +94,45 @@ def cmd_new(args: argparse.Namespace) -> dict:
     code = parent / name
     if code.exists() and (not code.is_dir() or any(code.iterdir())):
         raise CliError(f"Folder {code} already exists and is not empty.")
+    readme, ignore = _app_templates()
+    if shutil.which("git") is None:
+        raise CliError("git is not installed.")
 
-    code.mkdir(exist_ok=True)
-    _git_init(code)
-    _write_app_templates(code, name)
-    ws = create_workspace(home, name)
-    project = Project(
-        name=name,
-        code_path=str(code),
-        workspace_path=str(ws),
-        profile=profile,
-        git_name=args.git_name,
-        git_email=args.git_email,
-        ai_trailer=args.ai_trailer,
-        last_active=_today(),
+    undo = _settings_undo()
+    undo.mark(
+        [
+            home,
+            home / "projects",
+            home / "projects" / name,
+            settings_path(afc_root()).parent,
+            code,
+            code / ".git",
+            code / "README.md",
+            code / ".gitignore",
+        ]
     )
-    granted = _activate(home, reg, project)
+    try:
+        code.mkdir(exist_ok=True)
+        _git_init(code)
+        (code / "README.md").write_text(readme.replace("{name}", name), encoding="utf-8")
+        (code / ".gitignore").write_bytes(ignore)
+        ws = create_workspace(home, name)
+        project = Project(
+            name=name,
+            code_path=str(code),
+            workspace_path=str(ws),
+            profile=profile,
+            git_name=args.git_name,
+            git_email=args.git_email,
+            ai_trailer=args.ai_trailer,
+            last_active=_today(),
+        )
+        reg.add(project)
+        reg.set_active(name)
+        granted = _commit(home, reg, code, undo)
+    except BaseException:
+        undo.rollback()
+        raise
     return {**_project_result(project, granted), **_icloud_fields(project, code)}
 
 
@@ -118,16 +143,25 @@ def cmd_adopt(args: argparse.Namespace) -> dict:
     path = Path(args.path).expanduser().resolve()
     if not path.is_dir():
         raise CliError(f"Folder {path} does not exist.")
-    ws = create_workspace(home, name)
-    project = Project(
-        name=name,
-        code_path=str(path),
-        workspace_path=str(ws),
-        git_name=args.git_name or "",
-        git_email=args.git_email or "",
-        last_active=_today(),
-    )
-    granted = _activate(home, reg, project)
+
+    undo = _settings_undo()
+    undo.mark([home, home / "projects", home / "projects" / name, settings_path(afc_root()).parent])
+    try:
+        ws = create_workspace(home, name)
+        project = Project(
+            name=name,
+            code_path=str(path),
+            workspace_path=str(ws),
+            git_name=args.git_name or "",
+            git_email=args.git_email or "",
+            last_active=_today(),
+        )
+        reg.add(project)
+        reg.set_active(name)
+        granted = _commit(home, reg, path, undo)
+    except BaseException:
+        undo.rollback()
+        raise
     return {
         **_project_result(project, granted),
         **_icloud_fields(project, path),
@@ -143,8 +177,12 @@ def cmd_switch(args: argparse.Namespace) -> dict:
         raise CliError(_unknown_name(args.name))
     reg.set_active(args.name)
     reg.update(args.name, last_active=_today())
-    granted = grant_dirs(afc_root(), [Path(project.code_path)])
-    save_registry(home, reg)
+    undo = _settings_undo()
+    try:
+        granted = _commit(home, reg, Path(project.code_path), undo)
+    except BaseException:
+        undo.rollback()
+        raise
     return _project_result(project, granted)
 
 
@@ -245,6 +283,26 @@ SETTABLE = {
 # ----------------------------------------------------------------- helpers
 
 
+def _settings_undo() -> Undo:
+    """Check the settings file before any write, so a corrupt file fails before anything is created."""
+    root = afc_root()
+    check_settings(root)
+    return Undo(settings_path(root))
+
+
+def _commit(home: Path, reg, code: Path, undo: Undo) -> list[str]:
+    """Grant the code path to the session, then save the registry. Caller rolls back on error."""
+    undo.save_settings()
+    granted = grant_dirs(afc_root(), [code])
+    save_registry(home, reg)
+    return granted
+
+
+def _app_templates() -> tuple[str, bytes]:
+    src = afc_root() / "templates" / "app"
+    return (src / "README.md").read_text(encoding="utf-8"), (src / "gitignore").read_bytes()
+
+
 def _new_name(reg, raw: str) -> str:
     validate_name(raw)
     if raw in reg.projects:
@@ -273,15 +331,6 @@ def _active(reg) -> Project:
 
 def _today() -> str:
     return date.today().isoformat()
-
-
-def _activate(home: Path, reg, project: Project) -> list[str]:
-    """Register and activate a project, grant its code path, then save the registry."""
-    reg.add(project)
-    reg.set_active(project.name)
-    granted = grant_dirs(afc_root(), [Path(project.code_path)])
-    save_registry(home, reg)
-    return granted
 
 
 def _project_result(project: Project, granted: list[str]) -> dict:
@@ -323,13 +372,6 @@ def _git_init(code: Path) -> None:
         raise CliError(f"git init failed: {exc.stderr.strip()}") from exc
 
 
-def _write_app_templates(code: Path, name: str) -> None:
-    src = afc_root() / "templates" / "app"
-    readme = (src / "README.md").read_text(encoding="utf-8").replace("{name}", name)
-    (code / "README.md").write_text(readme, encoding="utf-8")
-    shutil.copyfile(src / "gitignore", code / ".gitignore")
-
-
 def _now_text(ws: Path) -> str:
     """Text under '## Now' in plan/progress.md, up to the next heading. Empty if none."""
     path = ws / "plan" / "progress.md"
@@ -346,6 +388,36 @@ def _now_text(ws: Path) -> str:
         if inside:
             lines.append(line)
     return "\n".join(lines).strip()
+
+
+def _plain_usage(message: str) -> str:
+    """Turn an argparse complaint into a plain sentence."""
+    choice = re.search(r"argument (\S+): invalid choice: '([^']*)' \(choose from (.*)\)$", message)
+    if choice:
+        field, value, options = choice.groups()
+        items = re.findall(r"'([^']*)'", options)
+        if field == "command":
+            return f"Unknown command {value}. Use one of: {', '.join(items)}."
+        return f"Use one of: {', '.join(items)}."
+    missing = re.search(r"the following arguments are required: (.*)$", message)
+    if missing:
+        names = [n.strip() for n in missing.group(1).split(",")]
+        if names == ["command"]:
+            return f"Missing command. Use one of: {', '.join(COMMAND_NAMES)}."
+        return f"Missing {_join_and(names)}."
+    needs = re.search(r"argument (\S+): expected one argument", message)
+    if needs:
+        return f"{needs.group(1)} needs a value."
+    unknown = re.search(r"unrecognized arguments: (.*)$", message)
+    if unknown:
+        return f"Unknown option {unknown.group(1)}."
+    return "That command is not valid."
+
+
+def _join_and(items: list[str]) -> str:
+    if len(items) <= 1:
+        return "".join(items)
+    return ", ".join(items[:-1]) + " and " + items[-1]
 
 
 def _fail(message: str) -> int:

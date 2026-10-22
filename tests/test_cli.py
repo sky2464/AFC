@@ -349,5 +349,93 @@ class IcloudTest(CliTestCase):
             self.assertTrue(icloud_synced(mobile / "anything"))
 
 
+class PlainUsageErrorTest(CliTestCase):
+    JARGON = ("argument", "invalid choice", "usage:")
+
+    def assertPlain(self, out: dict) -> None:
+        self.assertIn("error", out)
+        for word in self.JARGON:
+            self.assertNotIn(word, out["error"])
+
+    def test_invalid_choice_is_plain(self):
+        rc, out = run_cli(["maintain", "toggle"])
+        self.assertEqual(rc, 1)
+        self.assertPlain(out)
+        self.assertEqual(out["error"], "Use one of: on, off, status.")
+
+    def test_missing_required_flag_is_plain(self):
+        rc, out = run_cli(["new", "--name", "kong-gateway-lab"])
+        self.assertEqual(rc, 1)
+        self.assertPlain(out)
+        self.assertEqual(out["error"], "Missing --parent, --git-name and --git-email.")
+
+    def test_unknown_command_is_plain(self):
+        rc, out = run_cli(["bogus"])
+        self.assertEqual(rc, 1)
+        self.assertPlain(out)
+        self.assertTrue(out["error"].startswith("Unknown command bogus."))
+
+    def test_missing_command_is_plain(self):
+        rc, out = run_cli([])
+        self.assertEqual(rc, 1)
+        self.assertPlain(out)
+
+
+class NewRollbackTest(CliTestCase):
+    def setUp(self):
+        super().setUp()
+        self.settings = self.root / ".claude" / "settings.local.json"
+        self.target = self.parent / "kong-gateway-lab"
+        self.workspace = self.home / "projects" / "kong-gateway-lab"
+
+    def test_corrupt_settings_fail_before_creating_anything_then_retry_succeeds(self):
+        self.settings.parent.mkdir(parents=True)
+        self.settings.write_text("{not json", encoding="utf-8")
+
+        rc, out = self.new()
+        self.assertEqual(rc, 1)
+        self.assertIn("error", out)
+        self.assertFalse(self.target.exists())
+        self.assertFalse(self.workspace.exists())
+        self.assertIsNone(load_registry(self.home).active())
+        self.assertEqual(self.settings.read_text(encoding="utf-8"), "{not json")
+
+        self.settings.write_text("{}", encoding="utf-8")
+        rc, out = self.new()
+        self.assertEqual(rc, 0)
+        self.assertTrue((self.target / ".git").is_dir())
+        self.assertTrue(self.workspace.is_dir())
+        self.assertEqual(load_registry(self.home).active().name, "kong-gateway-lab")
+
+    def test_failed_registry_save_rolls_back_and_retry_succeeds(self):
+        self.settings.parent.mkdir(parents=True)
+        self.settings.write_text(json.dumps({"model": "x"}), encoding="utf-8")
+        before = self.settings.read_text(encoding="utf-8")
+
+        with patch("afc.cli.save_registry", side_effect=OSError("disk full")):
+            rc, out = self.new()
+        self.assertEqual(rc, 1)
+        self.assertIn("disk full", out["error"])
+        self.assertFalse(self.target.exists())
+        self.assertFalse(self.workspace.exists())
+        self.assertEqual(self.settings.read_text(encoding="utf-8"), before)
+
+        rc, out = self.new()
+        self.assertEqual(rc, 0)
+        self.assertEqual(load_registry(self.home).active().name, "kong-gateway-lab")
+
+    def test_rollback_keeps_an_empty_folder_the_user_made(self):
+        self.target.mkdir()
+        with patch("afc.cli.save_registry", side_effect=OSError("disk full")):
+            rc, out = self.new()
+        self.assertEqual(rc, 1)
+        self.assertTrue(self.target.is_dir())
+        self.assertEqual(list(self.target.iterdir()), [])
+        self.assertFalse(self.workspace.exists())
+
+        rc, out = self.new()
+        self.assertEqual(rc, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

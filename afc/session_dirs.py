@@ -13,27 +13,42 @@ class GrantError(Exception):
     """The settings file exists but cannot be merged safely, so it was left alone."""
 
 
+def settings_path(root: Path) -> Path:
+    return root / ".claude" / "settings.local.json"
+
+
+def check_settings(root: Path) -> None:
+    """Raise GrantError if the settings file cannot be merged. Writes nothing."""
+    path = settings_path(root)
+    _current_dirs(_read_settings(path), path)
+
+
 def grant_dirs(root: Path, dirs: list[Path]) -> list[str]:
     """Add the resolved dirs to additionalDirectories and return the full list.
 
     Other keys are kept. Existing entries keep their order, and duplicates are dropped.
     """
-    path = root / ".claude" / "settings.local.json"
+    path = settings_path(root)
     settings = _read_settings(path)
-    permissions = settings.setdefault("permissions", {})
-    if not isinstance(permissions, dict):
-        raise GrantError(f"{path}: 'permissions' must be a JSON object")
-    current = permissions.get("additionalDirectories", [])
-    if not isinstance(current, list):
-        raise GrantError(f"{path}: 'permissions.additionalDirectories' must be a list")
+    current = _current_dirs(settings, path)
 
     merged: list[str] = []
     for entry in [*current, *(str(Path(d).resolve()) for d in dirs)]:
         if entry not in merged:
             merged.append(entry)
-    permissions["additionalDirectories"] = merged
+    settings.setdefault("permissions", {})["additionalDirectories"] = merged
     _atomic_write(path, json.dumps(settings, indent=2) + "\n")
     return merged
+
+
+def _current_dirs(settings: dict, path: Path) -> list:
+    permissions = settings.get("permissions", {})
+    if not isinstance(permissions, dict):
+        raise GrantError(f"{path}: 'permissions' must be a JSON object")
+    current = permissions.get("additionalDirectories", [])
+    if not isinstance(current, list):
+        raise GrantError(f"{path}: 'permissions.additionalDirectories' must be a list")
+    return current
 
 
 def _read_settings(path: Path) -> dict:
