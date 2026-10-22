@@ -1,8 +1,10 @@
 """Fingerprints of company resources, so their text can be spotted outside the workspace.
 
-A fingerprint is the sha256 of a normalized line (or sentence-like piece of one) at
-least MIN_LINE characters long, or of a whole resource file's bytes. The set is cached
-in `<workspace>/.afc-fingerprints.json` and rebuilt when any resource file changes.
+A fingerprint is the sha256 of a normalized unit at least MIN_LINE characters long: a
+line, a paragraph with its line breaks collapsed, or a sentence of either (split on
+. ! ? ; :), after leading list/quote/comment markers are removed. Whole files of at
+least MIN_LINE normalized characters are fingerprinted by their bytes too. Per-file
+results are cached in `<workspace>/.afc-fingerprints.json`, so only changed files rehash.
 """
 
 import hashlib
@@ -12,8 +14,10 @@ from pathlib import Path
 
 MIN_LINE = 40
 CACHE_NAME = ".afc-fingerprints.json"
+CACHE_VERSION = 2
 _SPACE = re.compile(r"\s+")
 _PIECE = re.compile(r"[.!?;:]+(?:\s|$)")
+_MARKER = re.compile(r"^(?:[-*>#+]+|\d+[.)])\s+")
 _MAX_FILE_BYTES = 20_000_000
 
 
@@ -26,14 +30,34 @@ def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _strip_markers(line: str) -> str:
+    line = line.strip()
+    while (m := _MARKER.match(line)):
+        line = line[m.end():]
+    return line
+
+
+def _with_pieces(norm: str) -> list[str]:
+    return [norm, *(p.strip() for p in _PIECE.split(norm))]
+
+
 def _units(text: str) -> set[str]:
-    """Normalized lines and their sentence pieces that are long enough to fingerprint."""
-    out: set[str] = set()
-    for line in text.splitlines():
-        norm = normalize(line)
-        candidates = [norm, *(p.strip() for p in _PIECE.split(norm))]
-        out.update(c for c in candidates if len(c) >= MIN_LINE)
-    return out
+    """Normalized lines, collapsed paragraphs and their sentences, long enough to hash."""
+    candidates: list[str] = []
+    paragraph: list[str] = []
+    for raw in [*text.splitlines(), ""]:
+        line = normalize(_strip_markers(raw))
+        if line:
+            candidates.extend(_with_pieces(line))
+            paragraph.append(line)
+        elif paragraph:
+            candidates.extend(_with_pieces(" ".join(paragraph)))
+            paragraph = []
+    return {c for c in candidates if len(c) >= MIN_LINE}
+
+
+def _text_fingerprints(text: str) -> set[str]:
+    return {_sha(u.encode()) for u in _units(text)}
 
 
 def _files(resources: Path) -> list[Path]:
@@ -49,55 +73,64 @@ def _file_fingerprints(path: Path) -> set[str]:
         data = path.read_bytes()
     except OSError:
         return set()
-    fps = {_sha(data)}
-    if b"\0" not in data:
-        text = data.decode("utf-8", errors="replace")
-        fps.update(_sha(u.encode()) for u in _units(text))
+    if b"\0" in data:
+        return {_sha(data)} if len(data) >= MIN_LINE else set()
+    text = data.decode("utf-8", errors="replace")
+    fps = _text_fingerprints(text)
+    if len(normalize(text)) >= MIN_LINE:
+        fps.add(_sha(data))
     return fps
 
 
 def build_fingerprints(resources: Path) -> set[str]:
-    """Fingerprints of every text line and every whole file under resources/."""
+    """Fingerprints of every text unit and every whole file under resources/."""
     fps: set[str] = set()
     for path in _files(resources):
         fps |= _file_fingerprints(path)
     return fps
 
 
-def _mtimes(resources: Path) -> dict[str, float]:
-    out = {}
-    for path in _files(resources):
-        try:
-            out[str(path.relative_to(resources))] = path.stat().st_mtime
-        except OSError:
-            continue
-    return out
+def _read_cache(cache: Path) -> dict:
+    try:
+        data = json.loads(cache.read_text(encoding="utf-8"))
+        if isinstance(data, dict) and data.get("v") == CACHE_VERSION and isinstance(data.get("files"), dict):
+            return data["files"]
+    except (OSError, ValueError):
+        pass
+    return {}
 
 
 def load_fingerprints(workspace: Path) -> set[str]:
-    """Cached fingerprints of workspace/resources, rebuilt when any file or mtime changed."""
+    """Fingerprints of workspace/resources; files whose mtime_ns or size changed rehash."""
     resources = workspace / "resources"
     cache = workspace / CACHE_NAME
-    mtimes = _mtimes(resources)
-    try:
-        data = json.loads(cache.read_text(encoding="utf-8"))
-        if data.get("mtimes") == mtimes:
-            return set(data["fingerprints"])
-    except (OSError, ValueError, KeyError, TypeError, AttributeError):
-        pass
-    fps = build_fingerprints(resources)
-    try:
-        cache.write_text(json.dumps({"mtimes": mtimes, "fingerprints": sorted(fps)}),
-                         encoding="utf-8")
-    except OSError:
-        pass  # no cache this time; the fingerprints are still right
-    return fps
+    old = _read_cache(cache)
+    files: dict[str, dict] = {}
+    for path in _files(resources):
+        try:
+            st = path.stat()
+        except OSError:
+            continue
+        rel = str(path.relative_to(resources))
+        entry = old.get(rel)
+        if (isinstance(entry, dict) and entry.get("mtime_ns") == st.st_mtime_ns
+                and entry.get("size") == st.st_size and isinstance(entry.get("fps"), list)):
+            files[rel] = entry
+        else:
+            files[rel] = {"mtime_ns": st.st_mtime_ns, "size": st.st_size,
+                          "fps": sorted(_file_fingerprints(path))}
+    if files != old:
+        try:
+            cache.write_text(json.dumps({"v": CACHE_VERSION, "files": files}), encoding="utf-8")
+        except OSError:
+            pass  # no cache this time; the fingerprints are still right
+    return {fp for entry in files.values() for fp in entry["fps"]}
 
 
 def leaks(text: str, fps: set[str]) -> bool:
-    """True when text, or any long-enough line or sentence of it, matches a fingerprint."""
+    """True when text as a whole, or any long-enough unit of it, matches a fingerprint."""
     if not fps:
         return False
-    if _sha(text.encode("utf-8", errors="replace")) in fps:
+    if len(normalize(text)) >= MIN_LINE and _sha(text.encode("utf-8", errors="replace")) in fps:
         return True
-    return any(_sha(u.encode()) in fps for u in _units(text))
+    return any(fp in fps for fp in _text_fingerprints(text))

@@ -40,8 +40,9 @@ class TestFingerprint(AfcTestCase):
         self.assertIn("company resource text", self.write(self.app / "x.md", "intro\n" + POLICY.upper()))
 
     def test_whole_file_blocked(self):
-        (self.ws / "resources/short.txt").write_text("tiny\n")
-        self.assertTrue(leaks("tiny\n", build_fingerprints(self.ws / "resources")))
+        body = "".join(f"row {i}\n" for i in range(12))
+        (self.ws / "resources/rows.txt").write_text(body)
+        self.assertTrue(leaks(body, build_fingerprints(self.ws / "resources")))
 
     def test_short_lines_ignored(self):
         (self.ws / "resources/notes.md").write_text("Contoso tenant policy\n" + "x" * 50 + "\n")
@@ -82,6 +83,70 @@ class TestFingerprint(AfcTestCase):
         (self.ws / "resources/extra.md").write_text("Every contractor laptop is enrolled in Intune before day one.\n")
         self.assertTrue(leaks("Every contractor laptop is enrolled in Intune before day one.",
                               load_fingerprints(self.ws)))
+
+    def test_empty_and_tiny_resources_ignored(self):
+        (self.ws / "resources/empty.md").write_text("")
+        (self.ws / "resources/short.md").write_text("short\n")
+        fps = load_fingerprints(self.ws)
+        self.assertFalse(leaks("", fps))
+        self.assertFalse(leaks("short\n", fps))
+        self.assertIsNone(self.write(self.app / "e.md", ""))
+
+    def test_edit_removing_leaked_text_allowed(self):
+        r = check_resources(ev("Edit", {"file_path": str(self.app / "a.md"),
+                                        "old_string": POLICY, "new_string": "see workspace"}), self.ctx)
+        self.assertIsNone(r)
+        r = check_resources(ev("Edit", {"file_path": str(self.app / "a.md"),
+                            "edits": [{"old_string": "x", "new_string": POLICY}]}), self.ctx)
+        self.assertIsNotNone(r)
+
+    def test_other_bash_copies_blocked(self):
+        res = f"{self.ws}/resources/policy.md"
+        for cmd in (f"cat {res} > {self.app}/README.md", f"cat {res} | tee {self.app}/x",
+                    f"dd if={res} of={self.app}/x", f"install {res} {self.app}/x",
+                    f"ln -s {res} {self.app}/x", f"tar czf {self.app}/r.tgz {self.ws}/resources",
+                    f"zip -r {self.app}/r.zip {self.ws}/resources", f"scp {res} host:/tmp/",
+                    f"cat < {res} > {self.app}/x",
+                    f'echo "{POLICY}" >> {self.app}/x',
+                    f"cat > {self.app}/x <<'EOF'\n{POLICY}\nEOF"):
+            self.assertIsNotNone(check_resources(bash(cmd), self.ctx), cmd)
+        for cmd in (f"cat {res}", f"grep tenant {res}", f"cat {res} > {self.ws}/plan/x"):
+            self.assertIsNone(check_resources(bash(cmd), self.ctx), cmd)
+
+    def test_wrapped_sentence_and_bullet_caught(self):
+        (self.ws / "resources/wrap.md").write_text(
+            "Customer exports must be encrypted at rest\nwith keys held in the Northwind vault.\n")
+        self.assertIsNotNone(self.write(self.app / "a.md",
+            "Customer exports must be encrypted at rest with keys held in the Northwind vault."))
+        self.assertIsNotNone(self.write(self.app / "b.md", "- " + POLICY))
+        self.assertIsNotNone(self.write(self.app / "c.md", "# 1. " + POLICY))
+
+    def test_cache_format_and_stale_rebuild(self):
+        cache = self.ws / ".afc-fingerprints.json"
+        cache.write_text('{"mtimes": {}, "fingerprints": []}')
+        self.assertTrue(leaks(POLICY, load_fingerprints(self.ws)))
+        import json
+        data = json.loads(cache.read_text())
+        self.assertEqual(data["v"], 2)
+        entry = data["files"]["policy.md"]
+        self.assertIn("mtime_ns", entry)
+        self.assertIn("size", entry)
+
+    def test_unchanged_files_not_rehashed(self):
+        from unittest.mock import patch
+        load_fingerprints(self.ws)
+        (self.ws / "resources/new.md").write_text("Another long enough company policy sentence goes here.\n")
+        import afc.fingerprint as f
+        with patch.object(f, "_file_fingerprints", wraps=f._file_fingerprints) as spy:
+            load_fingerprints(self.ws)
+        self.assertEqual([c.args[0].name for c in spy.call_args_list], ["new.md"])
+
+    def test_no_fingerprint_load_without_outside_target(self):
+        from unittest.mock import patch
+        with patch("afc.hooks.rules_resources.load_fingerprints") as spy:
+            check_resources(bash("ls -la"), self.ctx)
+            self.write(self.ws / "plan/x.md", POLICY)
+        spy.assert_not_called()
 
     def test_no_active_project_allows(self):
         self.ctx.active = None
