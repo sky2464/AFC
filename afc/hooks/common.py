@@ -17,6 +17,10 @@ from afc.registry import Project, RegistryError, load_registry
 
 WRITE_TOOLS = ("Write", "Edit", "NotebookEdit")
 POLICY_REASON = "Flight Control's own settings can't be changed this way"
+UNREADABLE_REASON = (
+    "Flight Control couldn't read this command safely — "
+    "split it into simpler commands or use the file tools"
+)
 
 _REDIRECTS = {">", ">>", ">|", "&>", "&>>"}
 _FD_DUP = ">&"
@@ -181,6 +185,14 @@ def strip_heredoc_bodies(command: str) -> str:
         if top == "'":
             if ch == "'":
                 stack.pop()
+        elif top == "$'" and ch == "\\":
+            i += 1
+        elif top == "$'" and ch == "'":
+            stack.pop()
+        elif top == "$'":
+            pass
+        elif top != '"' and ch == "'" and i > 0 and text[i - 1] == "$" and not _escaped(text, i - 1):
+            stack.append("$'")
         elif ch == "\\":
             i += 1
         elif top == '"' and ch == '"':
@@ -220,8 +232,21 @@ def strip_heredoc_bodies(command: str) -> str:
     return "".join(out)
 
 
+def _escaped(text: str, i: int) -> bool:
+    """True when text[i] is preceded by an odd number of backslashes."""
+    count = 0
+    while i - count - 1 >= 0 and text[i - count - 1] == "\\":
+        count += 1
+    return count % 2 == 1
+
+
 def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
-    """Best-effort absolute paths a shell command writes to. Unparseable input gives [].
+    """Same as bash_write_targets_or_none, but unparseable input gives []."""
+    return bash_write_targets_or_none(command, cwd) or []
+
+
+def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None:
+    """Best-effort absolute paths a shell command writes to; None when it can't be lexed.
 
     Covers redirects (>, >>, >|, &>, >&word), tee, cp/mv/rsync (last argument or -t DIR),
     leading assignments and wrappers, `bash|sh|zsh -c`, and `cd` earlier in the chain.
@@ -234,7 +259,7 @@ def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
         lexer.commenters = ""
         tokens = list(lexer)
     except ValueError:
-        return []
+        return None
     base = resolve_path(cwd)
     targets: list[str] = []
     for words, redirects in _commands(tokens):
@@ -250,7 +275,10 @@ def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
         elif name in _SHELLS and "-c" in args:
             index = args.index("-c")
             if index + 1 < len(args):
-                targets.extend(bash_write_targets(args[index + 1], str(base)))
+                inner = bash_write_targets_or_none(args[index + 1], str(base))
+                if inner is None:
+                    return None
+                targets.extend(inner)
         else:
             for raw in _command_targets(name, args):
                 _add_target(targets, raw, base)

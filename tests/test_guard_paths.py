@@ -7,7 +7,9 @@ from afc.config import afc_root
 from afc.hooks.common import (
     Context,
     GuardInputError,
+    UNREADABLE_REASON as UNREADABLE,
     bash_write_targets,
+    bash_write_targets_or_none,
     read_event,
     string_values,
     strip_heredoc_bodies,
@@ -38,6 +40,18 @@ class GuardPathTestCase(AfcTestCase):
 
 
 class TestCheckPaths(GuardPathTestCase):
+    def test_unparseable_is_blocked(self):
+        reason = check_paths(bash('echo "unclosed > /x'), self.ctx)
+        self.assertEqual(reason, UNREADABLE)
+
+    def test_ansi_c_quote_redirect_not_silent(self):
+        reason = check_paths(bash("echo $'\\'' > /real"), self.ctx)
+        self.assertIsNotNone(reason)
+
+    def test_heredoc_with_apostrophes_allowed(self):
+        cmd = "cat <<'EOF' >> /tmp/f\ndon't\nEOF"
+        self.assertIsNone(check_paths(bash(cmd), self.ctx))
+
     def test_write_inside_code_path_allowed(self):
         self.assertIsNone(
             check_paths(ev("Write", {"file_path": str(self.app / "src/x.py")}), self.ctx)
@@ -218,7 +232,8 @@ class TestBashWriteTargets(unittest.TestCase):
     def test_fd_prefix_is_not_a_tee_argument(self):
         self.assertEqual(bash_write_targets("tee /x/a 2>&1"), ["/x/a"])
 
-    def test_unparseable_returns_empty(self):
+    def test_unparseable_gives_none(self):
+        self.assertIsNone(bash_write_targets_or_none('echo "unclosed > /x'))
         self.assertEqual(bash_write_targets('echo "unclosed > /x'), [])
 
     def test_ampersand_greater_than_word_is_file_target(self):
@@ -381,6 +396,10 @@ class TestHeredocBodies(unittest.TestCase):
     def test_unclosed_construct_strips_nothing(self):
         cmd = "cat <<EOF\nbody > /x\nEOF\necho 'open"
         self.assertEqual(strip_heredoc_bodies(cmd), cmd)
+
+    def test_ansi_c_escaped_quote_hides_no_target(self):
+        cmd = "echo $'\\'' '<<EOF' #'\necho hi > real.txt"
+        self.assertIn("/private/tmp/real.txt", bash_write_targets(cmd, "/private/tmp"))
 
     def test_here_string_unaffected(self):
         cmd = "cat <<< word > /x/f\necho > /x/g"

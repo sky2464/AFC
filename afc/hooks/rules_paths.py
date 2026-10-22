@@ -6,7 +6,8 @@ from afc.hooks.common import (
     WRITE_TOOLS,
     Context,
     GuardInputError,
-    bash_write_targets,
+    UNREADABLE_REASON,
+    bash_write_targets_or_none,
     check_paths_reason,
     target_path,
 )
@@ -25,7 +26,10 @@ def check_paths(event: dict, ctx: Context) -> str | None:
         command = tool_input.get("command") if isinstance(tool_input, dict) else None
         if not isinstance(command, str):
             return None
-        targets = [Path(t) for t in bash_write_targets(command, event.get("cwd") or "/")]
+        found = bash_write_targets_or_none(command, event.get("cwd") or "/")
+        if found is None:
+            return UNREADABLE_REASON
+        targets = [Path(t) for t in found]
     else:
         return None
     for path in targets:
