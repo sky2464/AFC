@@ -17,6 +17,7 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root, maintain_enabled, set_maintain
 from afc.profile import PROFILES, modules_for
+from afc import scan
 from afc.registry import (
     Project,
     RegistryError,
@@ -30,7 +31,7 @@ from afc.workspace import create_workspace
 
 TEAM_MODES = ("solo", "team", "unknown")
 REMOTES = ("none", "github", "azure")
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set")
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan")
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -245,6 +246,13 @@ def cmd_set(args: argparse.Namespace) -> dict:
         if warning:
             result["warning"] = warning
     return result
+
+
+def cmd_scan(args: argparse.Namespace) -> dict:
+    project = _active(load_registry(afc_home()))
+    checks = scan.run_checks(Path(project.code_path))
+    report = scan.write_report(Path(project.workspace_path), checks, args.slice)
+    return {"summary": scan.summary_line(checks), "report": str(report)}
 
 
 # ------------------------------------------------------------- set helpers
@@ -473,5 +481,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("field")
     p.add_argument("value")
     p.set_defaults(handler=cmd_set)
+
+    p = sub.add_parser("scan", help="run slice checks and write a report")
+    p.add_argument("--slice", required=True)
+    p.set_defaults(handler=cmd_scan)
 
     return parser
