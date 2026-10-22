@@ -10,6 +10,7 @@ from afc.hooks.common import (
     bash_write_targets,
     read_event,
     string_values,
+    strip_heredoc_bodies,
     target_path,
 )
 from afc.hooks.rules_paths import check_paths
@@ -348,6 +349,38 @@ class TestHeredocBodies(unittest.TestCase):
     def test_arithmetic_shift_not_heredoc(self):
         cmd = "x=$((1<<EOF))\necho > /real"
         self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_single_quote_spanning_lines_not_heredoc(self):
+        cmd = "echo 'a\n<<EOF'\necho > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_double_quote_spanning_lines_not_heredoc(self):
+        cmd = 'echo "a\n<<EOF"\necho > /real'
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_arithmetic_command_not_heredoc(self):
+        cmd = "((x=1<<EOF))\necho > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_old_arithmetic_not_heredoc(self):
+        cmd = "echo $[1<<EOF]\necho > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_parameter_expansion_not_heredoc(self):
+        cmd = "echo ${x:-<<EOF}\necho > /real"
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_quoted_tag_line_in_body_then_real_target(self):
+        cmd = 'cat <<EOF\n"EOF"\nEOF\necho > /real'
+        self.assertEqual(bash_write_targets(cmd), ["/real"])
+
+    def test_hash_inside_word_is_real_heredoc(self):
+        cmd = "echo a#<<EOF\nbody > /x\nEOF"
+        self.assertEqual(bash_write_targets(cmd), [])
+
+    def test_unclosed_construct_strips_nothing(self):
+        cmd = "cat <<EOF\nbody > /x\nEOF\necho 'open"
+        self.assertEqual(strip_heredoc_bodies(cmd), cmd)
 
     def test_here_string_unaffected(self):
         cmd = "cat <<< word > /x/f\necho > /x/g"

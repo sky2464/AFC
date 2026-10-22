@@ -145,65 +145,79 @@ def check_paths_reason(path: Path, ctx: Context) -> str | None:
 _HEREDOC = re.compile(r"<<(-?)[ \t]*(?:'([^'\n]*)'|\"([^\"\n]*)\"|\\?([A-Za-z0-9_.-]+))")
 
 
-def _heredoc_ops(line: str):
-    """Heredoc operator matches bash would honour: unquoted, unescaped, not in $((..)) or a comment."""
-    quote = ""
-    arith = 0
-    i = 0
-    while i < len(line):
-        ch = line[i]
-        if quote == "'":
-            if ch == "'":
-                quote = ""
-        elif ch == "\\":
-            i += 1
-        elif quote == '"':
-            if ch == '"':
-                quote = ""
-        elif ch in "'\"":
-            quote = ch
-        elif line.startswith("$((", i):
-            arith += 1
-            i += 2
-        elif arith and line.startswith("))", i):
-            arith -= 1
-            i += 1
-        elif arith:
-            pass
-        elif ch == "#" and (i == 0 or line[i - 1] in " \t;&|()"):
-            return
-        elif line.startswith("<<<", i):
-            i += 2
-        elif line.startswith("<<", i):
-            match = _HEREDOC.match(line, i)
-            if match:
-                yield match
-                i = match.end()
-                continue
-        i += 1
+_OPENERS = (("$((", "(("), ("((", "(("), ("$[", "["), ("${", "{"))
+_CLOSERS = {"((": "))", "(": ")", "[": "]", "{": "}"}
+
+
+def _skip_body(text: str, i: int, pending: list) -> int:
+    """From the start of a line, skip each pending heredoc body through its terminator."""
+    for tabs, tag in pending:
+        while i < len(text):
+            end = text.find("\n", i)
+            end = len(text) if end < 0 else end
+            line = text[i:end].lstrip("\t") if tabs else text[i:end]
+            i = end + 1
+            if line == tag:
+                break
+    return min(i, len(text))
 
 
 def strip_heredoc_bodies(command: str) -> str:
     """Drop heredoc body lines (up to and including each terminator); keep operator lines.
 
-    `<<<` (here-string) is ignored. An unterminated heredoc drops the rest of the text.
+    One pass over the whole text; quote, escape, comment and arithmetic/brace state carry
+    across newlines. `<<` counts only in plain command context; `<<<` is ignored. An
+    unterminated heredoc drops the rest. If the text ends inside an unclosed quote or
+    bracket construct, the original text is returned unchanged.
     """
-    lines = command.split("\n")
-    kept: list[str] = []
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        kept.append(line)
-        i += 1
-        for match in _heredoc_ops(line):
-            tabs = match.group(1) == "-"
+    text = command
+    out: list[str] = []
+    stack: list[str] = []
+    pending: list = []
+    start = i = 0
+    while i < len(text):
+        top = stack[-1] if stack else None
+        ch = text[i]
+        if top == "'":
+            if ch == "'":
+                stack.pop()
+        elif ch == "\\":
+            i += 1
+        elif top == '"' and ch == '"':
+            stack.pop()
+        elif top in _CLOSERS and text.startswith(_CLOSERS[top], i):
+            i += len(_CLOSERS[top]) - 1
+            stack.pop()
+        elif top in ("((", "(") and ch == "(":
+            stack.append("(")
+        elif top != '"' and ch in "'\"":
+            stack.append(ch)
+        elif any(text.startswith(op, i) for op, _ in _OPENERS if top != '"' or op[0] == "$"):
+            op, kind = next(p for p in _OPENERS if text.startswith(p[0], i))
+            stack.append(kind)
+            i += len(op) - 1
+        elif top is not None:
+            pass
+        elif ch == "#" and (i == 0 or text[i - 1] in " \t\n;&|()"):
+            end = text.find("\n", i)
+            i = (len(text) if end < 0 else end) - 1
+        elif text.startswith("<<<", i):
+            i += 2
+        elif text.startswith("<<", i) and (match := _HEREDOC.match(text, i)):
             tag = next(g for g in match.groups()[1:] if g is not None)
-            while i < len(lines):
-                body = lines[i].lstrip("\t") if tabs else lines[i]
-                i += 1
-                if body == tag:
-                    break
-    return "\n".join(kept)
+            pending.append((match.group(1) == "-", tag))
+            i = match.end()
+            continue
+        elif ch == "\n" and pending:
+            out.append(text[start : i + 1])
+            i = start = _skip_body(text, i + 1, pending)
+            pending = []
+            continue
+        i += 1
+    if stack:
+        return command
+    out.append(text[start:])
+    return "".join(out)
 
 
 def bash_write_targets(command: str, cwd: str = "/") -> list[str]:
