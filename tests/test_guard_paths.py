@@ -48,6 +48,11 @@ class TestCheckPaths(GuardPathTestCase):
         reason = check_paths(bash("echo $'\\'' > /real"), self.ctx)
         self.assertIsNotNone(reason)
 
+    def test_combined_shell_flag_and_eval_followed(self):
+        for cmd in ("bash -lc 'echo x > /x'", "sh -xec 'echo x > /x'", "eval 'echo x > /x'",
+                    "eval echo x '>' /x"):
+            self.assertIsNotNone(check_paths(bash(cmd), self.ctx), cmd)
+
     def test_heredoc_with_apostrophes_allowed(self):
         cmd = "cat <<'EOF' >> /tmp/f\ndon't\nEOF"
         self.assertIsNone(check_paths(bash(cmd), self.ctx))

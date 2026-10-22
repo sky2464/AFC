@@ -112,6 +112,25 @@ class TestGitRule(AfcTestCase):
         self.assertIsNone(check_git(bash("terraform apply && echo prod"), self.ctx))
         self.assertIsNotNone(check_git(bash("echo x && kubectl --context prd apply -f k"), self.ctx))
 
+    def test_combined_shell_flags_followed(self):
+        for flag in ("-lc", "-ec", "-ic", "-xec"):
+            for sh in ("bash", "sh", "zsh", "dash"):
+                c = f"{sh} {flag} 'git reset --hard'"
+                self.assertIsNotNone(check_git(bash(c), self.ctx), c)
+        self.stage(f"key = {SECRET}\n")
+        self.assertIsNotNone(check_git(bash("bash -lc 'git commit -m x'", cwd=self.repo), self.ctx))
+
+    def test_eval_followed(self):
+        self.assertIsNotNone(check_git(bash("eval 'git reset --hard'"), self.ctx))
+        self.assertIsNotNone(check_git(bash("eval git reset --hard"), self.ctx))
+        self.assertIsNotNone(check_git(bash("eval \"echo 'unclosed\""), self.ctx))
+        self.assertIsNone(check_git(bash("eval 'git status'"), self.ctx))
+
+    def test_failed_cd_still_scans_commit(self):
+        self.stage(f"key = {SECRET}\n")
+        c = f"cd /nope-afc-missing; git -C {self.repo} commit -m x"
+        self.assertIsNotNone(check_git(bash(c, cwd=self.tmp), self.ctx))
+
     def test_commit_outside_repo_allowed(self):
         plain = self.tmp / "plain"
         plain.mkdir()

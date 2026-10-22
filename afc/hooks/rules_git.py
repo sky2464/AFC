@@ -16,6 +16,7 @@ from afc.hooks.common import (
     expand_vars,
     lex,
     resolve_path,
+    shell_script,
     split_commands,
     strip_prefix,
 )
@@ -35,7 +36,6 @@ PROD_DEPLOY = [
 ]
 PROD_TOKEN = re.compile(r"\b(prod|production|prd)\b")
 
-_SHELLS = {"bash", "sh", "zsh"}
 _GIT_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env"}
 _GIT_LOCATION_OPTS = {"-C", "--git-dir", "--work-tree"}
 _COMMIT_VALUE_SHORT = set("mFCct")
@@ -63,11 +63,8 @@ def simple_commands(command: str, cwd: str) -> list[tuple[list[str], Path]] | No
         name = Path(words[0]).name
         if name == "cd":
             base = cd_base(words[1:], base)
-        elif name in _SHELLS and "-c" in words[1:]:
-            index = words.index("-c", 1)
-            if index + 1 >= len(words):
-                continue
-            inner = simple_commands(words[index + 1], str(base))
+        elif (script := shell_script(words)) is not None:
+            inner = simple_commands(script, str(base))
             if inner is None:
                 return None
             out.extend(inner)
@@ -213,7 +210,7 @@ def commit_scope(args: list[str]) -> tuple[bool, list[str]]:
     return extra or bool(paths), paths
 
 
-def _scan_commit(location: list[str], base: Path, args: list[str]) -> str | None:
+def _scan_commit(location: list[str], base: Path, args: list[str], fallback: str) -> str | None:
     expanded = []
     for value in location:
         value = expand_vars(value)
@@ -221,7 +218,9 @@ def _scan_commit(location: list[str], base: Path, args: list[str]) -> str | None
             return UNREADABLE_REASON
         expanded.append(value)
     if not base.is_dir():
-        return None  # git itself will fail
+        base = resolve_path(fallback)  # an earlier cd failed; the shell stays where it was
+    if not base.is_dir():
+        return UNREADABLE_REASON
     try:
         if _git(expanded, base, "rev-parse", "--is-inside-work-tree").returncode != 0:
             return None  # not a repo: git itself will refuse the commit
@@ -259,7 +258,7 @@ def check_git(event: dict, ctx: Context) -> str | None:
         elif not git and "git" in words and "commit" in words[words.index("git") :]:
             return UNREADABLE_REASON  # a commit we can't locate, e.g. find -exec git commit
     for location, base, args in commits:
-        reason = _scan_commit(location, base, args)
+        reason = _scan_commit(location, base, args, event.get("cwd") or "/")
         if reason:
             return reason
     return None

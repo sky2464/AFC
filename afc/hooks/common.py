@@ -27,7 +27,8 @@ _FD_DUP = ">&"
 _SEPARATORS = {";", "&&", "||", "|", "&", "(", ")"}
 _FILE_COMMANDS = {"cp", "mv", "rsync"}
 _WRAPPERS = {"sudo", "env", "nohup", "command", "exec", "time"}
-_SHELLS = {"bash", "sh", "zsh"}
+_SHELLS = {"bash", "sh", "zsh", "dash"}
+_C_FLAG = re.compile(r"^-[A-Za-z]*c[A-Za-z]*$")
 _ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 _FD_WORD = re.compile(r"^(\d+|-)$")
 _SETTINGS_NAMES = ("settings.json", "settings.local.json")
@@ -279,13 +280,11 @@ def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None
         args = words[1:]
         if name == "cd":
             base = cd_base(args, base)
-        elif name in _SHELLS and "-c" in args:
-            index = args.index("-c")
-            if index + 1 < len(args):
-                inner = bash_write_targets_or_none(args[index + 1], str(base))
-                if inner is None:
-                    return None
-                targets.extend(inner)
+        elif (script := shell_script(words)) is not None:
+            inner = bash_write_targets_or_none(script, str(base))
+            if inner is None:
+                return None
+            targets.extend(inner)
         else:
             for raw in _command_targets(name, args):
                 _add_target(targets, raw, base)
@@ -294,6 +293,19 @@ def bash_write_targets_or_none(command: str, cwd: str = "/") -> list[str] | None
 
 def _within(path: Path, root: Path) -> bool:
     return path == root or path.is_relative_to(root)
+
+
+def shell_script(words: list[str]) -> str | None:
+    """Script text a command runs as shell code: `sh|bash|zsh|dash -<flags with c> SCRIPT`
+    (e.g. -c, -lc, -xec) or `eval ARGS...`; None for any other command."""
+    name = Path(words[0]).name
+    if name == "eval":
+        return " ".join(words[1:])
+    if name in _SHELLS:
+        for i, word in enumerate(words[1:], start=1):
+            if _C_FLAG.match(word):
+                return words[i + 1] if i + 1 < len(words) else ""
+    return None
 
 
 def split_commands(tokens: list[str]):
