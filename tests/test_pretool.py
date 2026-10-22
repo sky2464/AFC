@@ -78,7 +78,7 @@ class TestMain(PreToolTestCase):
     def test_rules_list_starts_with_path_rule(self):
         from afc.hooks.rules_paths import check_paths
 
-        self.assertEqual(pretool.RULES, [check_paths])
+        self.assertEqual(pretool.RULES[0], check_paths)
 
 
 if __name__ == "__main__":
