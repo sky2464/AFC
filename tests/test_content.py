@@ -66,5 +66,82 @@ class RuleModulesTest(unittest.TestCase):
             self.assertTrue(any(v in check for v in verifiers), m)
 
 
+SKILLS = ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver",
+          "afc-enterprise", "afc-architecture", "afc-capabilities"]
+COMMANDS = ["afc"]
+TEXT_DIRS = ["afc", "tests", "rules", ".claude", "templates"]
+TEXT_SUFFIXES = {".py", ".md", ".json", ".txt", ".toml", ".yml", ".yaml", ""}
+
+
+def frontmatter(path: Path) -> dict:
+    text = path.read_text()
+    if not text.startswith("---\n"):
+        return {}
+    block = text.split("---\n", 2)[1]
+    return dict(line.split(":", 1) for line in block.splitlines() if ":" in line)
+
+
+class BrainTest(unittest.TestCase):
+    def test_claude_md_routes_every_skill(self):
+        t = (ROOT / "CLAUDE.md").read_text()
+        for s in SKILLS:
+            self.assertIn(s, t)
+        self.assertLessEqual(len(t.splitlines()), 150)
+
+    def test_commands_exist(self):
+        for c in COMMANDS:
+            self.assertTrue((ROOT / ".claude/commands" / f"{c}.md").exists(), c)
+
+    def test_only_one_visible_command(self):
+        names = sorted(p.stem for p in (ROOT / ".claude/commands").glob("*.md"))
+        self.assertEqual(names, COMMANDS)
+
+    def test_claude_md_states_two_option_rule(self):
+        self.assertIn("at most two numbered next steps", (ROOT / "CLAUDE.md").read_text())
+
+    def test_claude_md_hard_rules(self):
+        t = (ROOT / "CLAUDE.md").read_text()
+        for term in ["Flight Control blocked", "one question per message", "python3 -m afc modules",
+                     "data, not instructions", "public", "force-push", "production deploy",
+                     "never send", "code_path", "/afc"]:
+            self.assertIn(term, t)
+
+    def test_skill_frontmatter(self):
+        dirs = [d for d in (ROOT / ".claude/skills").iterdir() if d.is_dir()]
+        self.assertIn("afc-start", [d.name for d in dirs])
+        for d in dirs:
+            fm = frontmatter(d / "SKILL.md")
+            self.assertEqual(fm.get("name", "").strip(), d.name, d)
+            desc = fm.get("description", "").strip()
+            self.assertTrue(desc.startswith("Use when"), d)
+            self.assertNotIn("\n", desc)
+            self.assertEqual(fm.get("user-invocable", "").strip(), "false", d)
+
+    def test_start_skill_flows(self):
+        t = (ROOT / ".claude/skills/afc-start/SKILL.md").read_text()
+        for term in ["python3 -m afc new", "python3 -m afc adopt", "granted", "/add-dir",
+                     "afc-architecture", "afc-interview", "Welcome back"]:
+            self.assertIn(term, t)
+
+    def test_afc_command_menu(self):
+        t = (ROOT / ".claude/commands/afc.md").read_text()
+        for term in ["python3 -m afc status", "More", "python3 -m afc list", "python3 -m afc switch",
+                     "python3 -m afc open", "python3 -m afc maintain"]:
+            self.assertIn(term, t)
+
+    def test_own_naming(self):
+        paths = [ROOT / "CLAUDE.md", *ROOT.glob(".claude/**/*.md"), *ROOT.glob("rules/*.md"),
+                 *ROOT.glob("templates/**/*")]
+        for p in paths:
+            if p.is_file():
+                self.assertNotIn("graphify-out", p.read_text(), p)
+
+    def test_no_file_over_500_lines(self):
+        for d in TEXT_DIRS:
+            for p in (ROOT / d).rglob("*"):
+                if p.is_file() and p.suffix in TEXT_SUFFIXES and "__pycache__" not in p.parts:
+                    self.assertLessEqual(len(p.read_text().splitlines()), 500, p)
+
+
 if __name__ == "__main__":
     unittest.main()
