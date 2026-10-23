@@ -34,8 +34,10 @@ numbered next steps.
 **Hard-enforced (hooks, run on every tool call; they fail closed):**
 - Writes outside the active project (and its workspace) are blocked.
 - Writes to A-FC itself are blocked unless maintenance mode is on.
-- Likely secrets (keys, tokens, quoted password/api_key assignments) are blocked.
-- Company resources cannot be copied into an app repo.
+- Likely secrets (keys, tokens, password/api_key/token assignments, quoted or `.env`-style) are blocked.
+- Company resources cannot be copied into an app repo. This also means copying or backing up
+  `~/.A-FC/` to another folder from inside a Claude session is blocked — do backups from your own
+  terminal.
 - Git commands that lose work or rewrite history (`reset --hard`, `clean -f`, `branch -D`, force push…)
   are blocked.
 - Making anything public (e.g. `gh repo create --public`) is blocked; new remotes are private.

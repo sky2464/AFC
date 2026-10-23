@@ -156,6 +156,25 @@ class BrainTest(unittest.TestCase):
                      "python3 -m afc open", "python3 -m afc maintain"]:
             self.assertIn(term, t)
 
+    def test_no_active_project_offers_switch(self):
+        cmd = (ROOT / ".claude/commands/afc.md").read_text()
+        start = (ROOT / ".claude/skills/afc-start/SKILL.md").read_text()
+        for t in (cmd, start):
+            self.assertIn('"active": null', t)
+            self.assertIn("python3 -m afc switch", t)
+        for key in ("team_mode", "git_name", "git_email", "ai_trailer"):
+            self.assertIn(f"`{key}`", cmd)
+
+    def test_drift_and_interview_wording(self):
+        drift = (ROOT / ".claude/skills/afc-drift/SKILL.md").read_text()
+        self.assertLess(drift.index("keep its output as \"before\""),
+                        drift.index("python3 -m afc set profile"))
+        self.assertIn("If nothing drifted, say nothing", drift)
+        interview = (ROOT / ".claude/skills/afc-interview/SKILL.md").read_text()
+        for term in ("a quick prototype", "an MVP"):
+            self.assertIn(term, interview)
+        self.assertIn("from your own", (ROOT / "README.md").read_text())
+
     def test_own_naming(self):
         paths = [ROOT / "CLAUDE.md", *ROOT.glob(".claude/**/*.md"), *ROOT.glob("rules/*.md"),
                  *ROOT.glob("templates/**/*")]

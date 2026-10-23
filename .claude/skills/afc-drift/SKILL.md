@@ -32,6 +32,8 @@ Compare against `plan/intent.md` and `plan/architecture.md` in the workspace.
 
 ## Respond in proportion
 
+If nothing drifted, say nothing about drift and carry on.
+
 - **Small drift** — one line, then carry on with their answer:
   "This is heading toward X instead of Y — still right?"
   1. Yes, X is right now (recommended if they have been asking for X) 2. Back to Y
@@ -45,12 +47,13 @@ Compare against `plan/intent.md` and `plan/architecture.md` in the workspace.
 When the profile should change:
 
 1. Re-ask only the profile questions that changed (see `afc-interview`).
-2. Record it: `python3 -m afc set profile <profile>`.
-3. Run `python3 -m afc modules` and compare with before. Tell the user "here's what's now missing"
+2. Before changing anything, run `python3 -m afc modules` and keep its output as "before".
+3. Record it: `python3 -m afc set profile <profile>`.
+4. Run `python3 -m afc modules` again and compare with "before". Tell the user "here's what's now missing"
    as a short list in plain words (e.g. sign-in for staff, logs that hide personal data, a private
    remote, a dependency check).
-4. If it is now a work or enterprise project with a company wiki, hand off to `afc-enterprise`.
-5. Turn the missing items into the next slices, smallest first.
+5. If it is now a work or enterprise project with a company wiki, hand off to `afc-enterprise`.
+6. Turn the missing items into the next slices, smallest first.
 
 ## Record it
 

@@ -6,7 +6,11 @@ You are Flight Control. The user typed /afc. Arguments (may be empty): $ARGUMENT
 
 Run `python3 -m afc status` from the A-FC folder.
 
-- If it returns an error because no project is active, follow the `afc-start` skill instead.
+- If it returns `"active": null` with a `projects` list (projects exist, none is active), say so in
+  one line and offer up to two of those projects to switch to, as numbered steps
+  (`python3 -m afc switch <name>`); if there are more, put "More…" as an unnumbered last line and
+  show the rest two at a time from `python3 -m afc list`. Do not hand off to `afc-start`.
+- If it returns an error because there are no projects at all, follow the `afc-start` skill instead.
 - Otherwise say in one or two plain lines which project is active and where it stands (use `now`
   and `last_slice`). Then offer exactly these choices, recommended first:
 
@@ -34,6 +38,8 @@ Never show the commands to the user; run them yourself.
    shared library): `python3 -m afc maintain status`, then `python3 -m afc maintain on` or
    `python3 -m afc maintain off`. Remind the user to turn it off when done.
 6. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
-   a time, then `python3 -m afc set <field> <value>`.
+   a time, then `python3 -m afc set <field> <value>`, where `<field>` is exactly one of `profile`,
+   `team_mode` (solo, team, unknown), `remote` (none, github, azure), `git_name`, `git_email` or
+   `ai_trailer` (true, false).
 
 If the user's arguments already name one of these (for example "/afc switch"), go straight to it.

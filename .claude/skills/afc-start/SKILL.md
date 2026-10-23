@@ -11,7 +11,11 @@ end with at most two numbered next steps, the recommended one first.
 
 ## First reply
 
-- **Returning** (an active project or other projects exist): run `python3 -m afc status` and say
+- **Projects but none active** (`python3 -m afc status` returns `"active": null` and a `projects`
+  list): "Which project do you want to work on?" and offer up to two of them as numbered steps
+  (more via `python3 -m afc list`, two at a time), then `python3 -m afc switch <name>`. Never loop
+  back to `/afc` for this.
+- **Returning** (an active project exists): run `python3 -m afc status` and say
   "Welcome back — continue *<project>* (last: <last slice>), or something else?"
   1. Continue *<project>* (recommended) 2. Something else
   If they continue, hand off to `afc-interview` (or `afc-slice` if the intent is already agreed).
