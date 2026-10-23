@@ -131,6 +131,10 @@ class IndexTests(AfcTestCase):
              ("kong-gateway-lab", "semgrep", "warn", "/orders has no rate limit")],
         )
 
+    def test_open_findings_empty_statuses(self):
+        sidecar(self.ws, "2026-10-21-0900-new", "2026-10-21T09:00:00", [("semgrep", "warn", "x")])
+        self.assertEqual(open_findings(rebuild_global_index(self.home), statuses=()), [])
+
     def test_refresh_picks_up_changed_file(self):
         db = rebuild_project_index(self.ws, "kong-gateway-lab")
         self.assertEqual(search(db, "kumquat"), [])

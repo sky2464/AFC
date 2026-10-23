@@ -34,6 +34,28 @@ class SecretsTestCase(AfcTestCase):
     def test_generic_flagged(self):
         self.assertIn("generic-assignment", find_secrets(GENERIC))
 
+    def test_identifier_suffix_assignments_flagged(self):
+        value = '"q8Zr2LmN' + '0pX4sT7v"'
+        for name in ("SECRET_KEY", "AWS_SECRET_ACCESS_KEY", "GITHUB_TOKEN_VALUE"):
+            self.assertIn("generic-assignment", find_secrets(f"{name} = {value}"), name)
+
+    def test_unquoted_env_lines_flagged(self):
+        value = "q8Zr2LmN" + "0pX4sT7v"
+        self.assertIn("generic-assignment", find_secrets(f"API_KEY={value}\n"))
+        self.assertIn("generic-assignment", find_secrets(f"export DB_PASSWORD={value}"))
+        for name in ("config.yaml", "app.yml", "a.ini", "setup.cfg", ".env", ".env.local"):
+            self.assertIn("generic-assignment", find_secrets(f"password: {value}", name), name)
+            self.assertIn("generic-assignment", find_secrets(f"api_key = {value}", name), name)
+        self.assertEqual(find_secrets(f"password: {value}", "notes.md"), [])
+        self.assertEqual(find_secrets("token = get_token_from_vault()"), [])
+        self.assertEqual(find_secrets("API_KEY=" + "your-api-key-here-x"), [])
+        self.assertEqual(find_secrets("password: ${DB_PASSWORD_VALUE}", "c.yaml"), [])
+
+    def test_unquoted_config_secret_blocked_by_write_guard(self):
+        content = "API_TOKEN: " + "q8Zr2LmN" + "0pX4sT7v"
+        event = ev("Write", {"file_path": str(self.app / "conf.yaml"), "content": content})
+        self.assertIsNotNone(check_secrets(event, self.ctx))
+
     def test_placeholders_not_flagged(self):
         for s in ['api_key = "your-api-key-here"', 'token: "${API_TOKEN}"',
                   'password = "<password-goes-here>"', 'secret = "process.env.SECRET_VALUE"']:

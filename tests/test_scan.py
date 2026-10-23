@@ -12,6 +12,7 @@ from afc.scan import (
     builtin_secret_scan,
     parse_npm_audit,
     parse_pip_audit,
+    pip_audit_command,
     run_checks,
     slug,
     summary_line,
@@ -90,6 +91,12 @@ class ScanTests(AfcTestCase):
             checks = {c.name: c for c in run_checks(repo)}
         self.assertEqual(checks["npm audit"].status, "fail")
         run.assert_called_once()
+
+    def test_pip_audit_targets_project_not_env(self):
+        req = _git_repo(self.tmp / "req", {"requirements.txt": "x\n"})
+        self.assertEqual(pip_audit_command(req)[-2:], ["-r", str(req / "requirements.txt")])
+        proj = _git_repo(self.tmp / "proj", {"pyproject.toml": "[project]\n"})
+        self.assertEqual(pip_audit_command(proj), ["pip-audit", "-f", "json", str(proj)])
 
     def test_slug(self):
         self.assertEqual(slug("  Orders API: v2!  "), "orders-api-v2")

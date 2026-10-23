@@ -113,6 +113,14 @@ class TestFingerprint(AfcTestCase):
         for cmd in (f"cat {res}", f"grep tenant {res}", f"cat {res} > {self.ws}/plan/x"):
             self.assertIsNone(check_resources(bash(cmd), self.ctx), cmd)
 
+    def test_read_only_two_path_commands_allowed(self):
+        res = f"{self.ws}/resources/policy.md"
+        for cmd in (f"diff {res} {self.app}/b", f"grep x {res} {self.app}/y",
+                    f"cmp {res} {self.app}/b"):
+            self.assertIsNone(check_resources(bash(cmd), self.ctx), cmd)
+        for cmd in (f"ditto {res} {self.app}/b", f"mv {res} {self.app}/b"):
+            self.assertIsNotNone(check_resources(bash(cmd), self.ctx), cmd)
+
     def test_wrapped_sentence_and_bullet_caught(self):
         (self.ws / "resources/wrap.md").write_text(
             "Customer exports must be encrypted at rest\nwith keys held in the Northwind vault.\n")

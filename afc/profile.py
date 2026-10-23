@@ -49,18 +49,7 @@ BASE_MODULES: dict[str, tuple[str, ...]] = {
     "personal": ("secrets", "input", "ai-safety"),
     "prototype": ("secrets", "input", "dependencies", "ai-safety"),
     "mvp": ("secrets", "input", "api", "logging-pii", "dependencies", "architecture", "ai-safety"),
-    "work": (
-        "secrets",
-        "identity",
-        "input",
-        "api",
-        "logging-pii",
-        "dependencies",
-        "containers-deploy",
-        "data",
-        "architecture",
-        "ai-safety",
-    ),
+    "work": ALL_MODULES,
     "enterprise": ALL_MODULES,
 }
 

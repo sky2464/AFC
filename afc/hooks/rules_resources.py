@@ -30,6 +30,8 @@ FILE_REASON = "this copies a company resource file out of the workspace — keep
 _TREE_COPY = {"cp", "mv", "rsync", "scp", "tar", "zip", "7z", "ditto"}
 # Commands that send files off the machine; naming a resource is enough.
 _REMOTE = {"scp", "sftp", "rsync", "curl", "wget"}
+# Commands whose last positional argument is where the copy lands.
+_COPY_LIKE = {"cp", "mv", "ln", "install", "ditto", "rsync", "scp"}
 
 
 def _within(path: Path, root: Path) -> bool:
@@ -107,13 +109,15 @@ def _bash_reason(command: str, cwd: str, home: Path, outside: bool, depth: int =
 
 
 def _dest_outside(name: str, args: list[str], base: Path, home: Path) -> bool:
-    """A destination outside home: last positional (ln, install, cp), dd of=, or any
-    positional of an archiver (tar, zip, 7z), whose archive comes first."""
+    """A destination outside home: last positional of a copy-like command (_COPY_LIKE),
+    dd of=, or any positional of an archiver (tar, zip, 7z), whose archive comes first."""
     positional = [a for a in args if not a.startswith("-") and "=" not in a]
     if name in ("tar", "zip", "7z"):
         dests = positional + [a.split("=", 1)[1] for a in args if a.startswith("--file=")]
-    else:
+    elif name in _COPY_LIKE:
         dests = positional[-1:] if len(positional) >= 2 else []
+    else:
+        dests = []
     dests += [a.split("=", 1)[1] for a in args if a.startswith("of=")]
     for raw in dests:
         value = expand_vars(raw)

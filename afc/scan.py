@@ -74,7 +74,7 @@ def builtin_secret_scan(code_path: Path) -> Check:
             continue
         if b"\0" in data:
             continue
-        if find_secrets(data.decode("utf-8", "replace")):
+        if find_secrets(data.decode("utf-8", "replace"), path.name):
             hits += 1
     if hits:
         return Check("secrets", "fail", f"secrets in {hits} file(s)")
@@ -111,6 +111,13 @@ def _judge_semgrep(done) -> Check:
     return Check("semgrep", "warn", f"{count} code finding(s)")
 
 
+def pip_audit_command(code: Path) -> list[str]:
+    """Audit the project's own dependencies, not the active environment."""
+    if (code / "requirements.txt").exists():
+        return ["pip-audit", "-f", "json", "-r", str(code / "requirements.txt")]
+    return ["pip-audit", "-f", "json", str(code)]
+
+
 def run_checks(code_path: Path) -> list[Check]:
     code = Path(code_path)
     checks = [builtin_secret_scan(code)]
@@ -122,7 +129,7 @@ def run_checks(code_path: Path) -> list[Check]:
         checks.append(_tool("npm audit", ["npm", "audit", "--json"], code,
                             lambda d: parse_npm_audit(d.stdout)))
     if (code / "requirements.txt").exists() or (code / "pyproject.toml").exists():
-        checks.append(_tool("pip-audit", ["pip-audit", "-f", "json"], code,
+        checks.append(_tool("pip-audit", pip_audit_command(code), code,
                             lambda d: parse_pip_audit(d.stdout)))
     checks.append(_tool("semgrep", ["semgrep", "--config", "auto", "--json", "--quiet"],
                         code, _judge_semgrep))

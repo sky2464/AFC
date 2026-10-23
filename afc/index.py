@@ -308,6 +308,8 @@ def search(db: Path, query: str, limit: int = 20) -> list[dict]:
 
 def open_findings(db: Path, statuses=("fail", "warn")) -> list[dict]:
     """Findings with the given statuses from each project's latest report only."""
+    if not statuses:
+        return []
     conn = _read(db)
     try:
         marks = ",".join("?" * len(statuses))

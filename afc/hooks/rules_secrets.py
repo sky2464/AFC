@@ -9,8 +9,11 @@ def check_secrets(event: dict, ctx: Context) -> str | None:
     if event.get("tool_name") not in WRITE_TOOLS:
         return None
     names: list[str] = []
-    for text in string_values(event.get("tool_input")):
-        names.extend(n for n in find_secrets(text) if n not in names)
+    tool_input = event.get("tool_input")
+    raw = tool_input.get("file_path") if isinstance(tool_input, dict) else None
+    filename = raw if isinstance(raw, str) else None
+    for text in string_values(tool_input):
+        names.extend(n for n in find_secrets(text, filename) if n not in names)
     if not names:
         return None
     return f"this looks like a secret ({', '.join(names)}) — use an environment variable instead"

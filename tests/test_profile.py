@@ -109,6 +109,7 @@ class ConstantsTest(unittest.TestCase):
         self.assertTrue(set(BASE_MODULES["personal"]) <= set(BASE_MODULES["prototype"]))
         self.assertTrue(set(BASE_MODULES["prototype"]) <= set(BASE_MODULES["mvp"]))
         self.assertTrue(set(BASE_MODULES["mvp"]) <= set(BASE_MODULES["work"]))
+        self.assertIs(BASE_MODULES["work"], ALL_MODULES)
         self.assertEqual(set(BASE_MODULES["enterprise"]), set(ALL_MODULES))
 
     def test_touch_map_values(self):
