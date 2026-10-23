@@ -1,4 +1,7 @@
-"""SessionStart hook: show the Flight Control banner and tell Claude about the active project.
+"""SessionStart hook: greet the user with the first question and tell Claude about the projects.
+
+The welcome line already asks the first question with options 1 and 2, so the user can answer with
+one key. The context line tells Claude what 1 and 2 mean.
 
 Never fails: any problem reading the registry becomes a context line, and main returns 0.
 """
@@ -8,41 +11,63 @@ import sys
 from pathlib import Path
 
 from afc.config import afc_home
-from afc.registry import RegistryError, load_registry
+from afc.registry import load_registry
 
-BANNER = (
-    "✈️  Flight Control — I build and manage your projects one small slice at a time, "
-    "with security and architecture built in. Say hi to start — /afc is the only command you need."
+INTRO = (
+    "✈️  Flight Control turns what you want to build into small, working pieces "
+    "you approve one at a time."
 )
+# Used when the projects can't be read: no options to offer, so a plain start.
+BANNER = f"{INTRO} Say hi to start — /afc is the only command you need."
+OR_HI = "or just say hi."
+SLICE_CHARS = 40
 
 
-def _context(home: Path) -> str:
-    try:
-        reg = load_registry(home)
-    except RegistryError as exc:
-        return f"Registry unreadable: {exc}. Tell the user and offer to repair it."
+def _short(text: str) -> str:
+    return text if len(text) <= SLICE_CHARS else text[: SLICE_CHARS - 1].rstrip() + "…"
+
+
+def _choices(reg) -> tuple[str, str, str]:
+    """The welcome's question as (one, two, line): what 1 and 2 mean, and the line itself."""
+    active = reg.active()
+    if active is not None:
+        last = f" (last: {_short(active.last_slice)})" if active.last_slice else ""
+        one, two = f"continue {active.name}", "something else"
+        return one, two, f"Welcome back. Type 1 to {one}{last}, 2 for {two}, {OR_HI}"
+    if reg.projects:
+        one, two = "pick one of your projects", "start a new project"
+        return one, two, f"Welcome back. Type 1 to {one}, 2 to {two}, {OR_HI}"
+    one, two = "start a new project", "bring in one already on this computer"
+    return one, two, f"Type 1 to {one}, 2 to {two}, {OR_HI}"
+
+
+def _project_line(reg) -> str:
     active = reg.active()
     if active is None:
-        project = "Active project: none — first run."
+        project = "Active project: none — first run." if not reg.projects else "Active project: none."
     else:
         project = (
             f"Active project: {active.name} ({active.profile}), code: {active.code_path}, "
             f"workspace: {active.workspace_path}, last slice: {active.last_slice or 'none'}."
         )
     others = [n for n in reg.projects if active is None or n != active.name]
-    return (
-        f"Flight Control session. {project} Other projects: {', '.join(others) or 'none'}. "
-        "Follow CLAUDE.md and the afc-start skill for the first reply."
-    )
+    return f"{project} Other projects: {', '.join(others) or 'none'}."
 
 
 def build_output(home: Path) -> dict:
     try:
-        context = _context(home)
-    except Exception as exc:  # the welcome must never break a session
+        reg = load_registry(home)
+        one, two, line = _choices(reg)
+        message = f"{INTRO}\n{line}"
+        context = (
+            f"Flight Control session. {_project_line(reg)} The welcome asked: 1 = {one}, "
+            f"2 = {two}. Follow CLAUDE.md and the afc-start skill for the first reply."
+        )
+    except Exception as exc:  # a RegistryError or anything else: the welcome must never break
+        message = BANNER
         context = f"Registry unreadable: {exc}. Tell the user and offer to repair it."
     return {
-        "systemMessage": BANNER,
+        "systemMessage": message,
         "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context},
     }
 

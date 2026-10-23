@@ -11,16 +11,26 @@ end with at most two numbered next steps, the recommended one first.
 
 ## First reply
 
+The welcome line already asked the first question, and the context line says what 1 and 2 mean
+("The welcome asked: 1 = …, 2 = …"). If the first message is 1 or 2, that is the answer: go
+straight into that path without asking again or greeting at length. For anything else (hi, a
+question, a request), answer it briefly, then ask the question below for the situation.
+
 - **Projects but none active** (`sh bin/afc status` returns `"active": null` and a `projects`
-  list): "Which project do you want to work on?" and offer up to two of them as numbered steps
-  (more via `sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop
-  back to `/afc` for this.
-- **Returning** (an active project exists): run `sh bin/afc status` and say
-  "Welcome back — continue *<project>* (last: <last slice>), or something else?"
+  list): 1 = pick a project, 2 = start a new one (see New project). To pick: "Which project do
+  you want to work on?" and offer up to two of them as numbered steps (more via
+  `sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop back to `/afc`
+  for this.
+- **Returning** (an active project exists): 1 = continue *<project>*, 2 = something else.
+  Asked again it is: "Welcome back — continue *<project>* (last: <last slice>), or something else?"
   1. Continue *<project>* (recommended) 2. Something else
-  If they continue, hand off to `afc-interview` (or `afc-slice` if the intent is already agreed).
-- **First run** (no projects; `status` returns `"active": null` and an empty `projects` list): "Are you starting a new project, or working on one that already
-  exists on this machine?"
+  If they continue, run `sh bin/afc status`, then hand off to `afc-interview` (or `afc-slice` if
+  the intent is already agreed). For something else, ask what they want: a new project or another
+  of their projects.
+- **First run** (no projects; `status` returns `"active": null` and an empty `projects` list):
+  1 = a new project (see New project), 2 = one already on this computer (see Existing project).
+  Asked again it is: "Are you starting a new project, or working on one that already exists on
+  this machine?"
   1. A new project 2. One that already exists
 
 ## New project
