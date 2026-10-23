@@ -70,10 +70,20 @@ def _git(code: Path, *args: str) -> str:
     return done.stdout.strip()
 
 
-def commit_slice(project: Project, summary: str) -> str:
-    """Stage everything in code_path and commit it as the project's identity. Return the sha."""
+NOTHING_NEW = "Nothing new to commit."
+
+
+def check_ready(project: Project) -> None:
+    """Raise RuntimeError in plain words when a slice cannot be committed."""
     if not project.git_name or not project.git_email:
         raise RuntimeError(NO_IDENTITY)
+    if not _git(Path(project.code_path), "status", "--porcelain"):
+        raise RuntimeError(NOTHING_NEW)
+
+
+def commit_slice(project: Project, summary: str) -> str:
+    """Stage everything in code_path and commit it as the project's identity. Return the sha."""
+    check_ready(project)
     code = Path(project.code_path)
     _git(code, "add", "-A")
     _git(
@@ -112,6 +122,32 @@ def default_branch(code: Path) -> str:
         return ref.split("/", 1)[1]
     except RuntimeError:
         return _git(code, "rev-parse", "--abbrev-ref", "HEAD")
+
+
+def current_branch(code: Path) -> str:
+    return _git(code, "rev-parse", "--abbrev-ref", "HEAD")
+
+
+def ref_exists(code: Path, ref: str) -> bool:
+    try:
+        _git(code, "rev-parse", "--verify", "--quiet", ref)
+        return True
+    except RuntimeError:
+        return False
+
+
+def switch_to(code: Path, branch: str, base: str | None = None) -> None:
+    """Switch to branch, creating it from base when it does not exist yet."""
+    if ref_exists(code, f"refs/heads/{branch}"):
+        _git(code, "switch", branch)
+    else:
+        _git(code, "switch", "-c", branch, *([base] if base else []))
+
+
+def upstream_base(code: Path, default: str) -> str:
+    """origin/<default> when known, else the local default branch."""
+    remote_ref = f"refs/remotes/origin/{default}"
+    return f"origin/{default}" if ref_exists(code, remote_ref) else default
 
 
 def push(code: Path, branch: str) -> None:

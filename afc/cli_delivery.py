@@ -27,6 +27,7 @@ def register(sub) -> None:
     p = sub.add_parser("create-remote", help="create a private remote repository")
     p.add_argument("--host", required=True, choices=HOSTS)
     p.add_argument("--org")
+    p.add_argument("--project")
     p.set_defaults(handler=cmd_create_remote)
 
     p = sub.add_parser("detect-team", help="decide solo or team for the active project")
@@ -68,20 +69,60 @@ def cmd_deliver(args: argparse.Namespace) -> dict:
     _, _, project = _active()
     code = Path(project.code_path)
     try:
-        sha = git_ops.commit_slice(project, args.message)
         if not git_ops.has_remote(code):
-            return {"commit": sha, "pushed": False, "pr_needed": False}
+            return {"commit": git_ops.commit_slice(project, args.message), "pushed": False, "pr_needed": False}
+        git_ops.check_ready(project)
+        default = git_ops.default_branch(code)
         mode = git_ops.decide_mode(project.team_mode, 0, git_ops.recent_authors(code))
-        branch = git_ops.decide_branch(
-            mode, git_ops.default_branch(code), args.default_deploys, args.protected
-        )
+        branch = git_ops.decide_branch(mode, default, args.default_deploys, args.protected)
         pr_needed = branch is None
         if pr_needed:
             branch = f"afc/{git_ops.slugify(args.message)}"
+            git_ops.switch_to(code, branch, git_ops.upstream_base(code, default))
+        elif branch == git_ops.WORK_BRANCH:
+            git_ops.switch_to(code, branch)
+        elif git_ops.current_branch(code) != default:
+            raise RuntimeError(
+                f"You are on branch {git_ops.current_branch(code)}, not {default} — "
+                f"switch to {default} first, then deliver again."
+            )
+        sha = git_ops.commit_slice(project, args.message)
         git_ops.push(code, branch)
     except RuntimeError as exc:
         raise _error(str(exc)) from None
     return {"commit": sha, "pushed": True, "branch": branch, "pr_needed": pr_needed}
+
+
+AZ_NO_DEFAULTS = (
+    "Azure DevOps does not know which organization and project to use yet — run "
+    "az devops configure --defaults organization=<url> project=<name>, or tell me both."
+)
+
+
+def _azure_project(args: argparse.Namespace, code: Path) -> str:
+    """The Azure project to create the repo in; refuse when it is public."""
+    project = args.project
+    if not project:
+        listing = _run(["az", "devops", "configure", "--list"], code)
+        for line in listing.splitlines():
+            key, _, value = line.partition("=")
+            if key.strip() == "project" and value.strip():
+                project = value.strip()
+    if not project:
+        raise _error(AZ_NO_DEFAULTS)
+    cmd = ["az", "devops", "project", "show", "--project", project]
+    try:
+        info = json.loads(_run(cmd + (["--org", args.org] if args.org else []), code))
+    except Exception as exc:
+        if isinstance(exc, ValueError):
+            raise _error("Azure did not say whether the project is private.") from None
+        raise _error(f"{AZ_NO_DEFAULTS} ({exc})") from None
+    if str(info.get("visibility", "")).lower() != "private":
+        raise _error(
+            f"Azure project {project} is public, so a new repository there would be public. "
+            "Pick a private project instead."
+        )
+    return project
 
 
 def cmd_create_remote(args: argparse.Namespace) -> dict:
@@ -89,7 +130,10 @@ def cmd_create_remote(args: argparse.Namespace) -> dict:
     code = Path(project.code_path)
     if git_ops.has_remote(code):
         raise _error("This project already has a remote.")
-    out = _run(git_ops.remote_create_command(args.host, project.name, args.org), code)
+    cmd = git_ops.remote_create_command(args.host, project.name, args.org)
+    if args.host == "azure":
+        cmd += ["--project", _azure_project(args, code)]
+    out = _run(cmd, code)
     if args.host == "azure":
         try:
             url = json.loads(out)["remoteUrl"]

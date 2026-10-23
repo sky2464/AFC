@@ -87,7 +87,14 @@ class RepoTestCase(AfcTestCase):
         bare = self.tmp / "remote.git"
         REAL_RUN(["git", "init", "-q", "--bare", str(bare)], check=True)
         git(self.code, "remote", "add", "origin", str(bare))
+        git(self.code, "add", "-A")
+        git(self.code, "-c", "user.name=S", "-c", "user.email=s@e", "commit", "-qm", "init")
+        git(self.code, "push", "-q", "origin", "main")
+        git(self.code, "remote", "set-head", "origin", "main")
         return bare
+
+    def change(self, name="f.txt"):
+        (self.code / name).write_text(name)
 
 
 class CommitTests(RepoTestCase):
@@ -130,6 +137,7 @@ class DeliverCliTests(RepoTestCase):
     def test_solo_pushes_default_branch(self):
         self.register(team_mode="solo")
         bare = self.bare_remote()
+        self.change()
         code, out = run_cli(["deliver", "--message", "feat: x"])
         self.assertEqual(code, 0, out)
         self.assertEqual((out["branch"], out["pr_needed"]), ("main", False))
@@ -138,6 +146,7 @@ class DeliverCliTests(RepoTestCase):
     def test_solo_with_deploying_default_pushes_work_branch(self):
         self.register(team_mode="solo")
         bare = self.bare_remote()
+        self.change()
         code, out = run_cli(["deliver", "--message", "feat: x", "--default-deploys"])
         self.assertEqual(out["branch"], "afc-work")
         self.assertEqual(git(bare, "rev-parse", "afc-work"), out["commit"])
@@ -145,6 +154,7 @@ class DeliverCliTests(RepoTestCase):
     def test_team_pushes_feature_branch_and_needs_pr(self):
         self.register(team_mode="team")
         bare = self.bare_remote()
+        self.change()
         code, out = run_cli(["deliver", "--message", "feat: Add login page"])
         self.assertEqual(code, 0, out)
         self.assertEqual(out, {"commit": out["commit"], "pushed": True,
@@ -152,14 +162,63 @@ class DeliverCliTests(RepoTestCase):
         self.assertEqual(git(bare, "rev-parse", "afc/feat-add-login-page"), out["commit"])
 
 
+class DeliverBranchTests(RepoTestCase):
+    def test_team_slices_branch_from_origin_main_and_main_stays(self):
+        self.register(team_mode="team")
+        self.bare_remote()
+        main_before = git(self.code, "rev-parse", "main")
+        self.change("a.txt")
+        _, first = run_cli(["deliver", "--message", "feat: one"])
+        self.change("b.txt")
+        code, second = run_cli(["deliver", "--message", "feat: two"])
+        self.assertEqual(code, 0, second)
+        self.assertEqual(second["branch"], "afc/feat-two")
+        self.assertEqual(git(self.code, "rev-list", "--count", "origin/main..afc/feat-two"), "1")
+        self.assertEqual(git(self.code, "rev-parse", "main"), main_before)
+
+    def test_work_branch_is_switched_to_and_main_stays(self):
+        self.register(team_mode="solo")
+        self.bare_remote()
+        main_before = git(self.code, "rev-parse", "main")
+        self.change()
+        code, out = run_cli(["deliver", "--message", "feat: x", "--protected"])
+        self.assertEqual((code, out["branch"]), (0, "afc-work"))
+        self.assertEqual(git(self.code, "rev-parse", "--abbrev-ref", "HEAD"), "afc-work")
+        self.assertEqual(git(self.code, "rev-parse", "main"), main_before)
+
+    def test_solo_default_refuses_on_other_branch(self):
+        self.register(team_mode="solo")
+        bare = self.bare_remote()
+        git(self.code, "switch", "-qc", "side")
+        self.change()
+        code, out = run_cli(["deliver", "--message", "feat: x"])
+        self.assertEqual(code, 1)
+        self.assertIn("You are on branch side, not main", out["error"])
+        self.assertEqual(git(bare, "rev-list", "--count", "main"), "1")
+
+    def test_nothing_to_commit_is_plain(self):
+        self.register(team_mode="solo")
+        self.bare_remote()
+        code, out = run_cli(["deliver", "--message", "feat: x"])
+        self.assertEqual((code, out["error"]), (1, "Nothing new to commit."))
+
+
 def fake_run(outputs: dict):
-    """Patch subprocess.run in cli_delivery: gh/az return canned output, git runs for real."""
+    """Patch subprocess.run: gh/az return canned output, git runs for real.
+
+    Keys are command prefixes ("gh", "az devops project show"); the longest match wins.
+    A value of (code, out) sets the exit code too.
+    """
     calls = []
 
     def run(cmd, **kw):
         calls.append(cmd)
-        if cmd[0] in outputs:
-            return subprocess.CompletedProcess(cmd, 0, outputs[cmd[0]], "")
+        line = " ".join(cmd)
+        keys = [k for k in outputs if line.startswith(k)]
+        if keys:
+            val = outputs[max(keys, key=len)]
+            rc, out = val if isinstance(val, tuple) else (0, val)
+            return subprocess.CompletedProcess(cmd, rc, out, "boom" if rc else "")
         return REAL_RUN(cmd, **kw)
 
     return mock.patch.object(cli_delivery.subprocess, "run", side_effect=run), calls
@@ -185,13 +244,40 @@ class RemoteCliTests(RepoTestCase):
         git(self.code, "-c", "user.name=S", "-c", "user.email=s@e", "commit", "-qam", "x", "--allow-empty")
         bare = self.tmp / "az.git"
         REAL_RUN(["git", "init", "-q", "--bare", str(bare)], check=True)
-        patch, calls = fake_run({"az": json.dumps({"remoteUrl": str(bare)})})
+        patch, calls = fake_run(self.az_outputs(bare, "private"))
         with patch:
             code, out = run_cli(["create-remote", "--host", "azure"])
         self.assertEqual(code, 0, out)
-        self.assertEqual(ext(calls)[0][:3], ["az", "repos", "create"])
+        create = [c for c in calls if c[:3] == ["az", "repos", "create"]][0]
+        self.assertEqual(create[-2:], ["--project", "Lab"])
         self.assertEqual(git(self.code, "remote", "get-url", "origin"), str(bare))
+        self.assertEqual(git(bare, "rev-parse", "main"), git(self.code, "rev-parse", "HEAD"))
         self.assertEqual(load_registry(self.home).get("lab").remote, "azure")
+
+    def az_outputs(self, bare, visibility):
+        return {
+            "az devops configure": "[defaults]\norganization = https://dev.azure.com/acme\nproject = Lab\n",
+            "az devops project show": json.dumps({"name": "Lab", "visibility": visibility}),
+            "az repos create": json.dumps({"remoteUrl": str(bare)}),
+        }
+
+    def test_azure_public_project_is_refused(self):
+        self.register()
+        patch, calls = fake_run(self.az_outputs(self.tmp / "x.git", "public"))
+        with patch:
+            code, out = run_cli(["create-remote", "--host", "azure"])
+        self.assertEqual(code, 1)
+        self.assertIn("is public", out["error"])
+        self.assertFalse([c for c in calls if c[:3] == ["az", "repos", "create"]])
+        self.assertEqual(load_registry(self.home).get("lab").remote, "none")
+
+    def test_azure_without_defaults_gives_hint(self):
+        self.register()
+        patch, _ = fake_run({"az devops configure": "[defaults]\n"})
+        with patch:
+            code, out = run_cli(["create-remote", "--host", "azure"])
+        self.assertEqual(code, 1)
+        self.assertIn("az devops configure --defaults", out["error"])
 
     def test_missing_tool_is_plain_error(self):
         self.register()
