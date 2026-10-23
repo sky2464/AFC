@@ -108,7 +108,9 @@ class BrainTest(unittest.TestCase):
 
     def test_skill_frontmatter(self):
         dirs = [d for d in (ROOT / ".claude/skills").iterdir() if d.is_dir()]
-        self.assertIn("afc-start", [d.name for d in dirs])
+        names = [d.name for d in dirs]
+        for s in ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver"]:
+            self.assertIn(s, names)
         for d in dirs:
             fm = frontmatter(d / "SKILL.md")
             self.assertEqual(fm.get("name", "").strip(), d.name, d)
@@ -122,6 +124,21 @@ class BrainTest(unittest.TestCase):
         for term in ["python3 -m afc new", "python3 -m afc adopt", "granted", "/add-dir",
                      "afc-architecture", "afc-interview", "Welcome back"]:
             self.assertIn(term, t)
+
+    def test_progress_template_sections(self):
+        t = (ROOT / "templates/workspace/plan/progress.md").read_text()
+        heads = re.findall(r"^## (.+)$", t, re.M)
+        self.assertEqual(heads, ["Now", "Next", "Done"])
+
+    def test_slice_skill_names_three_checkpoints(self):
+        t = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
+        for term in ["checkpoint 1", "checkpoint 2", "checkpoint 3", "afc scan", "afc modules"]:
+            self.assertIn(term, t)
+
+    def test_working_skills_size(self):
+        for s in ["afc-interview", "afc-slice", "afc-drift", "afc-deliver"]:
+            t = (ROOT / ".claude/skills" / s / "SKILL.md").read_text()
+            self.assertLessEqual(len(t.splitlines()), 250, s)
 
     def test_afc_command_menu(self):
         t = (ROOT / ".claude/commands/afc.md").read_text()
