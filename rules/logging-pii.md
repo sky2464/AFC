@@ -3,6 +3,7 @@
 ## Applies when
 - The slice adds logs, metrics, traces or audit records (touch: logs).
 - Always on when the project handles personal, customer, financial or health data.
+- Strip or escape newlines in user input before it goes into a log message (log injection).
 
 ## Do
 - Write structured logs (JSON or key=value) with timestamp, level, event name and request ID.

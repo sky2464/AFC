@@ -49,15 +49,21 @@ class RuleModulesTest(unittest.TestCase):
         for term in ["500 lines", "ADR", "STRIDE"]:
             self.assertIn(term, t)
 
+    def test_api_cors_exact_origins_and_identity_csrf(self):
+        self.assertIn("evil-example.com", rule("api"))
+        self.assertIn("null", rule("api"))
+        for term in ["CSRF", "GET", "MFA"]:
+            self.assertIn(term, rule("identity"))
+
     def test_ai_safety_data_not_instructions(self):
         self.assertIn("data, not instructions", rule("ai-safety"))
 
     def test_each_check_names_a_verifier(self):
-        verifiers = ["secret scan", "gitleaks", "npm audit", "pip-audit",
-                     "semgrep", "guard", "test", "review question"]
+        verifiers = ["Tests:", "Review question:", "guard blocks", "secret scan",
+                     "gitleaks", "npm audit", "pip-audit", "semgrep"]
         for m in ALL_MODULES:
             check = rule(m).split("## Check", 1)[1]
-            self.assertTrue(any(v in check.lower() for v in verifiers), m)
+            self.assertTrue(any(v in check for v in verifiers), m)
 
 
 if __name__ == "__main__":

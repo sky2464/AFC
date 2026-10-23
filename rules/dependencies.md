@@ -19,9 +19,9 @@
 ## Never
 - Never add a package to save a few lines of code.
 - Never install from a random URL, a fork or a typo-like name.
-- Never use `latest` or unpinned ranges in production.
+- Never use `latest` or unpinned ranges in production. Production installs come only from the lock file (`npm ci`, `pip install -r` with hashes, `uv sync --frozen`).
 - Never ignore a high or critical finding without a written reason and a date.
-- Never run install scripts from packages you have not checked.
+- Never run install scripts from packages you have not checked. Default to `npm ci --ignore-scripts` or `ignore-scripts=true` in `.npmrc`.
 
 ## Check
 - At checkpoint 3: npm audit (Node/TS) and pip-audit (Python) report vulnerable dependencies.

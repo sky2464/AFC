@@ -6,14 +6,14 @@
 ## Do
 - Use a small, official base image with a pinned tag (or digest).
 - Use a multi-stage build: build tools stay in the build stage.
-- Run as a non-root user (`USER app`). Drop capabilities you do not need.
+- Run as a non-root user (`USER app`). Drop all capabilities: `cap_drop: [ALL]` (compose) or `securityContext.capabilities.drop: ["ALL"]` plus `allowPrivilegeEscalation: false` (Kubernetes).
 - Use a read-only root filesystem where the app allows it.
 - Configure by environment variables. One image runs in every environment.
 - Add a `.dockerignore` that excludes `.env`, `.git`, keys and test data.
 - Add a health check.
 - Store CI secrets in the CI system's secret store, scoped to the job that needs them.
 - Prefer short-lived cloud credentials (OIDC federation from CI) over long-lived keys.
-- Scan infrastructure code (Terraform, Bicep, Kubernetes YAML) before applying it.
+- Scan infrastructure code (Terraform, Bicep, Kubernetes YAML) before applying it (for example checkov or trivy config).
 - Deploy to the company's approved app platform when it has one.
 - Per stack:
   - Python: `python:<version>-slim`; install from the lock file.
@@ -30,3 +30,4 @@
 - While writing: the secrets guard blocks secrets in Dockerfiles and CI files.
 - At checkpoint 3: the built-in secret scan, gitleaks and semgrep (when installed) cover the deploy files.
 - Review question: "Does the container run as non-root, and where do its secrets come from?"
+- Review question: "Was the IaC scanned, and with what?" (An IaC scanner such as checkov or trivy config is a later scan.)

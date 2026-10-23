@@ -15,6 +15,8 @@
 - Use a maintained library for OIDC, SAML and JWT. Do not write your own crypto or parser.
 - JWT: verify signature, `iss`, `aud`, `exp` and `nbf`. Pin the allowed algorithm. Keep lifetimes short.
 - Sessions: secure, HttpOnly, SameSite cookies; rotate the session ID on login; expire idle sessions.
+- Protect state-changing requests with a CSRF token or a verified Origin/Referer check (use the framework's built-in).
+- Require MFA or step-up auth for admin actions, and MFA for apps that store their own passwords.
 - Hash passwords (if you must store them) with Argon2id, scrypt or bcrypt.
 - Map identity-provider groups to app roles in one place.
 - Per stack:
@@ -27,6 +29,7 @@
 - Never store tokens in `localStorage` when a cookie works.
 - Never build your own login when the company has SSO.
 - Never log passwords, tokens, or full SAML assertions.
+- Never change state on a GET request.
 - Never skip the authorization check on "internal" endpoints.
 
 ## Check

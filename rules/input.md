@@ -14,6 +14,7 @@
 - For uploads: limit size, check type by content, store outside the web root, rename the file.
 - For URLs the server fetches: allow-list hosts to stop SSRF.
 - Resolve file paths and confirm they stay inside the allowed folder (path traversal).
+- For XML: block external entities (XXE). Python: `defusedxml`. Node: disable external entities in the XML parser.
 - Per stack:
   - Python: `pydantic` or dataclass checks; `subprocess.run([...])` without `shell=True`.
   - Node/TS: `zod` or similar; frameworks that auto-escape templates; `execFile` over `exec`.

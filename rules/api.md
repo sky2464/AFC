@@ -18,13 +18,15 @@
   - Node/TS: `cors` with an origin list; `express-rate-limit` or gateway limits.
 
 ## Never
-- Never use `Access-Control-Allow-Origin: *` with credentials.
+- Never reflect the request `Origin` back as the allowed origin.
+- Never allow the `null` origin.
+- Never match origins by prefix, suffix or regex; compare against the exact configured list.
 - Never return stack traces, SQL, file paths or internal hostnames to the client.
 - Never break a published version without a new version.
 - Never expose admin or debug endpoints on the public interface.
 - Never return more fields than the client needs.
 
 ## Check
-- Tests: a disallowed origin gets no CORS header; the rate limit returns 429; an error returns the envelope with no stack trace.
+- Tests: an `evil-example.com` origin gets no CORS header; a disallowed origin gets no CORS header; the rate limit returns 429; an error returns the envelope with no stack trace.
 - At checkpoint 3: semgrep (when installed) for permissive CORS and leaky error handlers.
 - Review question: "Who may call this endpoint, how often, and what does it return on error?"
