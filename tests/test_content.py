@@ -71,6 +71,12 @@ SKILLS = ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver",
 COMMANDS = ["afc"]
 TEXT_DIRS = ["afc", "tests", "rules", ".claude", "templates"]
 TEXT_SUFFIXES = {".py", ".md", ".json", ".txt", ".toml", ".yml", ".yaml", ""}
+# Session copies of the whole repo that Claude Code keeps here; they are not part of the brain.
+WORKTREES = ROOT / ".claude" / "worktrees"
+
+
+def _own(p: Path) -> bool:
+    return not p.is_relative_to(WORKTREES)
 
 
 def frontmatter(path: Path) -> dict:
@@ -178,13 +184,13 @@ class BrainTest(unittest.TestCase):
     def test_own_naming(self):
         paths = [ROOT / "CLAUDE.md", *ROOT.glob(".claude/**/*.md"), *ROOT.glob("rules/*.md"),
                  *ROOT.glob("templates/**/*")]
-        for p in paths:
+        for p in filter(_own, paths):
             if p.is_file():
                 self.assertNotIn("graphify-out", p.read_text(), p)
 
     def test_no_file_over_500_lines(self):
         for d in TEXT_DIRS:
-            for p in (ROOT / d).rglob("*"):
+            for p in filter(_own, (ROOT / d).rglob("*")):
                 if p.is_file() and p.suffix in TEXT_SUFFIXES and "__pycache__" not in p.parts:
                     self.assertLessEqual(len(p.read_text().splitlines()), 500, p)
 
