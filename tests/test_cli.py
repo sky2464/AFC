@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from afc.config import afc_root
-from afc.registry import load_registry
+from afc.registry import load_registry, save_registry
 from tests.helpers import AfcTestCase, run_cli
 
 REAL_TEMPLATES = afc_root() / "templates"
@@ -202,7 +202,8 @@ class SwitchTest(CliTestCase):
         self.assertEqual(registry.active().name, "kong-gateway-lab")
         self.assertEqual(registry.get("kong-gateway-lab").last_active, date.today().isoformat())
         self.assertIn(first["code_path"], self.granted_in_settings())
-        self.assertIn(second["code_path"], self.granted_in_settings())
+        self.assertIn(str(Path(first["workspace_path"]).resolve()), self.granted_in_settings())
+        self.assertNotIn(second["code_path"], self.granted_in_settings())  # only the active one
 
 
 class ReadOnlyCommandsTest(CliTestCase):
@@ -230,6 +231,15 @@ class ReadOnlyCommandsTest(CliTestCase):
         rc, out = run_cli(["status"])
         self.assertEqual(rc, 0)
         self.assertEqual(out["now"], "")
+
+    def test_status_with_projects_but_none_active_lists_them(self):
+        self.new("kong-gateway-lab")
+        reg = load_registry(self.home)
+        reg.active_name = None
+        save_registry(self.home, reg)
+        rc, out = run_cli(["status"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(out, {"active": None, "projects": ["kong-gateway-lab"]})
 
     def test_status_without_active_project_errors(self):
         rc, out = run_cli(["status"])

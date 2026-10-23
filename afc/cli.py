@@ -25,12 +25,11 @@ from afc.registry import (
     save_registry,
     validate_name,
 )
+from afc.cli_settings import SETTABLE, SettingError
 from afc.session_dirs import GrantError, check_settings, grant_dirs, settings_path
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-TEAM_MODES = ("solo", "team", "unknown")
-REMOTES = ("none", "github", "azure")
 COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
@@ -59,7 +58,7 @@ def main(argv: list[str]) -> int:
     try:
         args = _build_parser().parse_args(argv)
         result = args.handler(args)
-    except (_UsageError, CliError, RegistryError, GrantError, OSError) as exc:
+    except (_UsageError, CliError, SettingError, RegistryError, GrantError, OSError) as exc:
         return _fail(str(exc))
     print(json.dumps(result))
     return 0
@@ -130,7 +129,7 @@ def cmd_new(args: argparse.Namespace) -> dict:
         )
         reg.add(project)
         reg.set_active(name)
-        granted = _commit(home, reg, code, undo)
+        granted = _commit(home, reg, project, undo)
     except BaseException:
         undo.rollback()
         raise
@@ -159,7 +158,7 @@ def cmd_adopt(args: argparse.Namespace) -> dict:
         )
         reg.add(project)
         reg.set_active(name)
-        granted = _commit(home, reg, path, undo)
+        granted = _commit(home, reg, project, undo)
     except BaseException:
         undo.rollback()
         raise
@@ -180,7 +179,7 @@ def cmd_switch(args: argparse.Namespace) -> dict:
     reg.update(args.name, last_active=_today())
     undo = _settings_undo()
     try:
-        granted = _commit(home, reg, Path(project.code_path), undo)
+        granted = _commit(home, reg, project, undo)
     except BaseException:
         undo.rollback()
         raise
@@ -196,7 +195,10 @@ def cmd_list(args: argparse.Namespace) -> dict:
 
 
 def cmd_status(args: argparse.Namespace) -> dict:
-    project = _active(load_registry(afc_home()))
+    reg = load_registry(afc_home())
+    if reg.active() is None and reg.projects:
+        return {"active": None, "projects": list(reg.projects)}
+    project = _active(reg)
     data = dataclasses.asdict(project)
     data["now"] = _now_text(Path(project.workspace_path))
     return data
@@ -255,39 +257,6 @@ def cmd_scan(args: argparse.Namespace) -> dict:
     return {"summary": scan.summary_line(checks), "report": str(report)}
 
 
-# ------------------------------------------------------------- set helpers
-
-
-def _one_of(allowed: tuple[str, ...]):
-    def check(field: str, raw: str) -> str:
-        if raw not in allowed:
-            raise CliError(f"{field} must be one of: {', '.join(allowed)}.")
-        return raw
-
-    return check
-
-
-def _true_or_false(field: str, raw: str) -> bool:
-    if raw not in ("true", "false"):
-        raise CliError(f"{field} must be true or false.")
-    return raw == "true"
-
-
-def _free_text(field: str, raw: str) -> str:
-    return raw
-
-
-SETTABLE = {
-    "profile": _one_of(PROFILES),
-    "team_mode": _one_of(TEAM_MODES),
-    "remote": _one_of(REMOTES),
-    "ai_trailer": _true_or_false,
-    "last_slice": _free_text,
-    "git_name": _free_text,
-    "git_email": _free_text,
-}
-
-
 # ----------------------------------------------------------------- helpers
 
 
@@ -298,10 +267,11 @@ def _settings_undo() -> Undo:
     return Undo(settings_path(root))
 
 
-def _commit(home: Path, reg, code: Path, undo: Undo) -> list[str]:
-    """Grant the code path to the session, then save the registry. Caller rolls back on error."""
+def _commit(home: Path, reg, project: Project, undo: Undo) -> list[str]:
+    """Grant the project's code and workspace to the session (replacing earlier grants),
+    then save the registry. Caller rolls back on error."""
     undo.save_settings()
-    granted = grant_dirs(afc_root(), [code])
+    granted = grant_dirs(afc_root(), [Path(project.code_path), Path(project.workspace_path)])
     save_registry(home, reg)
     return granted
 

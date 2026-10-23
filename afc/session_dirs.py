@@ -9,6 +9,9 @@ import os
 from pathlib import Path
 
 
+GRANTED_KEY = "afcGranted"  # entries of additionalDirectories that Flight Control added
+
+
 class GrantError(Exception):
     """The settings file exists but cannot be merged safely, so it was left alone."""
 
@@ -24,19 +27,27 @@ def check_settings(root: Path) -> None:
 
 
 def grant_dirs(root: Path, dirs: list[Path]) -> list[str]:
-    """Add the resolved dirs to additionalDirectories and return the full list.
+    """Grant the resolved dirs in additionalDirectories and return the full list.
 
-    Other keys are kept. Existing entries keep their order, and duplicates are dropped.
+    Entries Flight Control granted earlier (tracked in the sibling key GRANTED_KEY) are
+    replaced, so only the latest dirs stay granted. Entries the user added are kept in
+    order; other keys are kept; duplicates are dropped.
     """
     path = settings_path(root)
     settings = _read_settings(path)
     current = _current_dirs(settings, path)
+    previous = settings.get(GRANTED_KEY, [])
+    if not isinstance(previous, list):
+        raise GrantError(f"{path}: '{GRANTED_KEY}' must be a list")
+    user = [e for e in current if e not in previous]
+    wanted = [str(Path(d).resolve()) for d in dirs]
 
     merged: list[str] = []
-    for entry in [*current, *(str(Path(d).resolve()) for d in dirs)]:
+    for entry in [*user, *wanted]:
         if entry not in merged:
             merged.append(entry)
     settings.setdefault("permissions", {})["additionalDirectories"] = merged
+    settings[GRANTED_KEY] = [d for d in dict.fromkeys(wanted) if d not in user]
     _atomic_write(path, json.dumps(settings, indent=2) + "\n")
     return merged
 

@@ -18,7 +18,8 @@ class GrantDirsTest(AfcTestCase):
         granted = grant_dirs(self.root, [app])
         self.assertEqual(granted, [str(app.resolve())])
         data = json.loads(self.settings.read_text(encoding="utf-8"))
-        self.assertEqual(data, {"permissions": {"additionalDirectories": [str(app.resolve())]}})
+        self.assertEqual(data, {"permissions": {"additionalDirectories": [str(app.resolve())]},
+                                "afcGranted": [str(app.resolve())]})
 
     def test_preserves_other_keys_and_dedupes(self):
         self.settings.parent.mkdir(parents=True)
@@ -42,6 +43,19 @@ class GrantDirsTest(AfcTestCase):
         self.assertEqual(data["model"], "x")
         self.assertEqual(data["permissions"]["allow"], ["Bash(ls)"])
         self.assertEqual(data["permissions"]["additionalDirectories"], granted)
+
+    def test_new_grant_replaces_earlier_flight_control_grants(self):
+        self.settings.parent.mkdir(parents=True)
+        self.settings.write_text(json.dumps(
+            {"permissions": {"additionalDirectories": ["/mine"]}}), encoding="utf-8")
+        a, b = self.tmp / "a", self.tmp / "b"
+        a.mkdir()
+        b.mkdir()
+        grant_dirs(self.root, [a, a / "ws"])
+        granted = grant_dirs(self.root, [b])
+        self.assertEqual(granted, ["/mine", str(b.resolve())])
+        data = json.loads(self.settings.read_text(encoding="utf-8"))
+        self.assertEqual(data["afcGranted"], [str(b.resolve())])
 
     def test_granting_twice_adds_nothing_new(self):
         app = self.tmp / "app"

@@ -1,5 +1,6 @@
 import json
 import unittest
+from unittest import mock
 
 from afc.registry import (
     Project,
@@ -106,6 +107,45 @@ class RegistryTest(AfcTestCase):
         (self.home / "projects.json").write_text(json.dumps(data))
         with self.assertRaisesRegex(RegistryError, "^projects.json is unreadable"):
             load_registry(self.home)
+
+
+    def _write(self, active, names):
+        entries = [{"name": n, "code_path": "/c", "workspace_path": "/w"} for n in names]
+        (self.home / "projects.json").write_text(json.dumps({"active": active, "projects": entries}))
+
+    def test_duplicate_and_bad_names_rejected_on_load(self):
+        for names in (["ab", "ab"], ["../x"]):
+            self._write(None, names)
+            with self.assertRaises(RegistryError, msg=names):
+                load_registry(self.home)
+
+    def test_add_validates_name(self):
+        with self.assertRaises(RegistryError):
+            Registry().add(Project(name="../x", code_path="/c", workspace_path="/w"))
+
+    def test_dangling_active_loads_as_none(self):
+        self._write("gone", ["ab"])
+        reg = load_registry(self.home)
+        self.assertIsNone(reg.active_name)
+        reg.active_name = "gone"
+        save_registry(self.home, reg)
+        self.assertIn("Active: none", (self.home / "projects.md").read_text())
+
+    def test_failed_md_write_leaves_json_unchanged(self):
+        save_registry(self.home, Registry())
+        reg = Registry()
+        reg.add(Project(name="ab", code_path="/c", workspace_path="/w"))
+        real = __import__("afc.registry", fromlist=["_atomic_write"])._atomic_write
+
+        def fail_md(path, text):
+            if path.name == "projects.md":
+                raise OSError("disk full")
+            real(path, text)
+
+        with mock.patch("afc.registry._atomic_write", side_effect=fail_md):
+            with self.assertRaises(OSError):
+                save_registry(self.home, reg)
+        self.assertEqual(load_registry(self.home).projects, {})
 
 
 if __name__ == "__main__":

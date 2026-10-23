@@ -40,6 +40,7 @@ class Registry:
     active_name: str | None = None
 
     def add(self, p: Project) -> None:
+        validate_name(p.name)
         if p.name in self.projects:
             raise RegistryError(f"project already exists: {p.name}")
         self.projects[p.name] = p
@@ -81,39 +82,53 @@ def validate_name(name: str) -> str:
 
 
 def load_registry(home: Path) -> Registry:
-    """Read home/projects.json. A missing file means an empty registry."""
+    """Read home/projects.json. A missing file means an empty registry.
+
+    Bad or duplicate names raise RegistryError; an `active` that names no project loads as None.
+    """
     path = home / "projects.json"
     if not path.exists():
         return Registry()
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        projects = {
-            entry["name"]: Project(**entry) for entry in data.get("projects", [])
-        }
+        entries = [Project(**entry) for entry in data.get("projects", [])]
         active = data.get("active")
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
         raise RegistryError(f"projects.json is unreadable: {exc}") from exc
+    projects: dict[str, Project] = {}
+    for project in entries:
+        if not isinstance(project.name, str):
+            raise RegistryError("projects.json is unreadable: a project name is not text")
+        validate_name(project.name)
+        if project.name in projects:
+            raise RegistryError(f"projects.json is unreadable: duplicate project {project.name}")
+        projects[project.name] = project
     if active is not None and not isinstance(active, str):
         raise RegistryError("projects.json is unreadable: 'active' must be a string or null")
+    if active not in projects:
+        active = None
     return Registry(projects=projects, active_name=active)
 
 
 def save_registry(home: Path, reg: Registry) -> None:
-    """Write projects.json and projects.md under home, each atomically."""
+    """Write projects.md, then projects.json (the source of truth), each atomically.
+
+    If the view can't be written, the registry is left as it was.
+    """
     home.mkdir(parents=True, exist_ok=True)
     data = {
         "active": reg.active_name,
         "projects": [dataclasses.asdict(p) for p in reg.projects.values()],
     }
-    _atomic_write(home / "projects.json", json.dumps(data, indent=2) + "\n")
     _atomic_write(home / "projects.md", _render_markdown(reg))
+    _atomic_write(home / "projects.json", json.dumps(data, indent=2) + "\n")
 
 
 def _render_markdown(reg: Registry) -> str:
     lines = [
         "# Flight Control projects",
         "",
-        f"Active: {reg.active_name or 'none'}",
+        f"Active: {reg.active().name if reg.active() else 'none'}",
         "",
         "| Name | Profile | Status | Last active | Code path |",
         "|---|---|---|---|---|",
