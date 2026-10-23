@@ -1,98 +1,133 @@
-# Flight Control
+<div align="center">
 
-**Your AI architect, project manager and security officer in one.** Spec-driven from day one: Flight
-Control locks onto your goal, keeps every step on course, and delivers a working app.
+# ✈️ Flight Control
 
-It runs inside [Claude Code](https://claude.com/claude-code). You say what you want to build; it works
-out the details with you one question at a time, then builds one small piece you can see or run, asks
-"is this what you meant?", and repeats, with security and architecture practice built in.
+### Your AI architect, project manager and security officer in one.
 
-> **Status: alpha ([v0.01a](https://github.com/sky2464/AFC/releases/tag/v0.01a)).** Tested on macOS.
-> Windows (Git Bash) and Linux are supported but not yet tried on real machines.
+Spec-driven from day one: Flight Control locks onto your goal, keeps every step on course,<br>
+and delivers a working app.
+
+[![Version](https://img.shields.io/badge/version-0.01a_alpha-orange)](https://github.com/sky2464/AFC/releases/tag/v0.01a)
+[![Runs in Claude Code](https://img.shields.io/badge/runs_in-Claude_Code-d97757)](https://claude.com/claude-code)
+[![Platforms](https://img.shields.io/badge/macOS_·_Linux_·_Windows-lightgrey)](#questions)
+
+[Get started](#get-started) · [Why Flight Control](#why-flight-control) · [How a session goes](#how-a-session-goes) · [Your work stays yours](#your-work-stays-yours) · [Safety](#safety) · [Questions](#questions)
+
+</div>
+
+---
+
+## Why Flight Control
+
+You describe what you want. Flight Control turns it into a clear plan and builds it one small,
+working piece at a time, and you approve each piece once you've seen it work.
+
+| | |
+|---|---|
+| 🧭 **Spec-driven** | Works out what you really want, one question at a time, before anything is built. |
+| 🎯 **Stays on your goal** | Notices when work drifts from what you agreed and brings it back on course. |
+| 🏗️ **Thinks like an architect** | Remembers how your project fits together and checks the impact of every change. |
+| 🛡️ **Security built in** | Checks every file change and command, and blocks secrets, risky git commands and accidental publishing. |
+| 🧑‍✈️ **Runs the project** | Plans, builds, tests and saves your work. You decide what to build and approve what works. |
+| 🙂 **Simple by design** | No commands to learn. Every reply ends with at most two clear next steps. |
 
 ## Get started
 
-**You need:** Claude Code, git, and Python 3.10 or newer. No Python yet? Start anyway: Flight Control
-notices, tells you in one line, and offers to install it, only after you say yes.
+**You need** [Claude Code](https://claude.com/claude-code), git, and Python 3.10 or newer.
+No Python yet? Start anyway: Flight Control notices, tells you in one line, and offers to install it,
+only after you say yes.
 
-1. Download Flight Control into a folder of its own:
+**1. Get Flight Control**
 
-   ```bash
-   git clone --depth 1 https://github.com/sky2464/AFC.git A-FC
-   ```
+```bash
+git clone --depth 1 https://github.com/sky2464/AFC.git A-FC
+```
 
-2. Open it in Claude Code:
+**2. Open it in Claude Code**
 
-   ```bash
-   cd A-FC
-   ```
+```bash
+cd A-FC
+```
 
-   ```bash
-   claude
-   ```
+```bash
+claude
+```
 
-3. Answer the welcome:
+**3. Answer the welcome**
 
-   ```
-   ✈️  Flight Control — your AI architect, project manager and security officer in one.
-   Spec-driven from day one: locks onto your goal, keeps every step on course, delivers a working app.
-   Type 1 to start a new project, 2 to bring in one already on this computer, or just say hi.
-   ```
+```
+✈️  Flight Control — your AI architect, project manager and security officer in one.
+Spec-driven from day one: locks onto your goal, keeps every step on course, delivers a working app.
+Type 1 to start a new project, 2 to bring in one already on this computer, or just say hi.
+```
 
-From there, just talk. Every reply ends with at most two numbered next steps, so you always know what
-to do. `/afc` is the only command to remember: it shows where you are and what's next.
+That's it. To get the latest version later, run `git pull` inside the `A-FC` folder.
 
-**Updating:** run `git pull` inside the `A-FC` folder.
+## How a session goes
 
-## How it works
+1. **You say what you want to build.** Flight Control asks one question at a time until the goal is
+   clear: who it's for, what "done" looks like, what to leave out.
+2. **It plans the first small piece**, something you can actually see or run.
+3. **It builds and checks it**, with tests, and shows you the result.
+4. **You decide.** "Yes, that's it" saves the piece and moves to the next one; "not quite" changes
+   course before anything grows on top of it.
 
-Flight Control keeps three things apart:
+Lost track? Type `/afc` any time to see where you are and what's next. It's the only command there is.
 
-| Place | What is in it | Shared? |
-|---|---|---|
-| `A-FC/` (this folder) | The brain only: instructions, skills, the `/afc` command, safety checks, rules, templates | Yes |
-| `~/.A-FC/` (or `$AFC_HOME`) | One private workspace per project (plan, resources, reports, index) and your project list | Never, it stays on your computer |
-| Your app's own folder | Code and tests only | Per that project |
+## Your work stays yours
 
-This folder never holds your project data, so updating Flight Control never touches your work.
+Flight Control keeps three things apart, so nothing gets mixed up:
+
+| Where | What's there |
+|---|---|
+| 📁 **Your app's folder** | Your app's code and tests, nothing else. |
+| 🔒 **`~/.A-FC/`** | A private workspace per project: plans, decisions, notes and reports. It stays on your computer and is never put in a repo. |
+| ✈️ **The `A-FC` folder** | Flight Control itself. Updating it never touches your work. |
 
 ## Safety
 
-**Always enforced (checked before every file change and command; when in doubt they block):**
-- Writes outside the active project (and its workspace) are blocked.
-- Writes to Flight Control itself are blocked unless maintenance mode is on.
-- Likely secrets (keys, tokens, password/api_key/token assignments, quoted or `.env`-style) are blocked.
-- Company resources cannot be copied into an app repo. This also means copying or backing up
-  `~/.A-FC/` to another folder from inside a Claude session is blocked: do backups from your own
-  terminal.
-- Git commands that lose work or rewrite history (`reset --hard`, `clean -f`, `branch -D`, force
-  push…) are blocked.
-- Making anything public (e.g. `gh repo create --public`) is blocked; new remotes are private.
+**Always enforced.** Before every file change and command, Flight Control checks it, and when in
+doubt it blocks:
 
-**Guided (Claude follows these instructions; nothing forces it):** the one-question interview, slice
-size, drift checks, live docs, scans before delivery, drafting (never sending) emails and forms, the
-two-step reply style.
+- ✋ changes outside the project you're working on;
+- 🔑 anything that looks like a password, key or token;
+- 🏢 copying company material into an app's code (this also means backups of `~/.A-FC/` happen
+  from your own terminal, not from inside Claude);
+- ⚠️ git commands that lose work or rewrite history, like force-push or `reset --hard`;
+- 🌍 making anything public; new repositories are private.
 
-**Limits.** Command checks are best effort: commands are read as text, so an unusual spelling can slip
-through. The checks protect against accidents by a cooperative AI, not against a hostile one.
+**Always yours to do.** Making a repo public, force-pushing, deleting branches, merging other people's
+work and deploying to production. Flight Control explains the steps; you take them. It drafts emails
+and forms but never sends them.
 
-## For developers
+**Good to know.** Commands are checked as text, so an unusual spelling can slip through. The checks
+catch accidents by a cooperative AI; they are not a defense against a hostile one.
 
-Work on Flight Control itself in a full clone, not in the folder you use day to day:
+## Questions
 
-```bash
-git clone https://github.com/sky2464/AFC.git A-FC-dev
-```
+**Do I need to know how to code?**
+No. You describe what you want and approve what works. Knowing some code helps you judge the details,
+but the questions are in plain language.
 
-- **Branches:** `main` holds released versions (tagged, e.g. `v0.01a`); ongoing work happens on `dev`.
-- **Tests** always use a temporary `AFC_HOME`, so they never touch your real `~/.A-FC`:
+**Which computers does it run on?**
+macOS, Linux and Windows (with Git Bash, which Claude Code uses on Windows). This alpha has been
+tested on macOS; Linux and Windows are supported but not yet tried on real machines.
 
-  ```bash
-  python3 -m unittest discover -s tests -v
-  ```
+**What does it cost?**
+Flight Control is free. It runs inside Claude Code, which needs a Claude plan or an Anthropic API key.
 
-- **Editing:** the safety checks block edits to Flight Control by default. Turn on maintenance mode
-  with `sh bin/afc maintain on` (or `/afc` → More…), and turn it off with `sh bin/afc maintain off`
-  when done.
-- **Design:** see `docs/superpowers/specs/2026-10-21-flight-control-design.md` and the acceptance
-  results in `docs/superpowers/acceptance/`.
+**Where is my data?**
+Your code stays in your app's folder and your plans stay in `~/.A-FC/` on your computer. Flight
+Control adds no services of its own; Claude Code talks to Claude as it always does.
+
+**Can I bring in a project I already have?**
+Yes. Type 2 at the welcome and point it at the folder.
+
+**Something isn't working.**
+Please [open an issue](https://github.com/sky2464/AFC/issues) and say what you typed and what you saw.
+
+---
+
+<div align="center">
+<sub>Want to help build Flight Control? See <a href="CONTRIBUTING.md">CONTRIBUTING.md</a>.</sub>
+</div>
