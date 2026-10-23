@@ -196,7 +196,7 @@ def cmd_list(args: argparse.Namespace) -> dict:
 
 def cmd_status(args: argparse.Namespace) -> dict:
     reg = load_registry(afc_home())
-    if reg.active() is None and reg.projects:
+    if reg.active() is None:
         return {"active": None, "projects": list(reg.projects)}
     project = _active(reg)
     data = dataclasses.asdict(project)

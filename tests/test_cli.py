@@ -241,10 +241,10 @@ class ReadOnlyCommandsTest(CliTestCase):
         self.assertEqual(rc, 0)
         self.assertEqual(out, {"active": None, "projects": ["kong-gateway-lab"]})
 
-    def test_status_without_active_project_errors(self):
+    def test_status_on_first_run_is_empty(self):
         rc, out = run_cli(["status"])
-        self.assertEqual(rc, 1)
-        self.assertIn("/afc", out["error"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(out, {"active": None, "projects": []})
 
     def test_open_prints_path_off_macos(self):
         _, created = self.new("kong-gateway-lab")

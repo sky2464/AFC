@@ -19,7 +19,7 @@ end with at most two numbered next steps, the recommended one first.
   "Welcome back — continue *<project>* (last: <last slice>), or something else?"
   1. Continue *<project>* (recommended) 2. Something else
   If they continue, hand off to `afc-interview` (or `afc-slice` if the intent is already agreed).
-- **First run** (no projects): "Are you starting a new project, or working on one that already
+- **First run** (no projects; `status` returns `"active": null` and an empty `projects` list): "Are you starting a new project, or working on one that already
   exists on this machine?"
   1. A new project 2. One that already exists
 
