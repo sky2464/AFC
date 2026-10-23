@@ -109,7 +109,7 @@ class BrainTest(unittest.TestCase):
     def test_skill_frontmatter(self):
         dirs = [d for d in (ROOT / ".claude/skills").iterdir() if d.is_dir()]
         names = [d.name for d in dirs]
-        for s in ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver"]:
+        for s in SKILLS:
             self.assertIn(s, names)
         for d in dirs:
             fm = frontmatter(d / "SKILL.md")
@@ -135,8 +135,18 @@ class BrainTest(unittest.TestCase):
         for term in ["checkpoint 1", "checkpoint 2", "checkpoint 3", "afc scan", "afc modules"]:
             self.assertIn(term, t)
 
+    def test_capabilities_has_promotion_gate(self):
+        t = (ROOT / ".claude/skills/afc-capabilities/SKILL.md").read_text()
+        for term in ["library/skills", "scrub", "maintenance mode"]:
+            self.assertIn(term, t)
+
+    def test_enterprise_never_sends(self):
+        t = (ROOT / ".claude/skills/afc-enterprise/SKILL.md").read_text()
+        for term in ["draft", "never send"]:
+            self.assertIn(term, t)
+
     def test_working_skills_size(self):
-        for s in ["afc-interview", "afc-slice", "afc-drift", "afc-deliver"]:
+        for s in SKILLS[1:]:
             t = (ROOT / ".claude/skills" / s / "SKILL.md").read_text()
             self.assertLessEqual(len(t.splitlines()), 250, s)
 
