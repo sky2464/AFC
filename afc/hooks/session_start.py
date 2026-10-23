@@ -14,11 +14,12 @@ from afc.config import afc_home
 from afc.registry import load_registry
 
 INTRO = (
-    "✈️  Flight Control turns what you want to build into small, working pieces "
-    "you approve one at a time."
+    "✈️  Flight Control — your AI architect, project manager and security officer in one.\n"
+    "Spec-driven from day one: locks onto your goal, keeps every step on course, "
+    "delivers a working app."
 )
 # Used when the projects can't be read: no options to offer, so a plain start.
-BANNER = f"{INTRO} Say hi to start — /afc is the only command you need."
+BANNER = f"{INTRO}\nSay hi to start — /afc is the only command you need."
 OR_HI = "or just say hi."
 SLICE_CHARS = 40
 

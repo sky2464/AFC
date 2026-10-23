@@ -63,7 +63,7 @@ class SessionStartTest(AfcTestCase):
                         last_slice="add a health endpoint that reports database and cache status"))
         reg.set_active("app")
         save_registry(self.home, reg)
-        line = build_output(self.home)["systemMessage"].splitlines()[1]
+        line = build_output(self.home)["systemMessage"].splitlines()[-1]
         self.assertIn("(last: add a health endpoint that reports data…)", line)
 
     def test_no_last_slice_and_no_others(self):
