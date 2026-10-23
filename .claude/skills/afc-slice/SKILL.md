@@ -34,7 +34,7 @@ Update `## Now` in `plan/progress.md` with the slice.
 ## checkpoint 1 — before coding
 
 1. Decide what the slice touches, from: `auth`, `api`, `data`, `deploy`, `logs`, `deps`, `input`.
-2. Run `python3 -m afc modules --touches <a,b>` (leave out `--touches` if it touches none).
+2. Run `sh bin/afc modules --touches <a,b>` (leave out `--touches` if it touches none).
 3. Read only the returned `rules/<module>.md` files. Do not load the others.
 4. Do a mini threat check sized to the slice, at most five rows:
 
@@ -57,7 +57,7 @@ they will see.
 ## checkpoint 3 — showing the slice
 
 1. Run the tests.
-2. Run `python3 -m afc scan --slice "<n> <label>"` (e.g. `"3 health endpoint"`). It returns a
+2. Run `sh bin/afc scan --slice "<n> <label>"` (e.g. `"3 health endpoint"`). It returns a
    one-line `summary` and the path of the full `report`.
 3. Show the demo: for a screen, how to open it; for an API or CLI, the exact command and its real
    output. Put the scan summary on one line beside it.
@@ -74,8 +74,8 @@ Without being asked, update the workspace docs:
 - `plan/decisions.md` — dated entry for anything decided and why.
 - `plan/architecture.md` — only if structure changed (new module, boundary, dependency, external
   call).
-- Record the slice: `python3 -m afc set last_slice "<n> <label>"`.
-- Refresh the indexes: `python3 -m afc index refresh`, then `python3 -m afc index rebuild --all`.
+- Record the slice: `sh bin/afc set last_slice "<n> <label>"`.
+- Refresh the indexes: `sh bin/afc index refresh`, then `sh bin/afc index rebuild --all`.
 
 Then hand off to `afc-deliver`.
 

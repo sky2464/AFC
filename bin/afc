@@ -1,0 +1,127 @@
+#!/bin/sh
+# Flight Control launcher: finds Python 3.10 or newer and runs Flight Control with it.
+#
+#   sh bin/afc <command> ...       the Flight Control command line
+#   sh bin/afc hook session_start  the SessionStart hook
+#   sh bin/afc hook pretool        the PreToolUse guard
+#
+# Works in macOS, Linux and Windows (Git Bash) shells. When no suitable Python exists it says so
+# in plain words instead of failing with "command not found", and the guard stays closed.
+
+MIN_MAJOR=3
+MIN_MINOR=10
+NEED="Python $MIN_MAJOR.$MIN_MINOR or newer"
+
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+
+case "$(uname -s 2>/dev/null)" in
+  Darwin) OS=macos ;;
+  MINGW* | MSYS* | CYGWIN*) OS=windows ;;
+  *) OS=linux ;;
+esac
+
+# Apple's /usr/bin/python3 without the developer tools pops up an install dialog when run.
+apple_stub() {
+  [ "$OS" = macos ] && [ "$(command -v "$1")" = /usr/bin/python3 ] \
+    && ! xcode-select -p >/dev/null 2>&1
+}
+
+usable() {
+  apple_stub "$1" && return 1
+  "$@" -c "import sys; sys.exit(sys.version_info < ($MIN_MAJOR, $MIN_MINOR))" >/dev/null 2>&1
+}
+
+find_python() {
+  for cand in python3 python; do
+    command -v "$cand" >/dev/null 2>&1 && usable "$cand" && { echo "$cand"; return 0; }
+  done
+  if command -v py >/dev/null 2>&1 && usable py -3; then
+    echo "py -3"
+    return 0
+  fi
+  # Versioned names, newest first, for when plain python3 is an older one.
+  minor=40
+  while [ "$minor" -ge "$MIN_MINOR" ]; do
+    cand="python$MIN_MAJOR.$minor"
+    command -v "$cand" >/dev/null 2>&1 && usable "$cand" && { echo "$cand"; return 0; }
+    minor=$((minor - 1))
+  done
+  return 1
+}
+
+# The version of the first Python that runs at all, for the "too old" message.
+old_version() {
+  for cand in python3 python; do
+    command -v "$cand" >/dev/null 2>&1 || continue
+    apple_stub "$cand" && continue
+    "$cand" -c "import sys; print('%d.%d.%d' % sys.version_info[:3])" 2>/dev/null && return
+  done
+}
+
+missing_line() {
+  old=$(old_version)
+  if [ -n "$old" ]; then
+    echo "Flight Control needs $NEED. This computer has Python $old, which is too old."
+  else
+    echo "Flight Control needs $NEED, and this computer doesn't have it yet."
+  fi
+}
+
+install_hint() {
+  case "$OS" in
+    macos)
+      if command -v brew >/dev/null 2>&1; then
+        echo "Install command, only after the user says yes: brew install python"
+      else
+        echo "There is no Homebrew here: send the user to https://www.python.org/downloads/ to install it themselves."
+      fi ;;
+    windows)
+      if command -v winget >/dev/null 2>&1; then
+        echo "Install command, only after the user says yes: winget install --id Python.Python.3.14 -e"
+      else
+        echo "Send the user to https://www.python.org/downloads/ to install it themselves."
+      fi ;;
+    *)
+      echo "The user installs it with their package manager (for example sudo apt install python3); it needs their password, so they run it themselves." ;;
+  esac
+}
+
+PY=$(find_python)
+
+if [ -z "$PY" ]; then
+  LINE=$(missing_line)
+  if [ "$1" = hook ] && [ "$2" = session_start ]; then
+    cat <<EOF
+{"systemMessage": "✈️  $LINE Say hi and I'll help you set it up.", "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "Flight Control setup needed: $LINE Nothing else in Flight Control works until it is installed, and its safety checks are off: file changes are blocked and every command needs the user's approval. In your first reply say this in one or two plain sentences, then ask one question: may you install it now? $(install_hint) Once it is installed, ask the user to restart Claude Code."}}
+EOF
+    exit 0
+  fi
+  if [ "$1" = hook ] && [ "$2" = pretool ]; then
+    case "$(cat)" in
+      *'"tool_name":"Bash"'* | *'"tool_name": "Bash"'*)
+        cat <<EOF
+{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask", "permissionDecisionReason": "Flight Control's safety checks are off until $NEED is installed, so please check this command yourself."}}
+EOF
+        exit 0 ;;
+    esac
+    echo "Flight Control blocked: $LINE Its safety checks can't run, so file changes are paused until Python is installed." >&2
+    exit 2
+  fi
+  echo "{\"error\": \"$LINE Ask me to help you install it.\"}"
+  exit 1
+fi
+
+# Git Bash on Windows would hand Python a /c/... path, which it can't use.
+SRC=$ROOT
+[ "$OS" = windows ] && command -v cygpath >/dev/null 2>&1 && SRC=$(cygpath -w "$ROOT")
+PYTHONPATH=$SRC
+export PYTHONPATH
+
+if [ "$1" = hook ]; then
+  case "$2" in
+    session_start | pretool) exec $PY -m "afc.hooks.$2" ;;
+  esac
+  echo "Flight Control blocked: unknown hook $2." >&2
+  exit 2
+fi
+exec $PY -m afc "$@"

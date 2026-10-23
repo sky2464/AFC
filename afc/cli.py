@@ -1,4 +1,4 @@
-"""Command line for Flight Control: python3 -m afc <command>.
+"""Command line for Flight Control: sh bin/afc <command>.
 
 Every command prints one JSON object on stdout. Success exits 0. Failure prints
 {"error": "<message>"} and exits 1. Skills and the welcome flow call these
@@ -373,7 +373,8 @@ def _plain_usage(message: str) -> str:
     choice = re.search(r"argument (\S+): invalid choice: '([^']*)' \(choose from (.*)\)$", message)
     if choice:
         field, value, options = choice.groups()
-        items = re.findall(r"'([^']*)'", options)
+        # Python 3.12 lists the choices unquoted; other versions quote them.
+        items = re.findall(r"'([^']*)'", options) or [o.strip() for o in options.split(",")]
         if field == "command":
             return f"Unknown command {value}. Use one of: {', '.join(items)}."
         return f"Use one of: {', '.join(items)}."
@@ -407,7 +408,7 @@ def _fail(message: str) -> int:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = _Parser(prog="python3 -m afc", description="Flight Control command line.")
+    parser = _Parser(prog="sh bin/afc", description="Flight Control command line.")
     sub = parser.add_subparsers(dest="command", required=True, parser_class=_Parser)
 
     p = sub.add_parser("new", help="create a project folder, workspace and registry entry")

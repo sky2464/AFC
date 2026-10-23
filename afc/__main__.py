@@ -1,4 +1,4 @@
-"""Entry point: python3 -m afc ..."""
+"""Entry point: sh bin/afc ..."""
 
 import sys
 

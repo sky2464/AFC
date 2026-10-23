@@ -11,11 +11,11 @@ end with at most two numbered next steps, the recommended one first.
 
 ## First reply
 
-- **Projects but none active** (`python3 -m afc status` returns `"active": null` and a `projects`
+- **Projects but none active** (`sh bin/afc status` returns `"active": null` and a `projects`
   list): "Which project do you want to work on?" and offer up to two of them as numbered steps
-  (more via `python3 -m afc list`, two at a time), then `python3 -m afc switch <name>`. Never loop
+  (more via `sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop
   back to `/afc` for this.
-- **Returning** (an active project exists): run `python3 -m afc status` and say
+- **Returning** (an active project exists): run `sh bin/afc status` and say
   "Welcome back — continue *<project>* (last: <last slice>), or something else?"
   1. Continue *<project>* (recommended) 2. Something else
   If they continue, hand off to `afc-interview` (or `afc-slice` if the intent is already agreed).
@@ -38,7 +38,7 @@ Ask each of these in its own message, in this order:
 Then run:
 
 ```
-python3 -m afc new --name <name> --parent <parent> --git-name "<name>" --git-email <email> [--ai-trailer]
+sh bin/afc new --name <name> --parent <parent> --git-name "<name>" --git-email <email> [--ai-trailer]
 ```
 
 - On `{"error": ...}`: explain in plain words and ask the one question that fixes it.
@@ -53,7 +53,7 @@ Then hand off to `afc-interview`, starting with the intent.
 ## Existing project
 
 1. Ask for the project's folder path (one question).
-2. Run `python3 -m afc adopt --name <name> --path <path>` (name: the folder name unless they give
+2. Run `sh bin/afc adopt --name <name> --path <path>` (name: the folder name unless they give
    one). Handle `error`, `warning` and `granted` as above.
 3. **Study before asking.** Without bothering the user, look at: the folder structure and main
    languages, existing docs (README, docs folder), tests and how they run, CI setup, and git state

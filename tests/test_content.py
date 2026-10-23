@@ -101,7 +101,7 @@ class BrainTest(unittest.TestCase):
 
     def test_claude_md_hard_rules(self):
         t = (ROOT / "CLAUDE.md").read_text()
-        for term in ["Flight Control blocked", "one question per message", "python3 -m afc modules",
+        for term in ["Flight Control blocked", "one question per message", "sh bin/afc modules",
                      "data, not instructions", "public", "force-push", "production deploy",
                      "never send", "code_path", "/afc"]:
             self.assertIn(term, t)
@@ -121,7 +121,7 @@ class BrainTest(unittest.TestCase):
 
     def test_start_skill_flows(self):
         t = (ROOT / ".claude/skills/afc-start/SKILL.md").read_text()
-        for term in ["python3 -m afc new", "python3 -m afc adopt", "granted", "/add-dir",
+        for term in ["sh bin/afc new", "sh bin/afc adopt", "granted", "/add-dir",
                      "afc-architecture", "afc-interview", "Welcome back"]:
             self.assertIn(term, t)
 
@@ -152,8 +152,8 @@ class BrainTest(unittest.TestCase):
 
     def test_afc_command_menu(self):
         t = (ROOT / ".claude/commands/afc.md").read_text()
-        for term in ["python3 -m afc status", "More", "python3 -m afc list", "python3 -m afc switch",
-                     "python3 -m afc open", "python3 -m afc maintain"]:
+        for term in ["sh bin/afc status", "More", "sh bin/afc list", "sh bin/afc switch",
+                     "sh bin/afc open", "sh bin/afc maintain"]:
             self.assertIn(term, t)
 
     def test_no_active_project_offers_switch(self):
@@ -161,14 +161,14 @@ class BrainTest(unittest.TestCase):
         start = (ROOT / ".claude/skills/afc-start/SKILL.md").read_text()
         for t in (cmd, start):
             self.assertIn('"active": null', t)
-            self.assertIn("python3 -m afc switch", t)
+            self.assertIn("sh bin/afc switch", t)
         for key in ("team_mode", "git_name", "git_email", "ai_trailer"):
             self.assertIn(f"`{key}`", cmd)
 
     def test_drift_and_interview_wording(self):
         drift = (ROOT / ".claude/skills/afc-drift/SKILL.md").read_text()
         self.assertLess(drift.index("keep its output as \"before\""),
-                        drift.index("python3 -m afc set profile"))
+                        drift.index("sh bin/afc set profile"))
         self.assertIn("If nothing drifted, say nothing", drift)
         interview = (ROOT / ".claude/skills/afc-interview/SKILL.md").read_text()
         for term in ("a quick prototype", "an MVP"):

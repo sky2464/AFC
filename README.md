@@ -25,6 +25,11 @@ cd A-FC
 claude
 ```
 
+Flight Control needs Python 3.10 or newer (any later version works). Everything runs through
+`bin/afc`, which finds a suitable Python on macOS, Linux or Windows (Git Bash). If there is none, the
+first screen says so in one line and Claude offers to install it, only after you say yes. Until then
+file changes are blocked and every command asks you first.
+
 Then just talk ("start a new project called kong-gateway-lab"). `/afc` is the only command: it shows
 where you are and one or two next steps; "More…" reveals the rest. Every reply ends with at most two
 numbered next steps.
@@ -60,7 +65,7 @@ Tests always use a temp `AFC_HOME`; they never touch the real `~/.A-FC`.
 ## Editing Flight Control itself
 
 The guard blocks edits to A-FC by default. Turn on maintenance mode from `/afc` → More…, or
-`python3 -m afc maintain on`; turn it off with `python3 -m afc maintain off` when done.
+`sh bin/afc maintain on`; turn it off with `sh bin/afc maintain off` when done.
 
 See `docs/superpowers/specs/2026-10-21-flight-control-design.md` for the full design and
 `docs/superpowers/acceptance/` for acceptance results.

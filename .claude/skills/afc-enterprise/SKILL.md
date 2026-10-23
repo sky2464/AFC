@@ -29,7 +29,7 @@ a wiki or internal docs?" If yes, give the exact lookups, one at a time as they 
 ## Where findings go
 
 The user saves what they find into the workspace `resources/` folder. Offer "open workspace" from the
-`/afc` menu (it runs `python3 -m afc open`) so they can drop files in. Then read them and write short
+`/afc` menu (it runs `sh bin/afc open`) so they can drop files in. Then read them and write short
 summaries into `plan/decisions.md`.
 
 Resources never go into a repo: not copied, not pasted, not quoted in code or docs. The guard blocks

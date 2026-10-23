@@ -12,15 +12,15 @@ steps, the recommended one first.
 
 ## First time per project: solo or team
 
-If `python3 -m afc status` shows no team mode yet (or `unknown`), run:
+If `sh bin/afc status` shows no team mode yet (or `unknown`), run:
 
 ```
-python3 -m afc detect-team
+sh bin/afc detect-team
 ```
 
 - `{"team_mode": ..., "confirm": false}` — the host answered; use it.
 - `{"confirm": true}` — the guess came from local history only. Ask once: "Is anyone else working on
-  this project with you?" Then record it: `python3 -m afc set team_mode solo` (or `team`).
+  this project with you?" Then record it: `sh bin/afc set team_mode solo` (or `team`).
 
 ## Does it need a remote?
 
@@ -36,7 +36,7 @@ wants it backed up, shared, or deployed) and has none:
    the project, if it is not configured.
 3. Run:
    ```
-   python3 -m afc create-remote --host github|azure [--org <org>] [--project <project>]
+   sh bin/afc create-remote --host github|azure [--org <org>] [--project <project>]
    ```
    The repository is always private. On `error`, explain in plain words and ask the one question that
    fixes it (for example, not signed in to `gh` or `az`: ask the user to sign in themselves).
@@ -46,7 +46,7 @@ wants it backed up, shared, or deployed) and has none:
 Write a short commit message in plain words about what the slice does. Run:
 
 ```
-python3 -m afc deliver --message "<message>" [--default-deploys] [--protected]
+sh bin/afc deliver --message "<message>" [--default-deploys] [--protected]
 ```
 
 Add `--default-deploys` when pushing the default branch triggers a deploy (CI deploy on `main`), and

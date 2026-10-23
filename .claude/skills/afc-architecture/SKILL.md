@@ -23,7 +23,7 @@ block beats a paragraph. Big choices get a dated entry in `plan/decisions.md` li
 For existing code (adopted projects) or once code grows past a few files, run:
 
 ```
-python3 -m afc index refresh
+sh bin/afc index refresh
 ```
 
 It reads the app's code (files, imports, classes, functions) and writes the graph into the
@@ -33,20 +33,20 @@ workspace `index.db`. Nothing is written into the app repo.
 
 Before reading files by hand:
 
-- "What would changing X affect?" → `python3 -m afc graph impact X`. It returns JSON with `name`
+- "What would changing X affect?" → `sh bin/afc graph impact X`. It returns JSON with `name`
   and `matches` (the linked nodes). Read only the files those matches point to.
-- "Where is X?" or "what did we decide about X?" → `python3 -m afc index search "X"`. Add `--all` to
+- "Where is X?" or "what did we decide about X?" → `sh bin/afc index search "X"`. Add `--all` to
   search across projects.
 
 If the graph is empty or stale (the answer names files that no longer exist), run
-`python3 -m afc index refresh` and ask again.
+`sh bin/afc index refresh` and ask again.
 
 Give the user the answer in plain words, not the JSON: "Changing `save_order` touches the checkout
 screen and the nightly export."
 
 ## After a slice
 
-When a slice changed structure, refresh the graph with `python3 -m afc index refresh`, then update
+When a slice changed structure, refresh the graph with `sh bin/afc index refresh`, then update
 `plan/architecture.md`. If nothing structural changed, leave both alone.
 
 ## Checking the current architecture

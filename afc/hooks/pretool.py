@@ -1,4 +1,4 @@
-"""PreToolUse guard. Run as `python3 -m afc.hooks.pretool`.
+"""PreToolUse guard. Run as `sh bin/afc hook pretool`.
 
 Exit 0 allows the tool call; exit 2 blocks it and writes the reason to stderr.
 Any internal error, including a failed stdin read, blocks (fail closed).

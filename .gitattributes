@@ -1,0 +1,2 @@
+# The launcher runs under sh, also in Git Bash on Windows: keep Unix line endings.
+bin/afc text eol=lf

@@ -24,7 +24,7 @@ Compare against `plan/intent.md` and `plan/architecture.md` in the workspace.
 - Module boundaries or layers changed from `architecture.md`.
 - A new dependency, service or external call appeared.
 - A file is growing past 500 lines.
-- Use `python3 -m afc graph impact <name>` to see what a change reaches before judging it.
+- Use `sh bin/afc graph impact <name>` to see what a change reaches before judging it.
 
 **Profile drift**
 - The purpose or audience changes, e.g. a personal prototype becomes a work tool, or real customer
@@ -47,9 +47,9 @@ If nothing drifted, say nothing about drift and carry on.
 When the profile should change:
 
 1. Re-ask only the profile questions that changed (see `afc-interview`).
-2. Before changing anything, run `python3 -m afc modules` and keep its output as "before".
-3. Record it: `python3 -m afc set profile <profile>`.
-4. Run `python3 -m afc modules` again and compare with "before". Tell the user "here's what's now missing"
+2. Before changing anything, run `sh bin/afc modules` and keep its output as "before".
+3. Record it: `sh bin/afc set profile <profile>`.
+4. Run `sh bin/afc modules` again and compare with "before". Tell the user "here's what's now missing"
    as a short list in plain words (e.g. sign-in for staff, logs that hide personal data, a private
    remote, a dependency check).
 5. If it is now a work or enterprise project with a company wiki, hand off to `afc-enterprise`.
