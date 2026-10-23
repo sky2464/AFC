@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from afc.hooks.shell_text import strip_heredoc_bodies  # noqa: F401 (re-export)
+from afc.hooks.shell_text import expand_known, track_assignments  # noqa: F401 (re-export)
 from afc.config import afc_home, afc_root, maintain_enabled
 from afc.registry import Project, RegistryError, load_registry
 
@@ -47,6 +48,8 @@ _WRAPPER_VALUE_OPTS = {
     "xargs": {"-I", "-L", "-n", "-P", "-s", "-d", "-E", "-a", "--arg-file", "--delimiter",
               "--max-args", "--max-procs", "--max-chars", "--max-lines", "--replace", "--eof"},
 }
+# Short options that take a value, for wrappers whose short options can be clustered.
+_SHORT_VALUE_LETTERS = {"sudo": set("ugCDhprtU"), "env": set("uC"), "doas": set("uC")}
 _WRAPPER_POSITIONALS = {"timeout": 1}  # timeout DURATION cmd
 CANT_FOLLOW = object()  # shell_script result: shell code the guard can't see
 _ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
@@ -198,10 +201,11 @@ def bash_write_targets_or_none(
         return None
     base = resolve_path(cwd)
     targets: list[str] = []
+    env: dict = {}
     for words, redirects in split_commands(tokens):
         for raw in redirects:
-            _add_target(targets, raw, base)
-        words = strip_prefix(words)
+            _add_target(targets, expand_known(raw, env), base)
+        words = strip_prefix(track_assignments(words, env))
         if not words:
             continue
         name = Path(words[0]).name
@@ -331,6 +335,11 @@ def strip_prefix(words: list[str]) -> list[str]:
             return ["eval", value, *words[i:]]
         if _ASSIGNMENT.match(word) and wrapper not in ("xargs",):
             i += 1
+        elif wrapper in _SHORT_VALUE_LETTERS and word[:1] == "-" and word[1:2] not in ("", "-"):
+            cluster = _short_cluster(wrapper, words, i)
+            if isinstance(cluster, tuple):
+                return ["eval", cluster[0], *words[cluster[1]:]]
+            i = cluster
         elif word.startswith("-") and wrapper is not None:
             i += 2 if word in _WRAPPER_VALUE_OPTS.get(wrapper, ()) else 1
         elif positionals:
@@ -343,6 +352,23 @@ def strip_prefix(words: list[str]) -> list[str]:
         else:
             break
     return words[i:]
+
+
+def _short_cluster(wrapper: str, words: list[str], i: int):
+    """Next index after a short-option cluster at words[i], or (STRING, next) for env -S.
+
+    A value letter takes the rest of the cluster, or the next word when it ends the cluster.
+    """
+    word = words[i]
+    for j, ch in enumerate(word[1:], start=1):
+        rest = word[j + 1:]
+        if wrapper == "env" and ch == "S":
+            if rest:
+                return rest, i + 1
+            return (words[i + 1], i + 2) if i + 1 < len(words) else ("'", i + 1)
+        if ch in _SHORT_VALUE_LETTERS[wrapper]:
+            return i + 1 if rest else i + 2
+    return i + 1
 
 
 def _env_split(wrapper, words: list[str], i: int):

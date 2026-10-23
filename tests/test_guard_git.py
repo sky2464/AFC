@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from afc.hooks.common import Context
 from afc.hooks.rules_git import check_git, scan_commit_text, staged_diff
-from tests.helpers import AfcTestCase, bash, ev
+from tests.helpers import FIXTURES_DIR, AfcTestCase, bash, ev
 
 BLOCKED = ["git push --force origin main", "cd app && git push -f", "git reset --hard HEAD~1",
            "git clean -fd", "git branch -D old", "git rebase -i main", "gh repo create x --public",
@@ -24,8 +24,7 @@ ALLOWED = ["git push origin main", "git commit -m 'feat: x'", "gh repo create x 
            "git rebase --abort", "git rebase --continue", "git rebase --quit",
            "cat > notes.md <<'EOF'\ngit rebase -i\ngh repo create x --public\nEOF"]
 
-REVIEW_PACKAGE = (Path.home() / ".claude/plugins/cache/claude-plugins-official/superpowers/7.0.0"
-                  "/skills/subagent-driven-development/scripts/review-package")
+REVIEW_PACKAGE = FIXTURES_DIR / "review-package"  # vendored copy of a real commented script
 
 SECRET = "AKIA" + "ABCDEFGHIJKLMNOP"
 

@@ -20,6 +20,7 @@ from afc.hooks.common import (
     split_commands,
     strip_prefix,
     target_path,
+    track_assignments,
 )
 
 TEXT_REASON = ("this contains company resource text — keep it in the project workspace "
@@ -75,8 +76,9 @@ def _bash_reason(command: str, cwd: str, home: Path, outside: bool, depth: int =
     if tokens is None:
         return UNREADABLE_REASON
     base = resolve_path(cwd)
+    env: dict = {}
     for words, _ in split_commands(tokens):
-        words = strip_prefix(words)
+        words = strip_prefix(track_assignments(words, env))
         if not words:
             continue
         name = Path(words[0]).name
