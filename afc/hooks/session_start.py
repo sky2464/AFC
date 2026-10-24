@@ -146,13 +146,13 @@ def build_output(home: Path, session: str | None = None) -> dict:
 
 
 def _with_home_note(out: dict, home: Path) -> dict:
-    """Add the `Test home:` line when the workspace isn't ~/.A-FC, so a mixed-up start shows."""
+    """Tell Claude when the workspace isn't ~/.A-FC. Only test copies set one, so the welcome itself
+    stays clean; Claude can mention it when it matters."""
     try:
         if home == (Path.home() / ".A-FC").resolve():
             return out
     except Exception:  # the welcome must never break
         return out
-    out["systemMessage"] += f"\nTest home: {home}"
     context = out["hookSpecificOutput"]["additionalContext"]
     out["hookSpecificOutput"]["additionalContext"] = (
         f"{context} The workspace is a test home {home}, not ~/.A-FC.")

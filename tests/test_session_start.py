@@ -132,7 +132,7 @@ class SessionStartTest(AfcTestCase):
 
 
 class TestHomeLineTest(AfcTestCase):
-    """The welcome names the workspace folder whenever it isn't the default ~/.A-FC."""
+    """Claude is told about a workspace folder that isn't ~/.A-FC; the welcome stays clean."""
 
     def welcome(self, env):
         buf = io.StringIO()
@@ -140,9 +140,9 @@ class TestHomeLineTest(AfcTestCase):
             self.assertEqual(main(buf), 0)
         return json.loads(buf.getvalue())
 
-    def test_other_home_gets_its_own_line(self):
+    def test_other_home_is_in_the_context_only(self):
         out = self.welcome({"AFC_HOME": str(self.home)})
-        self.assertTrue(out["systemMessage"].endswith(f"\nTest home: {self.home.resolve()}"))
+        self.assertNotIn("Test home", out["systemMessage"])
         self.assertIn(f"test home {self.home.resolve()}",
                       out["hookSpecificOutput"]["additionalContext"])
 
