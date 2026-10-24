@@ -7,6 +7,7 @@ from afc.config import afc_root
 from afc.registry import validate_name
 
 WORKSPACE_DIRS = ("plan", "resources", "reports", "skills", "drafts")
+PLAN_SUBDIRS = ("specs", "archive")
 
 
 def create_workspace(home: Path, name: str) -> Path:
@@ -23,4 +24,6 @@ def create_workspace(home: Path, name: str) -> Path:
         dest = ws / "plan" / src.name
         if not dest.exists():
             shutil.copyfile(src, dest)
+    for sub in PLAN_SUBDIRS:
+        (ws / "plan" / sub).mkdir(parents=True, exist_ok=True)
     return ws

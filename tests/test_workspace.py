@@ -1,14 +1,14 @@
 import unittest
 
 from afc.registry import RegistryError
-from afc.workspace import WORKSPACE_DIRS, create_workspace
+from afc.workspace import PLAN_SUBDIRS, WORKSPACE_DIRS, create_workspace
 from tests.helpers import AfcTestCase
 
 PLAN_FILES = sorted(
     [
         "intent.md",
         "decisions.md",
-        "progress.md",
+        "master-plan.md",
         "drift-notes.md",
         "architecture.md",
         "process-steps.md",
@@ -27,7 +27,10 @@ class WorkspaceTest(AfcTestCase):
     def test_plan_templates_are_copied_with_headings(self):
         ws = create_workspace(self.home, "kong-gateway-lab")
         plan = ws / "plan"
-        self.assertEqual(sorted(p.name for p in plan.iterdir()), PLAN_FILES)
+        names = sorted(p.name for p in plan.iterdir())
+        self.assertEqual(names, sorted(PLAN_FILES + list(PLAN_SUBDIRS)))
+        for sub in PLAN_SUBDIRS:
+            self.assertTrue((plan / sub).is_dir())
         for name in PLAN_FILES:
             with self.subTest(file=name):
                 self.assertTrue((plan / name).read_text().startswith("# "))
