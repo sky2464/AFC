@@ -20,7 +20,7 @@ class WorkspaceTest(AfcTestCase):
     def test_workspace_layout(self):
         ws = create_workspace(self.home, "kong-gateway-lab")
         self.assertEqual(ws, self.home / "projects" / "kong-gateway-lab")
-        self.assertEqual(sorted(p.name for p in ws.iterdir()), sorted(WORKSPACE_DIRS))
+        self.assertEqual(sorted(p.name for p in ws.iterdir()), sorted([*WORKSPACE_DIRS, "mcp.json"]))
         self.assertTrue((ws / "plan" / "intent.md").exists())
         self.assertTrue((ws / "drafts").is_dir())
 

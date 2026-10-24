@@ -28,6 +28,7 @@ from afc.registry import (
 )
 from afc.cli_settings import SETTABLE, SettingError
 from afc.session_dirs import GrantError, check_settings, grant_dirs, settings_path
+from afc import tools
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
@@ -277,7 +278,12 @@ def _commit(home: Path, reg, project: Project, undo: Undo) -> list[str]:
     """Grant the project's code and workspace to the session (replacing earlier grants),
     then save the registry. Caller rolls back on error."""
     undo.save_settings()
+    undo.on_rollback(tools.snapshot(afc_root()))
     granted = grant_dirs(afc_root(), [Path(project.code_path), Path(project.workspace_path)])
+    try:
+        tools.swap_in(afc_root(), Path(project.workspace_path))
+    except tools.ToolsError as exc:
+        raise CliError(str(exc))
     save_registry(home, reg)
     return granted
 

@@ -12,6 +12,7 @@ from pathlib import Path
 
 from afc.config import afc_home
 from afc.registry import PAUSED, Project, load_registry, save_registry
+from afc import tools
 from afc.session_dirs import grant_dirs
 
 NAMES = ("pause", "resume", "remove")
@@ -55,7 +56,9 @@ def cmd_pause(args: argparse.Namespace) -> dict:
     try:
         if was_active:
             undo.save_settings()
+            undo.on_rollback(tools.snapshot(cli.afc_root()))
             grant_dirs(cli.afc_root(), [])
+            tools.clear(cli.afc_root())
         save_registry(home, reg)
     except BaseException:
         undo.rollback()
@@ -113,7 +116,9 @@ def cmd_remove(args: argparse.Namespace) -> dict:
         reg.remove(project.name)
         if was_active:
             undo.save_settings()
+            undo.on_rollback(tools.snapshot(cli.afc_root()))
             grant_dirs(cli.afc_root(), [])
+            tools.clear(cli.afc_root())
         save_registry(home, reg)
     except BaseException:
         undo.rollback()
