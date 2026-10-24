@@ -95,7 +95,19 @@ Do not ask the user to approve the document. Give a three-line summary of the fu
 Right after the intent is written, split the goal into two to five specs, smallest useful first.
 For each one run `sh bin/afc plan add "<title>" --size <S|M|L>`. The spec file path is in the
 result (and in `sh bin/afc plan`). Fill each spec file's **Goal**, **You'll know it works when**
-and **Slices** (small, checkable pieces).
+and **Slices**, replacing the example slice line the template starts with.
+
+Rules for slices:
+
+- Every slice is one line in this exact form, with the checkbox, or `plan` cannot see it:
+  `- [ ] <n>. <label> — you'll check it by <how> (tests: <what>)`
+- The first slice of a new app is real behavior the user can see work, with project setup folded
+  into it: "type an address and see the PHP version it announces", never "Create the app".
+- Every slice carries its own tests, named in the line. No slice is only "tests" or only "error
+  handling", and no spec is made of them: a bad address, a hidden value or an unreachable site is
+  handled, and tested, inside the slice that reads it.
+- After writing a spec, run `sh bin/afc plan`. If it says `"slices": "unreadable"`, fix the lines
+  before going on.
 
 Then tell the user the plan in three to five plain lines (one per spec, smallest first) and ask one
 question: "Start with the first one?" Never ask the user to read or approve a spec file.
