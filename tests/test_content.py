@@ -255,3 +255,13 @@ class RecoveredDoneRowsTest(unittest.TestCase):
             "[release](https://github.com/sky2464/AFC/releases/tag/v0.01a) |",
             text,
         )
+
+
+class AgentFilesGuidanceTest(unittest.TestCase):
+    def test_slice_skill_and_ai_safety_mention_agent_files(self):
+        skill = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
+        self.assertIn("agent instruction file", skill)
+        self.assertIn("keep it in the repo", skill)
+        safety = rule("ai-safety")
+        self.assertIn("agent instruction file", safety)
+        self.assertIn("AGENTS.md", safety)

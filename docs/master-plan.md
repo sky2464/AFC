@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) | 2026-10-24 |
 
 ## Next
 
@@ -30,6 +29,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
 | FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
 | FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
 | FC-006 | Workspace notes in the right place | 2026-10-24 | [FC-006](specs/archive/FC-006-workspace-notes-in-the-right-place.md) |
@@ -39,7 +39,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-002 | Fewer questions before building | 2026-10-24 | [FC-002](specs/archive/FC-002-fewer-questions-before-building.md) |
 | FC-001 | Test copies use their own home | 2026-10-24 | [FC-001](specs/archive/FC-001-test-copies-use-their-own-home.md) |
 | FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
-| TL | Toolkit layers (allowed add-ons, project tools, recipes) | 2026-10-24 | [stories](superpowers/plans/2026-10-23-toolkit-layers.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -141,3 +140,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-016 started |
 | 2026-10-24 | FC-016 done |
 | 2026-10-24 | FC-008 started |
+| 2026-10-24 | FC-008 done |
