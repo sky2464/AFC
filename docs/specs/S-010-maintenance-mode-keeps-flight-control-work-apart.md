@@ -69,7 +69,7 @@ releases (still the user's own step).
 
 ## Slices
 
-- [ ] 1. Per-session maintenance mode — you'll check it by turning it on in one session and seeing
+- [x] 1. Per-session maintenance mode — you'll check it by turning it on in one session and seeing
       another session still blocked from editing Flight Control (tests: per-session file, fallback,
       `status` names the scope)
 - [ ] 2. Guard blocks project writes and project git in maintenance mode — you'll check it by asking
@@ -89,5 +89,16 @@ releases (still the user's own step).
       from the instructions
 
 ## Decisions
+
+- 2026-10-24: The command learns its session from `AFC_SESSION` (saved by the startup hook through
+  `CLAUDE_ENV_FILE`, which is documented), then `CLAUDE_CODE_SESSION_ID` (present and matching in
+  Claude Code, but not documented), then falls back to the old global switch and says so. Hooks
+  always get `session_id` in their input (documented).
+- 2026-10-24: Rollout order matters. The guard that runs is the one in the folder Claude Code was
+  started from (the daily `A-FC` folder), not the copy being edited. Until that folder has the new
+  code, it can't see session flags and treats maintenance mode as off. Update the folder first, then
+  use the new switch. Slice 7's instructions must say so.
+- 2026-10-24: Turning maintenance off also clears the global switch, so "off" always means off for
+  the person who asked.
 
 ## Shipped
