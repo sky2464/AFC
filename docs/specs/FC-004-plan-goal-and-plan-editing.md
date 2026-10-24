@@ -39,7 +39,7 @@ Merging or splitting specs; editing slice lines (Claude edits the spec file for 
 
 - [x] 1. `plan goal` — you'll check it by setting a goal and seeing it in `plan` (tests in
       `tests/test_cli_plan.py`)
-- [ ] 2. `plan rename` and word-boundary slugs — you'll check it by renaming a spec and listing
+- [x] 2. `plan rename` and word-boundary slugs — you'll check it by renaming a spec and listing
       `plan/specs/` (tests in `tests/test_plan.py`, `tests/test_cli_plan.py`)
 - [ ] 3. `plan drop` and `plan move` — you'll check it by dropping and reordering specs and reading
       `master-plan.md` (tests: dropped spec archived, Now spec refused, order changes)

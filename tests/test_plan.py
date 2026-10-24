@@ -76,6 +76,16 @@ class SlugTests(PlanTestCase):
         self.assertLessEqual(len(s), 40)
         self.assertFalse(s.endswith("-"))
 
+    def test_long_titles_are_cut_at_a_word_boundary(self):
+        # the 41st character starts a word, so the cut falls on the dash before it
+        self.assertEqual(plan.slugify("Show the PHP version a site announces inside headers"),
+                         "show-the-php-version-a-site-announces")
+        # the cut already lands at the end of a word
+        self.assertEqual(plan.slugify("Show the PHP version a site announces in its headers"),
+                         "show-the-php-version-a-site-announces-in")
+        # one very long word has no dash to cut at
+        self.assertEqual(plan.slugify("x" * 60), "x" * 40)
+
 
 class NextIdTests(PlanTestCase):
     def test_empty(self):

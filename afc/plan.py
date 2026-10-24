@@ -101,9 +101,14 @@ def set_goal(text: str, goal: str) -> str:
 
 
 def slugify(title: str) -> str:
-    """Lowercase, dash-separated, at most 40 chars; 'spec' when nothing is left."""
-    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40].strip("-")
-    return slug or "spec"
+    """Lowercase, dash-separated, at most 40 chars cut at a word end; 'spec' when nothing is left."""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    if len(slug) > 40:
+        head = slug[:40]
+        if slug[40] != "-" and "-" in head:  # the 41st character continues a word: drop it
+            head = head[: head.rindex("-")]
+        slug = head
+    return slug.strip("-") or "spec"
 
 
 def next_id(where) -> str:

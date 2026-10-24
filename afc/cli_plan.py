@@ -33,6 +33,10 @@ def register(sub) -> None:
     q = psub.add_parser("goal", help="set the master plan's goal")
     q.add_argument("text")
     q.set_defaults(handler=cmd_goal)
+    q = psub.add_parser("rename", help="give a spec a new title (file, row and heading change together)")
+    q.add_argument("id")
+    q.add_argument("title")
+    q.set_defaults(handler=cmd_rename)
     q = psub.add_parser("start", help="move a spec from Next to Now")
     q.add_argument("id")
     q.set_defaults(handler=cmd_start)
@@ -166,6 +170,35 @@ def cmd_goal(args: argparse.Namespace) -> dict:
         raise _error(str(exc)) from None
     space.master.write_text(plan.log(new, _cli()._today(), "Goal set"), encoding="utf-8")
     return {"goal": goal}
+
+
+def cmd_rename(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    sid = args.id
+    title = plan.cell(args.title)
+    if not title:
+        raise _error("Give the spec a title.")
+    section, row = _find(space, text, sid)
+    if section == "Done":
+        raise _error(f"{sid} is finished, so it can't be renamed.")
+    old_path, spec_text = _read_spec(space, sid, row)
+    name = f"{sid}-{plan.slugify(title)}.md"
+    new_path = old_path.with_name(name)
+    if new_path != old_path and new_path.exists():
+        raise _error(f"There is already a file called {name}.")
+    row = [row[0], title, row[2], f"[spec](specs/{name})", *row[4:]]
+    rows = [row if r[0] == sid else r for r in plan.read_rows(text, section)]
+    new = plan.log(plan.write_rows(text, section, rows), _cli()._today(), f"{sid} renamed to {title}")
+    body = re.sub(r"\A# [^\n]*", f"# {sid} — {title}", spec_text, count=1)
+    old_path.rename(new_path)
+    try:
+        new_path.write_text(body, encoding="utf-8")
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        new_path.write_text(spec_text, encoding="utf-8")
+        new_path.rename(old_path)
+        raise
+    return {"renamed": sid, "title": title, "spec": str(new_path)}
 
 
 def cmd_start(args: argparse.Namespace) -> dict:

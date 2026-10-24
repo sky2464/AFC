@@ -102,6 +102,40 @@ class PlanCommandsTest(CliTestCase):
         run_cli(["plan", "goal", "Second goal."])
         self.assertEqual(run_cli(["plan"])[1]["goal"], "Second goal.")
 
+    def test_rename_changes_file_row_heading_and_log_together(self):
+        run_cli(["plan", "add", "Old name"])
+        rc, out = run_cli(["plan", "rename", "S-001", "Show the PHP version a site announces inside headers"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["renamed"], "S-001")
+        specs = sorted(p.name for p in (self.ws / "plan" / "specs").glob("S-001-*"))
+        self.assertEqual(specs, ["S-001-show-the-php-version-a-site-announces.md"])
+        body = (self.ws / "plan" / "specs" / specs[0]).read_text(encoding="utf-8")
+        self.assertTrue(body.startswith("# S-001 — Show the PHP version a site announces inside headers\n"))
+        master = self.master.read_text(encoding="utf-8")
+        self.assertIn("| S-001 | Show the PHP version a site announces inside headers | M | [spec](specs/S-001-show-the-php-version-a-site-announces.md) |", master)
+        self.assertNotIn("old-name", master)
+        self.assertIn("S-001 renamed", master)
+
+    def test_rename_works_on_the_spec_in_progress_and_keeps_its_start_date(self):
+        run_cli(["plan", "add", "First"])
+        run_cli(["plan", "start", "S-001"])
+        before = run_cli(["plan"])[1]["now"]
+        rc, out = run_cli(["plan", "rename", "S-001", "Better name"])
+        self.assertEqual(rc, 0, out)
+        after = run_cli(["plan"])[1]["now"]
+        self.assertEqual((after["id"], after["title"]), ("S-001", "Better name"))
+        self.assertIn("S-001-better-name.md", after["spec"])
+        self.assertIn(before["id"], self.master.read_text(encoding="utf-8"))
+
+    def test_rename_refuses_unknown_finished_and_empty(self):
+        self.assertError(["plan", "rename", "S-009", "x"], "No spec S-009 in the master plan.")
+        run_cli(["plan", "add", "First"])
+        self.assertError(["plan", "rename", "S-001", "   "], "Give the spec a title.")
+        self.write_slices("S-001", ["- [x] one"])
+        run_cli(["plan", "start", "S-001"])
+        run_cli(["plan", "done", "S-001"])
+        self.assertError(["plan", "rename", "S-001", "Again"], "S-001 is finished, so it can't be renamed.")
+
     def test_goal_cannot_be_empty(self):
         self.assertError(["plan", "goal", "   "], "Give the goal as one line of text.")
 
