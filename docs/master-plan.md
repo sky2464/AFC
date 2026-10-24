@@ -28,6 +28,7 @@ safe slices, with as few questions and as little noise as possible.
 | FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
 | FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
+| FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 
 ## Done
 
@@ -85,6 +86,24 @@ php-vuln-checker app three times instead. All of these map to FC-010:
 | M9 | Maintenance work ends up on `dev`, or says where it is |
 | M10 | Undo is verified with `git status`, not assumed |
 
+## Findings from the update session (2026-10-24)
+
+Asked "is there any afc update?", a session on an older copy answered from raw `git tag` and
+`git log` output, then updated Flight Control with a hand `git merge --ff-only v0.02a` — with
+maintenance mode off, leaving the copy on a detached HEAD.
+
+| # | Finding | Spec |
+|---|---|---|
+| U1 | Git that changes the `A-FC` folder ran with maintenance mode off; no guard saw it | FC-012 |
+| U2 | The copy was left on a detached HEAD, which FC-011 would then always refuse to update | FC-012 |
+| U3 | `sh bin/afc check` has no check for the `A-FC` folder's own git state | FC-012 |
+| U4 | A rule was seen to be broken ("updated without a maintenance-mode prompt") and the work carried on | FC-012 |
+| U5 | The installed version was guessed from truncated `git tag` and `git log` output | FC-011 |
+| U6 | "What's new" was told in FC- IDs, branch names and commit subjects, not plain words | FC-011 |
+| U7 | Nothing was verified after the self-update: no tests, no `check`, no workspace backup | FC-011 |
+| U8 | `sh bin/afc maintain` with no argument says `Missing state.` without naming on, off or status | none yet |
+| U9 | The first question was asked twice: the welcome offered 1/2, then `afc-start` asked again | none yet |
+
 ## Update log
 
 | Date | Event |
@@ -96,3 +115,5 @@ php-vuln-checker app three times instead. All of these map to FC-010:
 | 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
 | 2026-10-24 | FC-010 done |
 | 2026-10-24 | FC-011 One-click updates specced and sliced (7 slices); queued in Next |
+| 2026-10-24 | FC-012 added |
+| 2026-10-24 | FC-012 specced and sliced (5 slices) from the update session's findings; queued last in Next |
