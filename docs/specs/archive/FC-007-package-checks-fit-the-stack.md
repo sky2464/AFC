@@ -1,6 +1,6 @@
 # FC-007 — Package checks fit the stack
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Finding: 8.
 
@@ -51,3 +51,5 @@ pnpm and yarn (add later the same way); fixing vulnerable packages automatically
   `plan start` then `plan done` once FC-010 is finished.
 
 ## Shipped
+
+Shipped 2026-10-24. Slices: 2.

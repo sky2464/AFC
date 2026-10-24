@@ -18,7 +18,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-007 | Package checks fit the stack | S | [spec](specs/FC-007-package-checks-fit-the-stack.md) |
 | FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
 | FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
@@ -31,6 +30,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
 | FC-006 | Workspace notes in the right place | 2026-10-24 | [FC-006](specs/archive/FC-006-workspace-notes-in-the-right-place.md) |
 | FC-005 | Tidy, safe tool use | 2026-10-24 | [FC-005](specs/archive/FC-005-tidy-safe-tool-use.md) |
 | FC-004 | Plan goal and plan editing | 2026-10-24 | [FC-004](specs/archive/FC-004-plan-goal-and-plan-editing.md) |
@@ -40,7 +40,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
 | TL | Toolkit layers (allowed add-ons, project tools, recipes) | 2026-10-24 | [stories](superpowers/plans/2026-10-23-toolkit-layers.md) |
 | MP | Master plan, specs and archive | 2026-10-23 | [stories](superpowers/plans/2026-10-23-master-plan.md) |
-| PC | Project controls: remove, pause/resume, health check | 2026-10-23 | — |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -135,3 +134,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-005 done |
 | 2026-10-24 | FC-006 started |
 | 2026-10-24 | FC-006 done |
+| 2026-10-24 | FC-007 started |
+| 2026-10-24 | FC-007 done |
