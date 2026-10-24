@@ -9,7 +9,7 @@ import argparse
 import shutil
 from pathlib import Path
 
-from afc import addons
+from afc import addons, tools
 from afc.config import afc_home
 from afc.registry import load_registry, save_registry
 from afc.session_dirs import GrantError, block_addons, blocked_addons, drop_dirs, grant_dirs, granted_now
@@ -76,6 +76,23 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             undo.rollback()
             raise
         repaired.append("Folder access now matches the active project.")
+    if any(p["kind"] == "tools_out_of_sync" for p in find_problems(home)):
+        undo = cli._settings_undo()
+        undo.save_settings()
+        undo.on_rollback(tools.snapshot(cli.afc_root()))
+        try:
+            active = reg.active()
+            if active is not None and Path(active.workspace_path).is_dir():
+                tools.swap_in(cli.afc_root(), Path(active.workspace_path))
+            else:
+                tools.clear(cli.afc_root())
+        except tools.ToolsError as exc:
+            undo.rollback()
+            raise cli.CliError(str(exc))
+        except BaseException:
+            undo.rollback()
+            raise
+        repaired.append("Project tools now match the active project; this applies from the next start.")
     found = [p for p in find_problems(home) if p["kind"] in ADDONS]
     if found:
         undo = cli._settings_undo()
@@ -181,6 +198,7 @@ def find_problems(home: Path) -> list[dict]:
         problems.append(_problem("settings_unreadable", "", False, detail=str(exc)))
         return problems
     problems += _addon_problems(cli.afc_root())
+    problems += _tools_problems(cli.afc_root(), reg)
     wanted = _wanted(reg)
     for entry in current:
         if not Path(entry).exists():
@@ -234,3 +252,16 @@ def _addon_problems(root: Path) -> list[dict]:
             p["addon"] = name
             found.append(p)
     return found
+
+
+def _tools_problems(root: Path, reg) -> list[dict]:
+    active = reg.active()
+    ws = Path(active.workspace_path) if active is not None and Path(active.workspace_path).is_dir() else None
+    try:
+        lines = tools.mismatches(root, ws)
+    except (tools.ToolsError, GrantError) as exc:
+        return [_problem("tools_unreadable", "", False, detail=str(exc))]
+    if not lines:
+        return []
+    return [_problem("tools_out_of_sync", str(root), True,
+                     detail=" ".join(lines) + " Repair puts the active project's tools back.")]

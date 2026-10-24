@@ -184,6 +184,44 @@ class HealthTest(CliTestCase):
             self.assertEqual(self.kinds(), [])
 
 
+    # -- project tools that don't match the active project
+
+    def add_skill(self, name="demo-skill"):
+        (self.workspace / "skills" / name).mkdir(parents=True)
+        (self.workspace / "skills" / name / "SKILL.md").write_text("---\nname: x\n---\n")
+        self.assertEqual(run_cli(["switch", "kong-gateway-lab"])[0], 0)
+        return self.root / ".claude" / "skills" / ("project-" + name)
+
+    def test_a_missing_project_skill_is_found_then_restored(self):
+        link = self.add_skill()
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(self.kinds(), [])
+        link.unlink()
+        rc, out = run_cli(["check"])
+        found = [p for p in out["problems"] if p["kind"] == "tools_out_of_sync"]
+        self.assertEqual(len(found), 1)
+        self.assertTrue(found[0]["fixable"])
+        self.assertIn("demo-skill", found[0]["detail"])
+        rc, out = run_cli(["repair"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["left"], [])
+        self.assertTrue(link.is_symlink())
+
+    def test_a_leftover_server_with_no_active_project_is_cleared(self):
+        (self.workspace / "mcp.json").write_text(json.dumps(
+            {"servers": {"db": {"command": "npx", "args": ["db-mcp"]}}}))
+        run_cli(["switch", "kong-gateway-lab"])
+        run_cli(["pause", "kong-gateway-lab"])
+        self.assertEqual(self.kinds(), [])
+        (self.root / ".mcp.json").write_text(json.dumps({"mcpServers": {"db": {"command": "npx"}}}))
+        settings = self.local_settings()
+        settings["afcManagedMcp"] = ["db"]
+        (self.root / ".claude" / "settings.local.json").write_text(json.dumps(settings))
+        self.assertIn("tools_out_of_sync", self.kinds())
+        rc, out = run_cli(["repair"])
+        self.assertEqual(out["left"], [])
+        self.assertFalse((self.root / ".mcp.json").exists())
+
     def test_welcome_mentions_problems(self):
         ctx = lambda: build_output(self.home)["hookSpecificOutput"]["additionalContext"]
         self.assertNotIn("Health check", ctx())
