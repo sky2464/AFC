@@ -150,12 +150,16 @@ def cmd_detect_team(args: argparse.Namespace) -> dict:
     home, reg, project = _active()
     code = Path(project.code_path)
     authors = git_ops.recent_authors(code)
+    if project.team_mode in ("solo", "team"):
+        return {"team_mode": project.team_mode, "recent_authors": authors, "confirm": False}
     repo = git_ops.github_repo(git_ops.remote_url(code))
     if repo is None:
         mode = git_ops.decide_mode("unknown", 0, authors)
         reg.update(project.name, team_mode=mode)
         save_registry(home, reg)
-        return {"team_mode": mode, "recent_authors": authors, "confirm": True}
+        # A personal project nobody else has committed to needs no question.
+        sure = project.profile == "personal" and authors <= 1
+        return {"team_mode": mode, "recent_authors": authors, "confirm": not sure}
     out = _run(["gh", "api", f"repos/{repo[0]}/{repo[1]}/collaborators", "--jq", "length"], code)
     try:
         collaborators = int(out.strip())

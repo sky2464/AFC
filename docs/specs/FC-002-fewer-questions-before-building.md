@@ -46,7 +46,7 @@ their extra questions.
 - [x] 1. `defaults` command — you'll check it by running it on this Mac and seeing a non-iCloud
       folder and your git identity (tests: iCloud folders skipped, identity from projects then git
       config, nothing found)
-- [ ] 2. `detect-team` stops asking when it already knows — you'll check it by delivering a first
+- [x] 2. `detect-team` stops asking when it already knows — you'll check it by delivering a first
       slice on a new personal project with no team question (tests in `tests/test_cli_delivery.py`)
 - [ ] 3. `afc-start` and `afc-interview` reordered and trimmed — you'll check it by a live run reaching
       the plan in four questions or fewer (content tests: "What would you like to build" comes before
