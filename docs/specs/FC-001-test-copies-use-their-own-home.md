@@ -39,7 +39,7 @@ Separate add-on settings per copy; containers.
 - [x] 1. Launcher reads `.afc-home` — you'll check it by setting a home in a scratch copy and seeing
       `sh bin/afc home` report `file` (tests: env wins, file used, default when missing, bad path is
       a plain error)
-- [ ] 2. `home set|clear` commands and `.gitignore` entry — you'll check it by setting and clearing a
+- [x] 2. `home set|clear` commands and `.gitignore` entry — you'll check it by setting and clearing a
       home and seeing `git status` stay clean (tests in `tests/test_cli_home.py`)
 - [ ] 3. Welcome shows `Test home:` — you'll check it by starting `claude` in the test copy (tests in
       `tests/test_session_start.py`)
