@@ -1,6 +1,6 @@
 # FC-016 — Nothing drops out of the plan
 
-Size: S · Status: in progress · Started: 2026-10-24 · Done: -
+Size: S · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Found on 2026-10-24 while closing FC-007.
 
@@ -65,7 +65,7 @@ already works. `archive/index.md`, which is the per-spec index and keeps its cur
 - [x] 2. A failed archive leaves the plan whole — you'll check it by making the archive folder
       unwritable, compacting, and finding all twelve rows still in the plan with the reason reported
       (tests)
-- [ ] 3. The lost rows are put back — you'll check it by reading `docs/specs/archive/done-2026.md`
+- [x] 3. The lost rows are put back — you'll check it by reading `docs/specs/archive/done-2026.md`
       and finding the `PC` and `v0.01a` rows as they were in the plan (content test)
 
 ## Decisions
@@ -76,3 +76,5 @@ already works. `archive/index.md`, which is the per-spec index and keeps its cur
   and hoping.
 
 ## Shipped
+
+Shipped 2026-10-24. Slices: 3.

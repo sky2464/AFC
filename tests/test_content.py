@@ -242,3 +242,16 @@ class ToolLayersContentTest(unittest.TestCase):
         t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
         self.assertIn("isn't on the allowed list", t)
         self.assertIn("still works everywhere else", t)
+
+
+class RecoveredDoneRowsTest(unittest.TestCase):
+    def test_pc_and_first_alpha_rows_are_archived(self):
+        text = (ROOT / "docs/specs/archive/done-2026.md").read_text()
+        self.assertTrue(text.startswith("# Done 2026\n"))
+        self.assertIn("| ID | Title | Done | Spec |", text)
+        self.assertIn("| PC | Project controls: remove, pause/resume, health check | 2026-10-23 | — |", text)
+        self.assertIn(
+            "| v0.01a | First alpha: Python launcher, 1/2 welcome, first-run fix | 2026-10-23 | "
+            "[release](https://github.com/sky2464/AFC/releases/tag/v0.01a) |",
+            text,
+        )
