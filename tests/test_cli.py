@@ -285,6 +285,15 @@ class ModulesTest(CliTestCase):
         self.assertEqual(out["profile"], "personal")
         self.assertEqual(out["modules"], ["secrets", "identity", "input", "ai-safety"])
 
+    def test_modules_gives_the_absolute_path_of_each_rule_file(self):
+        self.new("kong-gateway-lab")
+        run_cli(["set", "profile", "personal"])
+        rc, out = run_cli(["modules", "--touches", "auth"])
+        self.assertEqual(list(out["paths"]), out["modules"])
+        for name, path in out["paths"].items():
+            self.assertTrue(Path(path).is_absolute(), path)
+            self.assertTrue(path.endswith(f"rules/{name}.md"), path)
+
     def test_modules_without_active_project_asks_for_interview(self):
         rc, out = run_cli(["modules", "--touches", "auth"])
         self.assertEqual(rc, 1)

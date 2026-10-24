@@ -1,6 +1,6 @@
 # FC-005 — Tidy, safe tool use
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-24 · Done: -
 
 Findings: 9, 16, 17, 18, 21.
 
@@ -39,7 +39,7 @@ Blocking all shell file writes (too broad); process sandboxing.
 
 ## Slices
 
-- [ ] 1. `modules` returns paths and the context line names the launcher — you'll check it by running
+- [x] 1. `modules` returns paths and the context line names the launcher — you'll check it by running
       both (tests in `tests/test_cli.py`, `tests/test_session_start.py`)
 - [ ] 2. Guard blocks pattern kills — you'll check it by asking Claude to run `pkill -f node` and
       seeing a plain block (tests in a new `tests/test_guard_process.py`)

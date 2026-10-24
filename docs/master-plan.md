@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-005 | Tidy, safe tool use | M | [spec](specs/FC-005-tidy-safe-tool-use.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-005 | Tidy, safe tool use | M | [spec](specs/FC-005-tidy-safe-tool-use.md) |
 | FC-006 | Workspace notes in the right place | S | [spec](specs/FC-006-workspace-notes-in-the-right-place.md) |
 | FC-007 | Package checks fit the stack | S | [spec](specs/FC-007-package-checks-fit-the-stack.md) |
 | FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
@@ -127,3 +127,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-003 done |
 | 2026-10-24 | FC-004 started |
 | 2026-10-24 | FC-004 done |
+| 2026-10-24 | FC-005 started |

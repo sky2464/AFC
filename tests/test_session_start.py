@@ -27,6 +27,13 @@ class SessionStartTest(AfcTestCase):
         self.assertIn("The welcome asked: 1 = start a new project, "
                       "2 = bring in one already on this computer.", ctx)
 
+    def test_context_names_the_launcher_by_absolute_path(self):
+        from afc.config import afc_root
+        launcher = str(afc_root() / "bin" / "afc")
+        self.assertIn(f"sh {launcher}", self._ctx(build_output(self.home)))
+        with mock.patch("afc.hooks.session_start.maintain_enabled", return_value=True):
+            self.assertIn(f"sh {launcher}", self._ctx(build_output(self.home)))
+
     def test_projects_but_none_active(self):
         reg = Registry()
         reg.add(Project(name="kong-gateway-lab", code_path="/c", workspace_path="/w"))

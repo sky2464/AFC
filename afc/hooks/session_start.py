@@ -118,6 +118,8 @@ def _maintenance_output() -> dict:
 
 
 def _wrap(message: str, context: str) -> dict:
+    launcher = afc_root() / "bin" / "afc"
+    context = f"{context} Run Flight Control with: sh {launcher} <command>."
     return {
         "systemMessage": message,
         "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context},

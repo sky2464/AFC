@@ -230,7 +230,10 @@ def cmd_modules(args: argparse.Namespace) -> dict:
     if project.profile not in PROFILES:
         raise CliError(NO_PROFILE_INTERVIEW)
     touches = {t.strip() for t in args.touches.split(",") if t.strip()}
-    return {"profile": project.profile, "modules": modules_for(project.profile, touches)}
+    names = modules_for(project.profile, touches)
+    rules = afc_root() / "rules"
+    return {"profile": project.profile, "modules": names,
+            "paths": {name: str(rules / f"{name}.md") for name in names}}
 
 
 def cmd_set(args: argparse.Namespace) -> dict:
