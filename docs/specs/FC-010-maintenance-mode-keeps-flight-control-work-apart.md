@@ -79,7 +79,7 @@ releases (still the user's own step).
       session and typing `/afc mm` (tests in `tests/test_session_start.py`, content test on `afc.md`)
 - [x] 4. `plan` works on Flight Control's own master plan — you'll check it by `sh bin/afc plan` in
       maintenance mode showing this spec (tests in `tests/test_cli_plan.py`)
-- [ ] 5. `FC-` IDs for Flight Control's specs — you'll check it by `docs/master-plan.md` and
+- [x] 5. `FC-` IDs for Flight Control's specs — you'll check it by `docs/master-plan.md` and
       `docs/specs/` using `FC-001`… with working links (tests: `next_id` with a prefix)
 - [ ] 6. "Two kinds of work" in `CLAUDE.md`, the stricter ask-first rule, no branches in apps, and
       verified undo — you'll check it by repeating "build S-002 on dev" with a project active and
@@ -111,5 +111,10 @@ releases (still the user's own step).
   session starts, resumes or clears while maintenance is on (the flag lives as long as the session).
   The typed `/afc mm` flow is written as instructions and was not run in a live session when this
   slice was approved.
+
+- 2026-10-24: Each plan numbers only its own prefix (`S` for projects, `FC` for Flight Control), and
+  asking a plan command for the other kind of ID gets a plain hint. Mentions of what was typed in
+  the mix-up keep their `S-` on purpose, as do the old design notes in `docs/superpowers/`, which
+  describe project specs.
 
 ## Shipped
