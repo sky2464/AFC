@@ -98,3 +98,39 @@ def _atomic_write(path: Path, text: str) -> None:
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
+
+
+BLOCKED_KEY = "afcBlockedAddons"  # add-on ids that Flight Control switched off
+
+
+def blocked_addons(root: Path) -> list[str]:
+    """The add-on ids Flight Control switched off earlier. Writes nothing."""
+    path = settings_path(root)
+    previous = _read_settings(path).get(BLOCKED_KEY, [])
+    return [e for e in previous if isinstance(e, str)] if isinstance(previous, list) else []
+
+
+def block_addons(root: Path, ids: list[str]) -> list[str]:
+    """Switch exactly these add-ons off here (enabledPlugins: false) and return them.
+
+    Ids Flight Control switched off earlier but that are not in ids come back to how they were
+    (their entry is removed). Entries the user set themselves and all other keys are kept.
+    """
+    path = settings_path(root)
+    settings = _read_settings(path)
+    plugins = settings.get("enabledPlugins", {})
+    if not isinstance(plugins, dict):
+        raise GrantError(f"{path}: 'enabledPlugins' must be a JSON object")
+    for old in blocked_addons(root):
+        if old not in ids and plugins.get(old) is False:
+            del plugins[old]
+    wanted = list(dict.fromkeys(ids))
+    for add in wanted:
+        plugins[add] = False
+    if plugins:
+        settings["enabledPlugins"] = plugins
+    else:
+        settings.pop("enabledPlugins", None)
+    settings[BLOCKED_KEY] = wanted
+    _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+    return wanted

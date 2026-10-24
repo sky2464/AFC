@@ -123,6 +123,67 @@ class HealthTest(CliTestCase):
         self.assertEqual([p["kind"] for p in out["left"]], ["code_missing"])
         self.assertIn("kong-gateway-lab", load_registry(self.home).projects)
 
+    # -- account add-ons that don't belong
+
+    def addons_reported(self, enabled=("agent-recall@synced",)):
+        plugins = [{"id": "superpowers@claude-plugins-official", "enabled": True},
+                   *({"id": i, "enabled": True} for i in enabled)]
+        return patch("afc.addons.reported", return_value=(plugins, None))
+
+    def local_settings(self):
+        return json.loads((self.root / ".claude" / "settings.local.json").read_text())
+
+    def allow_list(self, *ids):
+        (self.root / "afc-addons.json").write_text(json.dumps({"allowed": list(ids)}))
+
+    def test_an_add_on_not_on_the_list_is_found_then_switched_off(self):
+        self.allow_list("superpowers@claude-plugins-official")
+        with self.addons_reported():
+            rc, out = run_cli(["check"])
+            found = [p for p in out["problems"] if p["kind"] == "addon_not_allowed"]
+            self.assertEqual(len(found), 1)
+            self.assertTrue(found[0]["fixable"])
+            self.assertIn("agent-recall@synced", found[0]["detail"])
+            self.assertIn("still works everywhere else", found[0]["detail"])
+            rc, out = run_cli(["repair"])
+        self.assertEqual(rc, 0, out)
+        self.assertIn("Switched off 1 add-on in Flight Control sessions; this applies from the next start.",
+                      out["repaired"])
+        settings = self.local_settings()
+        self.assertEqual(settings["enabledPlugins"], {"agent-recall@synced": False})
+        self.assertEqual(settings["afcBlockedAddons"], ["agent-recall@synced"])
+
+    def test_the_users_own_entries_and_other_keys_stay(self):
+        self.allow_list("superpowers@claude-plugins-official")
+        path = self.root / ".claude" / "settings.local.json"
+        path.write_text(json.dumps({"enabledPlugins": {"mine@x": False, "keep@x": True}, "other": 1}))
+        with self.addons_reported():
+            run_cli(["repair"])
+        settings = self.local_settings()
+        self.assertEqual(settings["enabledPlugins"],
+                         {"mine@x": False, "keep@x": True, "agent-recall@synced": False})
+        self.assertEqual(settings["other"], 1)
+
+    def test_allowing_an_add_on_again_removes_the_block(self):
+        self.allow_list("superpowers@claude-plugins-official")
+        path = self.root / ".claude" / "settings.local.json"
+        path.write_text(json.dumps({"enabledPlugins": {"mine@x": False}}))
+        with self.addons_reported():
+            run_cli(["repair"])
+        self.allow_list("superpowers@claude-plugins-official", "agent-recall@synced")
+        with self.addons_reported(enabled=()):
+            self.assertIn("addon_unblock", self.kinds())
+            rc, out = run_cli(["repair"])
+            self.assertEqual(out["left"], [])
+        settings = self.local_settings()
+        self.assertEqual(settings["enabledPlugins"], {"mine@x": False})
+        self.assertEqual(settings["afcBlockedAddons"], [])
+
+    def test_unknown_add_on_state_is_not_a_problem(self):
+        with patch("afc.addons.reported", return_value=([], "no claude")):
+            self.assertEqual(self.kinds(), [])
+
+
     def test_welcome_mentions_problems(self):
         ctx = lambda: build_output(self.home)["hookSpecificOutput"]["additionalContext"]
         self.assertNotIn("Health check", ctx())

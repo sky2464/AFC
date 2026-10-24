@@ -9,13 +9,15 @@ import argparse
 import shutil
 from pathlib import Path
 
+from afc import addons
 from afc.config import afc_home
 from afc.registry import load_registry, save_registry
-from afc.session_dirs import GrantError, drop_dirs, grant_dirs, granted_now
+from afc.session_dirs import GrantError, block_addons, blocked_addons, drop_dirs, grant_dirs, granted_now
 from afc.workspace import create_workspace
 
 NAMES = ("check", "repair", "relocate")
 ACCESS = ("stale_access", "gone_access", "missing_access")
+ADDONS = ("addon_not_allowed", "addon_unblock")
 
 
 def register(sub) -> None:
@@ -74,6 +76,24 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             undo.rollback()
             raise
         repaired.append("Folder access now matches the active project.")
+    found = [p for p in find_problems(home) if p["kind"] in ADDONS]
+    if found:
+        undo = cli._settings_undo()
+        undo.save_settings()
+        try:
+            keep = [i for i in blocked_addons(cli.afc_root()) if i not in
+                    {p["addon"] for p in found if p["kind"] == "addon_unblock"}]
+            now = [p["addon"] for p in found if p["kind"] == "addon_not_allowed"]
+            block_addons(cli.afc_root(), [*keep, *now])
+        except BaseException:
+            undo.rollback()
+            raise
+        if now:
+            n = len(now)
+            repaired.append(f"Switched off {n} add-on{'s' if n > 1 else ''} in Flight Control sessions; "
+                            "this applies from the next start.")
+        if len(found) > len(now):
+            repaired.append("Switched back on add-ons that are now allowed; this applies from the next start.")
     return {"repaired": repaired, "left": find_problems(home)}
 
 
@@ -160,6 +180,7 @@ def find_problems(home: Path) -> list[dict]:
     except GrantError as exc:
         problems.append(_problem("settings_unreadable", "", False, detail=str(exc)))
         return problems
+    problems += _addon_problems(cli.afc_root())
     wanted = _wanted(reg)
     for entry in current:
         if not Path(entry).exists():
@@ -188,4 +209,28 @@ def _problem(kind: str, path: str, fixable: bool, detail: str, project: str = ""
     found = {"kind": kind, "path": path, "detail": detail, "fixable": fixable}
     if project:
         found["project"] = project
+    return found
+
+
+def _addon_problems(root: Path) -> list[dict]:
+    try:
+        ok = addons.allowed(root)
+    except ValueError as exc:
+        return [_problem("addon_list_unreadable", "", False, detail=str(exc))]
+    found: list[dict] = []
+    off, note = addons.blocked(root)
+    if note is not None:
+        return found  # state unknown: don't guess
+    for name in off:
+        p = _problem("addon_not_allowed", name, True,
+                     detail=f"Flight Control switched off {name} in its own sessions because it isn't "
+                            "on the allowed list. It still works everywhere else.")
+        p["addon"] = name
+        found.append(p)
+    for name in blocked_addons(root):
+        if name in ok:
+            p = _problem("addon_unblock", name, True,
+                         detail=f"{name} is on the allowed list again; repair switches it back on.")
+            p["addon"] = name
+            found.append(p)
     return found
