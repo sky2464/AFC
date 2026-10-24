@@ -17,8 +17,9 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root, maintain_enabled, set_maintain
 from afc.profile import PROFILES, modules_for
-from afc import cli_delivery, cli_index, scan
+from afc import cli_delivery, cli_health, cli_index, cli_plan, cli_projects, cli_tools, scan
 from afc.registry import (
+    PAUSED,
     Project,
     RegistryError,
     load_registry,
@@ -27,10 +28,11 @@ from afc.registry import (
 )
 from afc.cli_settings import SETTABLE, SettingError
 from afc.session_dirs import GrantError, check_settings, grant_dirs, settings_path
+from afc import tools
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES)
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_tools.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -175,6 +177,8 @@ def cmd_switch(args: argparse.Namespace) -> dict:
     project = reg.get(args.name)
     if project is None:
         raise CliError(_unknown_name(args.name))
+    if project.status == PAUSED:
+        raise CliError(f"{project.name} is paused. Resume it to work on it again.")
     reg.set_active(args.name)
     reg.update(args.name, last_active=_today())
     undo = _settings_undo()
@@ -197,7 +201,10 @@ def cmd_list(args: argparse.Namespace) -> dict:
 def cmd_status(args: argparse.Namespace) -> dict:
     reg = load_registry(afc_home())
     if reg.active() is None:
-        return {"active": None, "projects": list(reg.projects)}
+        result: dict = {"active": None, "projects": reg.ready()}
+        if reg.paused():
+            result["paused"] = reg.paused()
+        return result
     project = _active(reg)
     data = dataclasses.asdict(project)
     data["now"] = _now_text(Path(project.workspace_path))
@@ -271,7 +278,12 @@ def _commit(home: Path, reg, project: Project, undo: Undo) -> list[str]:
     """Grant the project's code and workspace to the session (replacing earlier grants),
     then save the registry. Caller rolls back on error."""
     undo.save_settings()
+    undo.on_rollback(tools.snapshot(afc_root()))
     granted = grant_dirs(afc_root(), [Path(project.code_path), Path(project.workspace_path)])
+    try:
+        tools.swap_in(afc_root(), Path(project.workspace_path))
+    except tools.ToolsError as exc:
+        raise CliError(str(exc))
     save_registry(home, reg)
     return granted
 
@@ -351,7 +363,12 @@ def _git_init(code: Path) -> None:
 
 
 def _now_text(ws: Path) -> str:
-    """Text under '## Now' in plan/progress.md, up to the next heading. Empty if none."""
+    """The active spec from the master plan; else text under '## Now' in plan/progress.md."""
+    from afc.plan import now_line
+
+    line = now_line(ws)
+    if line:
+        return line
     path = ws / "plan" / "progress.md"
     if not path.exists():
         return ""
@@ -459,4 +476,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     cli_delivery.register(sub)
     cli_index.register(sub)
+    cli_projects.register(sub)
+    cli_health.register(sub)
+    cli_tools.register(sub)
+    cli_plan.register(sub)
     return parser

@@ -20,17 +20,19 @@ class WorkspaceTest(AfcTestCase):
     def test_workspace_layout(self):
         ws = create_workspace(self.home, "kong-gateway-lab")
         self.assertEqual(ws, self.home / "projects" / "kong-gateway-lab")
-        self.assertEqual(sorted(p.name for p in ws.iterdir()), sorted(WORKSPACE_DIRS))
+        self.assertEqual(sorted(p.name for p in ws.iterdir()), sorted([*WORKSPACE_DIRS, "mcp.json"]))
         self.assertTrue((ws / "plan" / "intent.md").exists())
         self.assertTrue((ws / "drafts").is_dir())
 
     def test_plan_templates_are_copied_with_headings(self):
         ws = create_workspace(self.home, "kong-gateway-lab")
         plan = ws / "plan"
-        names = sorted(p.name for p in plan.iterdir())
-        self.assertEqual(names, sorted(PLAN_FILES + list(PLAN_SUBDIRS)))
-        for sub in PLAN_SUBDIRS:
-            self.assertTrue((plan / sub).is_dir())
+        files = sorted(p.name for p in plan.iterdir() if p.is_file())
+        self.assertEqual(files, PLAN_FILES)
+        self.assertEqual(sorted(p.name for p in plan.iterdir() if p.is_dir()), sorted(PLAN_SUBDIRS))
+        self.assertEqual(PLAN_SUBDIRS, ("specs", "archive"))
+        self.assertFalse((plan / "progress.md").exists())
+        self.assertFalse((ws / "spec.md").exists())
         for name in PLAN_FILES:
             with self.subTest(file=name):
                 self.assertTrue((plan / name).read_text().startswith("# "))

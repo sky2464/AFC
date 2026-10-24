@@ -92,6 +92,14 @@ class IndexTests(AfcTestCase):
         hits = search(db, "Contoso")
         self.assertEqual([(h["kind"], h["path"]) for h in hits], [("resource", "resources/policy.md")])
 
+    def test_specs_and_archived_specs_searchable(self):
+        for folder, name, word in (("specs", "S-001-x.md", "quokka"), ("archive", "S-000-y.md", "wombat")):
+            (self.ws / "plan" / folder).mkdir(exist_ok=True)
+            (self.ws / "plan" / folder / name).write_text(f"# Spec\n{word} lives here\n", encoding="utf-8")
+        db = rebuild_project_index(self.ws, "kong-gateway-lab")
+        self.assertEqual([h["path"] for h in search(db, "quokka")], ["plan/specs/S-001-x.md"])
+        self.assertEqual([h["path"] for h in search(db, "wombat")], ["plan/archive/S-000-y.md"])
+
     def test_corrupt_index_rebuilt(self):
         (self.ws / "index.db").write_bytes(b"garbage")
         self.assertTrue(search(refresh_project_index(self.ws, "kong-gateway-lab"), "Decisions") is not None)

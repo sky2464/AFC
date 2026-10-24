@@ -52,6 +52,25 @@ def grant_dirs(root: Path, dirs: list[Path]) -> list[str]:
     return merged
 
 
+def granted_now(root: Path) -> tuple[list[str], list[str]]:
+    """(every entry in additionalDirectories, the ones Flight Control added). Writes nothing."""
+    path = settings_path(root)
+    settings = _read_settings(path)
+    previous = settings.get(GRANTED_KEY, [])
+    return _current_dirs(settings, path), previous if isinstance(previous, list) else []
+
+
+def drop_dirs(root: Path, gone: list[str]) -> None:
+    """Remove these entries from additionalDirectories and from Flight Control's own list."""
+    path = settings_path(root)
+    settings = _read_settings(path)
+    current = _current_dirs(settings, path)
+    settings.setdefault("permissions", {})["additionalDirectories"] = [e for e in current if e not in gone]
+    if isinstance(settings.get(GRANTED_KEY), list):
+        settings[GRANTED_KEY] = [e for e in settings[GRANTED_KEY] if e not in gone]
+    _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+
+
 def _current_dirs(settings: dict, path: Path) -> list:
     permissions = settings.get("permissions", {})
     if not isinstance(permissions, dict):
@@ -79,3 +98,39 @@ def _atomic_write(path: Path, text: str) -> None:
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
+
+
+BLOCKED_KEY = "afcBlockedAddons"  # add-on ids that Flight Control switched off
+
+
+def blocked_addons(root: Path) -> list[str]:
+    """The add-on ids Flight Control switched off earlier. Writes nothing."""
+    path = settings_path(root)
+    previous = _read_settings(path).get(BLOCKED_KEY, [])
+    return [e for e in previous if isinstance(e, str)] if isinstance(previous, list) else []
+
+
+def block_addons(root: Path, ids: list[str]) -> list[str]:
+    """Switch exactly these add-ons off here (enabledPlugins: false) and return them.
+
+    Ids Flight Control switched off earlier but that are not in ids come back to how they were
+    (their entry is removed). Entries the user set themselves and all other keys are kept.
+    """
+    path = settings_path(root)
+    settings = _read_settings(path)
+    plugins = settings.get("enabledPlugins", {})
+    if not isinstance(plugins, dict):
+        raise GrantError(f"{path}: 'enabledPlugins' must be a JSON object")
+    for old in blocked_addons(root):
+        if old not in ids and plugins.get(old) is False:
+            del plugins[old]
+    wanted = list(dict.fromkeys(ids))
+    for add in wanted:
+        plugins[add] = False
+    if plugins:
+        settings["enabledPlugins"] = plugins
+    else:
+        settings.pop("enabledPlugins", None)
+    settings[BLOCKED_KEY] = wanted
+    _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+    return wanted

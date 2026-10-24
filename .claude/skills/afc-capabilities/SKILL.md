@@ -19,6 +19,9 @@ Do not search on every slice; only when there is a real new need.
 
 ## Where to search
 
+0. Our own library first: run `sh bin/afc tools`. If the library already offers a skill or MCP
+   recipe that fits, offer it and add it with `sh bin/afc tools add <name>` (on the user's yes).
+   Only search further when it has nothing suitable.
 1. Plugin search (the plugin catalog) for skills and plugins.
 2. The MCP registry for MCP servers and connectors.
 3. Web search for current options and recent news about them. Never rely on memory for what exists
@@ -42,6 +45,9 @@ first, with one line on why.
 
 - Only on the user's yes, asked in its own message.
 - Scope it to the project where possible, never user-wide when project-only works.
+- MCP servers go into the project's `mcp.json` in its workspace (`{"servers": {name: {command,
+  args, env_keys}}}`), never user-wide and never with secret values: list only variable names in
+  `env_keys`. Then run `sh bin/afc switch <project>` to swap it in; it loads from the next start.
 - Any sign-in, token or OAuth step is the user's to do; tell them where.
 - Record what was added and why in `plan/decisions.md`.
 
@@ -53,10 +59,11 @@ Write a skill with superpowers `writing-skills`:
 - Possibly reusable: still save it in the workspace `skills/` first. It may move to the A-FC library
   only through the gate below.
 
-## Promotion gate to library/skills/
+## Promotion gate to library/skills/ and library/mcp/
 
-The A-FC repo is shareable, so anything in `library/skills/` counts as published. A skill moves there
-only when all of this holds:
+The A-FC repo is shareable, so anything in `library/skills/` or `library/mcp/` counts as published.
+A skill, or an MCP recipe (`library/mcp/<name>.json` with command, args, env_keys, description,
+publisher, vetted date), moves there only when all of this holds:
 
 1. **Scrub** it: no company names, hostnames, tenant IDs, internal processes, people, or secrets.
    Replace them with neutral placeholders.

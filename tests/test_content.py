@@ -135,24 +135,19 @@ class BrainTest(unittest.TestCase):
         t = (ROOT / "templates/workspace/plan/master-plan.md").read_text()
         heads = re.findall(r"^## (.+)$", t, re.M)
         self.assertEqual(heads, ["Goal", "Now", "Next", "Done", "Update log"])
+        for header in ["| ID | Title | Size | Spec | Started |", "| ID | Title | Size | Spec |",
+                       "| ID | Title | Done | Spec |", "| Date | Event |"]:
+            self.assertIn(header + "\n", t)
+        self.assertFalse((ROOT / "templates/workspace/plan/progress.md").exists())
 
     def test_spec_template_sections(self):
         t = (ROOT / "templates/workspace/spec.md").read_text()
+        lines = t.splitlines()
+        self.assertEqual(lines[0], "# {id} \u2014 {title}")
+        self.assertIn("Size: {size} \u00b7 Status: next \u00b7 Started: - \u00b7 Done: -", t)
         heads = re.findall(r"^## (.+)$", t, re.M)
-        self.assertEqual(
-            heads,
-            [
-                "Goal",
-                "You'll know it works when",
-                "Out of scope",
-                "Design notes",
-                "Slices",
-                "Decisions",
-                "Shipped",
-            ],
-        )
-        self.assertRegex(t.splitlines()[0], r"^# \{id\} — \{title\}$")
-        self.assertIn("Size: {size}", t)
+        self.assertEqual(heads, ["Goal", "You'll know it works when", "Out of scope",
+                                 "Design notes", "Slices", "Decisions", "Shipped"])
 
     def test_slice_skill_names_three_checkpoints(self):
         t = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
@@ -199,6 +194,18 @@ class BrainTest(unittest.TestCase):
             self.assertIn(term, interview)
         self.assertIn("from your own", (ROOT / "README.md").read_text())
 
+    def test_skills_use_master_plan(self):
+        sk = lambda n: (ROOT / f".claude/skills/{n}/SKILL.md").read_text()
+        for term in ("sh bin/afc plan add", "sh bin/afc plan start"):
+            self.assertIn(term, sk("afc-interview"))
+        for term in ("sh bin/afc plan", "sh bin/afc plan done"):
+            self.assertIn(term, sk("afc-slice"))
+        self.assertIn("**Master plan**", (ROOT / ".claude/commands/afc.md").read_text())
+        for p in (ROOT / ".claude").rglob("*"):
+            if (p.is_file() and "worktrees" not in p.parts
+                    and not p.name.startswith("settings")):
+                self.assertNotIn("progress.md", p.read_text(errors="ignore"), p)
+
     def test_own_naming(self):
         paths = [ROOT / "CLAUDE.md", *ROOT.glob(".claude/**/*.md"), *ROOT.glob("rules/*.md"),
                  *ROOT.glob("templates/**/*")]
@@ -215,3 +222,23 @@ class BrainTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ToolLayersContentTest(unittest.TestCase):
+    def test_capabilities_uses_library_and_project_servers(self):
+        t = (ROOT / ".claude" / "skills" / "afc-capabilities" / "SKILL.md").read_text()
+        for term in ["sh bin/afc tools", "mcp.json", "library/mcp", "hostnames", "tenant IDs"]:
+            self.assertIn(term, t)
+
+    def test_afc_command_has_tools_item_and_numbering(self):
+        t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
+        self.assertIn("**Tools**", t)
+        self.assertIn("sh bin/afc tools", t)
+        more = t.split("## More…")[1]
+        nums = [int(n) for n in re.findall(r"^(\d+)\. \*\*", more, re.M)]
+        self.assertEqual(nums, list(range(1, len(nums) + 1)))
+
+    def test_afc_command_explains_blocked_addons(self):
+        t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
+        self.assertIn("isn't on the allowed list", t)
+        self.assertIn("still works everywhere else", t)

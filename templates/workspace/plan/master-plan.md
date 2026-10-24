@@ -2,8 +2,6 @@
 
 ## Goal
 
-<one line from intent.md>. Full intent: [intent.md](intent.md).
-
 ## Now
 
 | ID | Title | Size | Spec | Started |

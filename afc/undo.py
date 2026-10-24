@@ -16,6 +16,11 @@ class Undo:
         self._fresh: list[Path] = []
         self._settings_before: bytes | None = None
         self._settings_saved = False
+        self._restorers: list = []
+
+    def on_rollback(self, restore) -> None:
+        """Run restore() during rollback (for files other than the settings file)."""
+        self._restorers.append(restore)
 
     def mark(self, paths: list[Path]) -> None:
         """Record each path that does not exist yet. Call before creating anything."""
@@ -33,6 +38,11 @@ class Undo:
                     self._settings.unlink(missing_ok=True)
                 else:
                     self._settings.write_bytes(self._settings_before)
+            except OSError:
+                pass
+        for restore in reversed(self._restorers):
+            try:
+                restore()
             except OSError:
                 pass
         for path in reversed(self._fresh):

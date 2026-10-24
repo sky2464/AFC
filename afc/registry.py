@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,62}$")
+PAUSED = "paused"  # a project's status is "active" or "paused"
 
 
 class RegistryError(Exception):
@@ -52,6 +53,21 @@ class Registry:
         if name not in self.projects:
             raise RegistryError(f"unknown project: {name}")
         self.active_name = name
+
+    def remove(self, name: str) -> Project:
+        project = self.projects.pop(name, None)
+        if project is None:
+            raise RegistryError(f"unknown project: {name}")
+        if self.active_name == name:
+            self.active_name = None
+        return project
+
+    def ready(self) -> list[str]:
+        """Projects that aren't paused: the ones to offer when picking a project."""
+        return [n for n, p in self.projects.items() if p.status != PAUSED]
+
+    def paused(self) -> list[str]:
+        return [n for n, p in self.projects.items() if p.status == PAUSED]
 
     def active(self) -> Project | None:
         if self.active_name is None:

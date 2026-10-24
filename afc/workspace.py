@@ -19,11 +19,14 @@ def create_workspace(home: Path, name: str) -> Path:
     ws = home / "projects" / name
     for sub in WORKSPACE_DIRS:
         (ws / sub).mkdir(parents=True, exist_ok=True)
+    for sub in PLAN_SUBDIRS:
+        (ws / "plan" / sub).mkdir(parents=True, exist_ok=True)
     templates = afc_root() / "templates" / "workspace" / "plan"
     for src in sorted(templates.glob("*.md")):
         dest = ws / "plan" / src.name
         if not dest.exists():
             shutil.copyfile(src, dest)
-    for sub in PLAN_SUBDIRS:
-        (ws / "plan" / sub).mkdir(parents=True, exist_ok=True)
+    mcp = ws / "mcp.json"
+    if not mcp.exists():
+        shutil.copyfile(afc_root() / "templates" / "workspace" / "mcp.json", mcp)
     return ws

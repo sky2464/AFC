@@ -43,7 +43,8 @@ wants it backed up, shared, or deployed) and has none:
 
 ## Deliver the slice
 
-Write a short commit message in plain words about what the slice does. Run:
+Write a short commit message in plain words about what the slice does, starting with the spec ID
+(e.g. `S-002: health endpoint`). Run:
 
 ```
 sh bin/afc deliver --message "<message>" [--default-deploys] [--protected]
@@ -62,7 +63,7 @@ working branch; tell the user once.
 GitHub:
 
 ```
-gh pr create --head <branch> --title "<slice>" --body "<body>"
+gh pr create --head <branch> --title "<spec ID>: <slice>" --body "<body>"
 ```
 
 Azure DevOps:
@@ -72,7 +73,7 @@ az repos pr create --source-branch <branch> --title "<slice>" --description "<bo
 ```
 
 The body has: a short summary of the slice, the scan line from `afc scan`, and links to the plan docs
-(`intent.md`, `progress.md`, the report in `reports/`). A human merges it; never merge it yourself.
+(`intent.md`, `master-plan.md`, the report in `reports/`). A human merges it; never merge it yourself.
 Give the user the pull request link.
 
 ## Never ask, never do

@@ -79,9 +79,19 @@ template sections:
 Nothing is locked: the intent stays editable and changes through `afc-drift` when the goal moves.
 Do not ask the user to approve the document. Give a three-line summary of the full picture instead.
 
+## Break the goal into specs
+
+Right after the intent is written, split the goal into two to five specs, smallest useful first.
+For each one run `sh bin/afc plan add "<title>" --size <S|M|L>`. The spec file path is in the
+result (and in `sh bin/afc plan`). Fill each spec file's **Goal**, **You'll know it works when**
+and **Slices** (small, checkable pieces).
+
+Then tell the user the plan in three to five plain lines (one per spec, smallest first) and ask one
+question: "Start with the first one?" Never ask the user to read or approve a spec file.
+
 ## Hand off
 
-When the intent is written, propose the first slice and hand off to `afc-slice`:
+On yes, run `sh bin/afc plan start <id>` and hand off to `afc-slice`:
 
-1. Build the first slice: <one line> (recommended)
+1. Start with the first spec: <title> (recommended)
 2. Change something in the plan first
