@@ -131,10 +131,23 @@ class BrainTest(unittest.TestCase):
                      "afc-architecture", "afc-interview", "Welcome back"]:
             self.assertIn(term, t)
 
-    def test_progress_template_sections(self):
-        t = (ROOT / "templates/workspace/plan/progress.md").read_text()
+    def test_master_plan_template_sections(self):
+        t = (ROOT / "templates/workspace/plan/master-plan.md").read_text()
         heads = re.findall(r"^## (.+)$", t, re.M)
-        self.assertEqual(heads, ["Now", "Next", "Done"])
+        self.assertEqual(heads, ["Goal", "Now", "Next", "Done", "Update log"])
+        for header in ["| ID | Title | Size | Spec | Started |", "| ID | Title | Size | Spec |",
+                       "| ID | Title | Done | Spec |", "| Date | Event |"]:
+            self.assertIn(header + "\n", t)
+        self.assertFalse((ROOT / "templates/workspace/plan/progress.md").exists())
+
+    def test_spec_template_sections(self):
+        t = (ROOT / "templates/workspace/spec.md").read_text()
+        lines = t.splitlines()
+        self.assertEqual(lines[0], "# {id} \u2014 {title}")
+        self.assertIn("Size: {size} \u00b7 Status: next \u00b7 Started: - \u00b7 Done: -", t)
+        heads = re.findall(r"^## (.+)$", t, re.M)
+        self.assertEqual(heads, ["Goal", "You'll know it works when", "Out of scope",
+                                 "Design notes", "Slices", "Decisions", "Shipped"])
 
     def test_slice_skill_names_three_checkpoints(self):
         t = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
