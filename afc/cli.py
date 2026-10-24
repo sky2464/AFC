@@ -17,7 +17,7 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root, maintain_enabled, set_maintain
 from afc.profile import PROFILES, modules_for
-from afc import cli_delivery, cli_health, cli_index, cli_plan, cli_projects, scan
+from afc import cli_delivery, cli_health, cli_index, cli_plan, cli_projects, cli_tools, scan
 from afc.registry import (
     PAUSED,
     Project,
@@ -31,7 +31,7 @@ from afc.session_dirs import GrantError, check_settings, grant_dirs, settings_pa
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES)
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_tools.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -472,5 +472,6 @@ def _build_parser() -> argparse.ArgumentParser:
     cli_index.register(sub)
     cli_projects.register(sub)
     cli_health.register(sub)
+    cli_tools.register(sub)
     cli_plan.register(sub)
     return parser

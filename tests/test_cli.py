@@ -29,6 +29,10 @@ class CliTestCase(AfcTestCase):
         patcher = patch("afc.cli.afc_root", return_value=self.root)
         patcher.start()
         self.addCleanup(patcher.stop)
+        # never ask the real Claude Code about the owner's add-ons
+        quiet = patch("afc.addons.reported", return_value=([], None))
+        quiet.start()
+        self.addCleanup(quiet.stop)
         self.parent = self.tmp / "work"
         self.parent.mkdir()
 
