@@ -1,6 +1,6 @@
 # FC-002 — Fewer questions before building
 
-Size: M · Status: in progress · Started: 2026-10-24 · Done: -
+Size: M · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Findings: 2, 10, 11, 20.
 
@@ -51,9 +51,21 @@ their extra questions.
 - [x] 3. `afc-start` and `afc-interview` reordered and trimmed — you'll check it by a live run reaching
       the plan in four questions or fewer (content tests: "What would you like to build" comes before
       the folder; `sh bin/afc defaults` named)
-- [ ] 4. Live re-run of the php-vuln-checker start, counting questions — you'll check it by the count
-      in the transcript
+- [x] 4. Live re-run of the php-vuln-checker start, counting questions — you'll check it by the count
+      in the transcript. Run 1: 5 questions. Run 2, after the interview fix: 4 (what to build, one
+      setup confirmation, who it is for, "Start with the first one?").
 
 ## Decisions
 
+- 2026-10-24: The first live run took five questions: an intent question (passive or active
+  checking) came before "who is it for". The user's own words already settled it, so
+  `afc-interview` now asks an intent question only when it cannot propose specs without one, and
+  states its assumptions in the intent otherwise. The re-run took four.
+- 2026-10-24: The live check ran `claude -p` in a fresh copy with its own empty workspace
+  (`AFC_HOME`), answering as the user and counting questions per reply; about $0.34 for four turns.
+- 2026-10-24: A scripted check of one personal start; work and enterprise starts keep their extra
+  questions and were not re-run.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 4.
