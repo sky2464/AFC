@@ -41,7 +41,7 @@ Blocking all shell file writes (too broad); process sandboxing.
 
 - [x] 1. `modules` returns paths and the context line names the launcher — you'll check it by running
       both (tests in `tests/test_cli.py`, `tests/test_session_start.py`)
-- [ ] 2. Guard blocks pattern kills — you'll check it by asking Claude to run `pkill -f node` and
+- [x] 2. Guard blocks pattern kills — you'll check it by asking Claude to run `pkill -f node` and
       seeing a plain block (tests in a new `tests/test_guard_process.py`)
 - [ ] 3. Slice skill "How to work" rules — you'll check it by a live slice with no `cat` of rules, no
       heredoc writes and no `cd` back (content tests on `afc-slice`)
