@@ -222,3 +222,23 @@ class BrainTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ToolLayersContentTest(unittest.TestCase):
+    def test_capabilities_uses_library_and_project_servers(self):
+        t = (ROOT / ".claude" / "skills" / "afc-capabilities" / "SKILL.md").read_text()
+        for term in ["sh bin/afc tools", "mcp.json", "library/mcp", "hostnames", "tenant IDs"]:
+            self.assertIn(term, t)
+
+    def test_afc_command_has_tools_item_and_numbering(self):
+        t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
+        self.assertIn("**Tools**", t)
+        self.assertIn("sh bin/afc tools", t)
+        more = t.split("## More…")[1]
+        nums = [int(n) for n in re.findall(r"^(\d+)\. \*\*", more, re.M)]
+        self.assertEqual(nums, list(range(1, len(nums) + 1)))
+
+    def test_afc_command_explains_blocked_addons(self):
+        t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
+        self.assertIn("isn't on the allowed list", t)
+        self.assertIn("still works everywhere else", t)
