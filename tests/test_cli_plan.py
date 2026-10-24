@@ -136,6 +136,53 @@ class PlanCommandsTest(CliTestCase):
         run_cli(["plan", "done", "S-001"])
         self.assertError(["plan", "rename", "S-001", "Again"], "S-001 is finished, so it can't be renamed.")
 
+    def next_ids(self):
+        from afc import plan as plan_module
+        return [r[0] for r in plan_module.read_rows(self.master.read_text(encoding="utf-8"), "Next")]
+
+    def test_drop_archives_the_spec_marked_dropped_and_never_deletes_it(self):
+        for title in ("One", "Two"):
+            run_cli(["plan", "add", title])
+        rc, out = run_cli(["plan", "drop", "S-002"])
+        self.assertEqual((rc, out["dropped"]), (0, "S-002"), out)
+        self.assertEqual(self.next_ids(), ["S-001"])
+        archived = self.ws / "plan" / "archive" / "S-002-two.md"
+        self.assertIn("Status: dropped", archived.read_text(encoding="utf-8"))
+        self.assertFalse(list((self.ws / "plan" / "specs").glob("S-002-*")))
+        master = self.master.read_text(encoding="utf-8")
+        self.assertIn("| S-002 | Two (dropped) |", master)
+        self.assertIn("(archive/S-002-two.md)", master)
+        self.assertIn("S-002 dropped", master)
+        index = (self.ws / "plan" / "archive" / "index.md").read_text(encoding="utf-8")
+        self.assertIn("| S-002 | Two (dropped) |", index)
+
+    def test_drop_and_move_refuse_the_spec_in_progress_finished_and_unknown_ones(self):
+        run_cli(["plan", "add", "One"])
+        run_cli(["plan", "add", "Two"])
+        run_cli(["plan", "start", "S-001"])
+        self.assertError(["plan", "drop", "S-001"], "S-001 is in progress, so it can't be dropped. Finish it or rename it.")
+        self.assertError(["plan", "move", "S-001", "--to", "1"], "S-001 is in progress, so it can't be moved.")
+        self.assertError(["plan", "drop", "S-009"], "No spec S-009 in the master plan.")
+        run_cli(["plan", "drop", "S-002"])
+        self.assertError(["plan", "drop", "S-002"], "S-002 is finished, so it can't be dropped.")
+        self.assertError(["plan", "move", "S-002", "--to", "1"], "S-002 is finished, so it can't be moved.")
+
+    def test_move_changes_the_order_of_next(self):
+        for title in ("One", "Two", "Three"):
+            run_cli(["plan", "add", title])
+        rc, out = run_cli(["plan", "move", "S-003", "--to", "1"])
+        self.assertEqual((rc, out["moved"], out["position"]), (0, "S-003", 1), out)
+        self.assertEqual(self.next_ids(), ["S-003", "S-001", "S-002"])
+        run_cli(["plan", "move", "S-003", "--to", "3"])
+        self.assertEqual(self.next_ids(), ["S-001", "S-002", "S-003"])
+        self.assertIn("S-003 moved to position 3", self.master.read_text(encoding="utf-8"))
+
+    def test_move_refuses_a_position_outside_next(self):
+        run_cli(["plan", "add", "One"])
+        run_cli(["plan", "add", "Two"])
+        self.assertError(["plan", "move", "S-001", "--to", "3"], "Pick a position from 1 to 2.")
+        self.assertError(["plan", "move", "S-001", "--to", "0"], "Pick a position from 1 to 2.")
+
     def test_goal_cannot_be_empty(self):
         self.assertError(["plan", "goal", "   "], "Give the goal as one line of text.")
 

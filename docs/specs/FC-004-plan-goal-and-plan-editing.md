@@ -41,7 +41,7 @@ Merging or splitting specs; editing slice lines (Claude edits the spec file for 
       `tests/test_cli_plan.py`)
 - [x] 2. `plan rename` and word-boundary slugs — you'll check it by renaming a spec and listing
       `plan/specs/` (tests in `tests/test_plan.py`, `tests/test_cli_plan.py`)
-- [ ] 3. `plan drop` and `plan move` — you'll check it by dropping and reordering specs and reading
+- [x] 3. `plan drop` and `plan move` — you'll check it by dropping and reordering specs and reading
       `master-plan.md` (tests: dropped spec archived, Now spec refused, order changes)
 - [ ] 4. Interview and drift skills use the commands — you'll check it by a live pivot like the
       PHP2Shell one, with no hand edits in the transcript (content tests)

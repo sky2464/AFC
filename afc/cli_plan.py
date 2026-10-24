@@ -37,6 +37,13 @@ def register(sub) -> None:
     q.add_argument("id")
     q.add_argument("title")
     q.set_defaults(handler=cmd_rename)
+    q = psub.add_parser("drop", help="archive a waiting spec as dropped (never deleted)")
+    q.add_argument("id")
+    q.set_defaults(handler=cmd_drop)
+    q = psub.add_parser("move", help="change a waiting spec's place in Next")
+    q.add_argument("id")
+    q.add_argument("--to", type=int, required=True, help="position in Next, 1 is first")
+    q.set_defaults(handler=cmd_move)
     q = psub.add_parser("start", help="move a spec from Next to Now")
     q.add_argument("id")
     q.set_defaults(handler=cmd_start)
@@ -247,6 +254,61 @@ def _archive_index(current: str, row: list[str]) -> str:
         return text.rstrip("\n") + "\n\n" + ARCHIVE_INDEX + new + "\n"
     lines.insert(table[1] + 1, new)
     return "\n".join(lines)
+
+
+def _waiting(space: plan.Space, text: str, sid: str, verb: str) -> tuple[list[str], list[list[str]]]:
+    """The Next row for sid and all Next rows; a spec in progress or finished can't be dropped or moved."""
+    section, row = _find(space, text, sid)
+    if section == "Now":
+        extra = " Finish it or rename it." if verb == "dropped" else ""
+        raise _error(f"{sid} is in progress, so it can't be {verb}.{extra}")
+    if section == "Done":
+        raise _error(f"{sid} is finished, so it can't be {verb}.")
+    return row, plan.read_rows(text, "Next")
+
+
+def cmd_drop(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    sid = args.id
+    row, waiting = _waiting(space, text, sid, "dropped")
+    spec_path, spec_text = _read_spec(space, sid, row)
+    today = _cli()._today()
+    name = spec_path.name
+    target = space.archive_dir / name
+    space.archive_dir.mkdir(parents=True, exist_ok=True)
+    index_path = space.archive_dir / "index.md"
+    old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
+    done_row = [sid, f"{row[1]} (dropped)", today]
+    new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
+    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})"]] + plan.read_rows(new, "Done"))
+    new = plan.log(new, today, f"{sid} dropped")
+    shutil.move(str(spec_path), str(target))
+    try:
+        target.write_text(plan.set_header(spec_text, status="dropped", done=today), encoding="utf-8")
+        index_path.write_text(_archive_index(old_index or "", done_row + [name]), encoding="utf-8")
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        if old_index is None:
+            index_path.unlink(missing_ok=True)
+        else:
+            index_path.write_text(old_index, encoding="utf-8")
+        shutil.move(str(target), str(spec_path))
+        spec_path.write_text(spec_text, encoding="utf-8")
+        raise
+    return {"dropped": sid, "archived": str(target)}
+
+
+def cmd_move(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    sid = args.id
+    row, waiting = _waiting(space, text, sid, "moved")
+    if not 1 <= args.to <= len(waiting):
+        raise _error(f"Pick a position from 1 to {len(waiting)}.")
+    waiting = [r for r in waiting if r[0] != sid]
+    waiting.insert(args.to - 1, row)
+    new = plan.log(plan.write_rows(text, "Next", waiting), _cli()._today(), f"{sid} moved to position {args.to}")
+    space.master.write_text(new, encoding="utf-8")
+    return {"moved": sid, "position": args.to, "next": [r[0] for r in waiting]}
 
 
 def cmd_done(args: argparse.Namespace) -> dict:
