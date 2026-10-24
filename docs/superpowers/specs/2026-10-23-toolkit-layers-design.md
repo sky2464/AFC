@@ -47,11 +47,29 @@ Three layers, with Flight Control in charge and the account kept minimal:
   account add-ons. (Only listed names; there is no "deny all others" switch, so Flight Control must
   list them.)
 
-**Still to check (Story TL-1 spike):**
-- Does Claude Code load skills from a git-ignored folder under `A-FC/.claude/skills/`?
-- Does it load MCP servers from a git-ignored `A-FC/.mcp.json`, and does it ask the user to approve
-  them on first use?
-- Does a change in `.claude/settings.local.json` take effect only on the next start? (Assumed yes.)
+**TL-1 spike results** (Claude Code 2.1.310, scratch folder outside the repo, checked with
+`claude -p ... --output-format stream-json --verbose` init event, `claude plugin list --json`):
+
+1. Git-ignored `.claude/skills/project-demo/SKILL.md` (confirmed ignored with `git check-ignore`):
+   **loaded** in a new session.
+2. Symlinked skill folder `.claude/skills/project-linked` -> folder outside the project: **loaded**.
+3. Git-ignored `.mcp.json` server: **loaded and connected** in headless `-p` mode, with or without
+   `enableAllProjectMcpServers` / `enabledMcpjsonServers` in `.claude/settings.local.json`. So
+   headless runs need no approval. **Unverified:** whether an interactive session shows an approval
+   prompt for a new `.mcp.json` server (I can't drive an interactive session here). The pre-approval
+   keys are `enableAllProjectMcpServers: true` or `enabledMcpjsonServers: ["<name>"]` in
+   `settings.local.json`; I could not prove they matter, so the plan should set `enabledMcpjsonServers`
+   to the managed names as a safe default. (A first attempt with a fake non-MCP command only showed
+   status `pending`; that was my bad test server, not an approval wait.)
+4. `enabledPlugins: {"agent-sdk-dev@claude-plugins-official": false}` in
+   `.claude/settings.local.json`: `claude plugin list --json` reports `enabled: false` there while
+   other folders keep it on. **Confirmed** (the earlier settings.json check also holds).
+
+Not checked: whether a change applies mid-session (assumed: next start only).
+
+**Chosen mechanism:** skills by **symlink** into `A-FC/.claude/skills/project-<name>/` (fallback
+to copy only if a link can't be made); servers in git-ignored **`A-FC/.mcp.json`**, plus
+`enabledMcpjsonServers` for the managed names in `settings.local.json` (tracked by `afcManaged`).
 
 ## 6. Design
 
@@ -82,7 +100,7 @@ Three layers, with Flight Control in charge and the account kept minimal:
     `.claude/skills/project-*`), removing the previous project's links;
   - writes the project's servers into `A-FC/.mcp.json` (git-ignored), replacing the previous
     project's, keeping any server the user added by hand (tracked by `afcManaged`, like grants).
-  - Exact mechanism (link vs copy, `.mcp.json` vs local settings) is decided by the TL-1 spike.
+  - Mechanism confirmed by the TL-1 spike (section 5): symlink and `.mcp.json`.
 - On `pause`/`remove` of the active project the swap clears them, like folder access.
 - The health check reports tools that don't match the active project, and repair re-swaps.
 
