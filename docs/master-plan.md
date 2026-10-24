@@ -24,6 +24,8 @@ safe slices, with as few questions and as little noise as possible.
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
+| FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
+| FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
 
 ## Done
 
@@ -122,6 +124,9 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-002 started |
 | 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
 | 2026-10-24 | FC-002 done |
+| 2026-10-24 | FC-014 added |
+| 2026-10-24 | FC-015 added |
+| 2026-10-24 | FC-014 and FC-015 specced and sliced (5 slices each): review folded into building a slice, ship folded into finishing a spec; deploys and history rewrites left as the user's own actions |
 | 2026-10-24 | FC-003 started |
 | 2026-10-24 | FC-003 done |
 | 2026-10-24 | FC-004 started |
