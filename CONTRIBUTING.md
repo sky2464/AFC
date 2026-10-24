@@ -23,6 +23,7 @@ git clone https://github.com/sky2464/AFC.git A-FC-dev
 | `CLAUDE.md`, `.claude/` | Instructions, skills, the `/afc` command and the hook settings |
 | `bin/afc` | Launcher: finds Python 3.10+ and runs the command line and hooks |
 | `afc/` | The command line (`sh bin/afc <command>`) and the hooks (`afc/hooks/`) |
+| `afc/plan.py`, `afc/cli_plan.py` | Master plan tables, and the `plan` commands |
 | `rules/`, `templates/`, `library/` | Rule modules, project templates and the capability library |
 | `tests/` | Unit tests |
 | `docs/superpowers/` | Design, plans and acceptance results |

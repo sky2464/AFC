@@ -72,6 +72,8 @@ That's it. To get the latest version later, run `git pull` inside the `A-FC` fol
 4. **You decide.** "Yes, that's it" saves the piece and moves to the next one; "not quite" changes
    course before anything grows on top of it.
 
+Flight Control keeps a master plan of small specs and moves finished ones to an archive in your private workspace.
+
 Lost track? Type `/afc` any time to see where you are and what's next. It's the only command there is.
 
 ## Your work stays yours
