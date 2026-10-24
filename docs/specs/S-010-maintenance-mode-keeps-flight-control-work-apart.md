@@ -72,7 +72,7 @@ releases (still the user's own step).
 - [x] 1. Per-session maintenance mode — you'll check it by turning it on in one session and seeing
       another session still blocked from editing Flight Control (tests: per-session file, fallback,
       `status` names the scope)
-- [ ] 2. Guard blocks project writes and project git in maintenance mode — you'll check it by asking
+- [x] 2. Guard blocks project writes and project git in maintenance mode — you'll check it by asking
       for a change in php-vuln-checker while in maintenance mode and seeing a plain block (tests in
       `tests/test_guard_paths.py` and a new git-target guard test)
 - [ ] 3. Welcome and context show the mode, and `/afc mm` switches it — you'll check it by starting a
@@ -100,5 +100,10 @@ releases (still the user's own step).
   use the new switch. Slice 7's instructions must say so.
 - 2026-10-24: Turning maintenance off also clears the global switch, so "off" always means off for
   the person who asked.
+
+- 2026-10-24: The maintenance rule sits second in the guard, after the path rule (a test requires
+  the path rule first). Any git command in a project folder is blocked, including read-only ones such
+  as `git status`; plain reads of project files stay allowed. If the project list can't be read, the
+  rule can't tell project folders and lets the request through; the other rules still apply.
 
 ## Shipped
