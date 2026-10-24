@@ -75,7 +75,7 @@ releases (still the user's own step).
 - [x] 2. Guard blocks project writes and project git in maintenance mode — you'll check it by asking
       for a change in php-vuln-checker while in maintenance mode and seeing a plain block (tests in
       `tests/test_guard_paths.py` and a new git-target guard test)
-- [ ] 3. Welcome and context show the mode, and `/afc mm` switches it — you'll check it by starting a
+- [x] 3. Welcome and context show the mode, and `/afc mm` switches it — you'll check it by starting a
       session and typing `/afc mm` (tests in `tests/test_session_start.py`, content test on `afc.md`)
 - [ ] 4. `plan` works on Flight Control's own master plan — you'll check it by `sh bin/afc plan` in
       maintenance mode showing this spec (tests in `tests/test_cli_plan.py`)
@@ -105,5 +105,11 @@ releases (still the user's own step).
   the path rule first). Any git command in a project folder is blocked, including read-only ones such
   as `git status`; plain reads of project files stay allowed. If the project list can't be read, the
   rule can't tell project folders and lets the request through; the other rules still apply.
+
+- 2026-10-24: The welcome is built when a session starts, so it can't redraw after `/afc mm` turns
+  the mode on mid-session; Claude restates the mode in its reply instead. The 🔧 welcome shows when a
+  session starts, resumes or clears while maintenance is on (the flag lives as long as the session).
+  The typed `/afc mm` flow is written as instructions and was not run in a live session when this
+  slice was approved.
 
 ## Shipped
