@@ -43,15 +43,20 @@ Never show the commands to the user; run them yourself.
    (each project has a `status`), ask which one, then `sh bin/afc pause <name>` or
    `sh bin/afc resume <name>` (resume also makes it the active project). If they try to switch to
    a paused project, offer to resume it.
-6. **Remove a project** — `sh bin/afc list`, ask which one (two at a time). Then ask one question:
+6. **Health check** — `sh bin/afc check` finds problems across all projects and changes nothing.
+   Explain them in plain words, two at a time. Problems marked `fixable` need no decision: offer
+   to fix them all at once with `sh bin/afc repair` (nothing is deleted). For a missing code
+   folder, ask one question: did it move, or is the project no longer wanted? If it moved, ask
+   where and run `sh bin/afc relocate <name> --path <folder>`; otherwise offer Remove a project.
+7. **Remove a project** — `sh bin/afc list`, ask which one (two at a time). Then ask one question:
    put away only Flight Control's notes for it, or its code folder too? Say that nothing is deleted:
    everything moves to `~/.A-FC/removed/`, where they can get it back or delete it themselves.
    Run `sh bin/afc remove <name>` (add `--code` for the code folder) only after a clear yes, then
    say in one line what moved where, and where the code is if it stayed.
-7. **Maintenance mode** — for editing Flight Control itself (also needed to promote a skill into the
+8. **Maintenance mode** — for editing Flight Control itself (also needed to promote a skill into the
    shared library): `sh bin/afc maintain status`, then `sh bin/afc maintain on` or
    `sh bin/afc maintain off`. Remind the user to turn it off when done.
-8. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
+9. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
    a time, then `sh bin/afc set <field> <value>`, where `<field>` is exactly one of `profile`,
    `team_mode` (solo, team, unknown), `remote` (none, github, azure), `git_name`, `git_email` or
    `ai_trailer` (true, false).

@@ -59,6 +59,21 @@ def _project_line(reg) -> str:
     return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}"
 
 
+def _health_line(home: Path) -> str:
+    """A short note when the health check finds problems, so Claude can mention them."""
+    try:
+        from afc.cli_health import find_problems
+
+        count = len(find_problems(home))
+    except Exception:  # the welcome must never break over a health check
+        return ""
+    if not count:
+        return ""
+    noun = "problem" if count == 1 else "problems"
+    return (f" Health check: {count} {noun} (sh bin/afc check). After answering the first message, "
+            "mention it in one line and offer to look.")
+
+
 def build_output(home: Path) -> dict:
     try:
         reg = load_registry(home)
@@ -66,7 +81,8 @@ def build_output(home: Path) -> dict:
         message = f"{INTRO}\n{line}"
         context = (
             f"Flight Control session. {_project_line(reg)} The welcome asked: 1 = {one}, "
-            f"2 = {two}. Follow CLAUDE.md and the afc-start skill for the first reply."
+            f"2 = {two}.{_health_line(home)} Follow CLAUDE.md and the afc-start skill for the "
+            "first reply."
         )
     except Exception as exc:  # a RegistryError or anything else: the welcome must never break
         message = BANNER

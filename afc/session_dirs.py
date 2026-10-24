@@ -52,6 +52,25 @@ def grant_dirs(root: Path, dirs: list[Path]) -> list[str]:
     return merged
 
 
+def granted_now(root: Path) -> tuple[list[str], list[str]]:
+    """(every entry in additionalDirectories, the ones Flight Control added). Writes nothing."""
+    path = settings_path(root)
+    settings = _read_settings(path)
+    previous = settings.get(GRANTED_KEY, [])
+    return _current_dirs(settings, path), previous if isinstance(previous, list) else []
+
+
+def drop_dirs(root: Path, gone: list[str]) -> None:
+    """Remove these entries from additionalDirectories and from Flight Control's own list."""
+    path = settings_path(root)
+    settings = _read_settings(path)
+    current = _current_dirs(settings, path)
+    settings.setdefault("permissions", {})["additionalDirectories"] = [e for e in current if e not in gone]
+    if isinstance(settings.get(GRANTED_KEY), list):
+        settings[GRANTED_KEY] = [e for e in settings[GRANTED_KEY] if e not in gone]
+    _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+
+
 def _current_dirs(settings: dict, path: Path) -> list:
     permissions = settings.get("permissions", {})
     if not isinstance(permissions, dict):
