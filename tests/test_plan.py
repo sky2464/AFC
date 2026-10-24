@@ -76,10 +76,33 @@ class SlugTests(PlanTestCase):
         self.assertLessEqual(len(s), 40)
         self.assertFalse(s.endswith("-"))
 
+    def test_long_titles_are_cut_at_a_word_boundary(self):
+        # the 41st character starts a word, so the cut falls on the dash before it
+        self.assertEqual(plan.slugify("Show the PHP version a site announces inside headers"),
+                         "show-the-php-version-a-site-announces")
+        # the cut already lands at the end of a word
+        self.assertEqual(plan.slugify("Show the PHP version a site announces in its headers"),
+                         "show-the-php-version-a-site-announces-in")
+        # one very long word has no dash to cut at
+        self.assertEqual(plan.slugify("x" * 60), "x" * 40)
+
 
 class NextIdTests(PlanTestCase):
     def test_empty(self):
         self.assertEqual(plan.next_id(self.ws), "S-001")
+
+    def test_prefix_keeps_the_two_numberings_apart(self):
+        space = plan.Space(self.ws / "plan", prefix="FC")
+        self.assertEqual(plan.next_id(space), "FC-001")
+        (self.ws / "plan" / "archive").mkdir(parents=True, exist_ok=True)
+        (self.ws / "plan" / "archive" / "FC-004-x.md").write_text("# x\n")
+        (self.ws / "plan" / "archive" / "S-030-y.md").write_text("# y\n")
+        self.assertEqual(plan.next_id(space), "FC-005")
+        self.assertEqual(plan.next_id(self.ws), "S-031")
+
+    def test_flight_control_space_uses_the_fc_prefix(self):
+        self.assertEqual(plan.flight_control_space(self.ws).prefix, "FC")
+        self.assertEqual(plan.project_space(self.ws).prefix, "S")
 
     def test_no_master_plan(self):
         (self.ws / "plan" / plan.MASTER).unlink()
@@ -123,6 +146,30 @@ class SliceTests(PlanTestCase):
     def test_no_slices(self):
         self.assertEqual(plan.all_slices("## Slices\n\n## Decisions\n"), [])
         self.assertEqual(plan.open_slices("# nothing"), [])
+
+    def test_unreadable_slices_are_list_lines_without_a_checkbox(self):
+        text = "## Slices\n\n- plain one\n* star two\n3. numbered\n- [ ] fine\n  - indented note\n\n## Next\n- outside\n"
+        self.assertEqual(plan.unreadable_slices(text), ["plain one", "star two", "numbered"])
+
+    def test_checkbox_slices_are_all_readable(self):
+        self.assertEqual(plan.unreadable_slices(SPEC), [])
+        self.assertEqual(plan.unreadable_slices("# nothing"), [])
+
+    def test_the_template_holds_a_readable_example_slice(self):
+        template = (Path(__file__).resolve().parent.parent / "templates/workspace/spec.md").read_text(encoding="utf-8")
+        self.assertEqual(len(plan.open_slices(template)), 1)
+        self.assertEqual(plan.unreadable_slices(template), [])
+
+
+class GoalTests(PlanTestCase):
+    def test_set_goal_replaces_only_the_goal_body(self):
+        text = "# Plan\n\n## Goal\n\nold words\nmore old\n\n## Now\n\n| a |\n"
+        self.assertEqual(plan.set_goal(text, "New goal."),
+                         "# Plan\n\n## Goal\n\nNew goal.\n\n## Now\n\n| a |\n")
+
+    def test_set_goal_without_a_goal_section_is_an_error(self):
+        with self.assertRaises(ValueError):
+            plan.set_goal("# Plan\n\n## Now\n", "x")
 
 
 class HeaderTests(PlanTestCase):

@@ -21,6 +21,29 @@ Read it before anything else. Then follow the `afc-start` skill for your first r
 - Never write project data into A-FC. Editing A-FC itself needs maintenance mode.
 - Company resources stay in the workspace; never copy them, or their lines, into any repo.
 
+## Two kinds of work
+
+Every session is one of two kinds. The context line says which: `Mode: maintenance`, or an active
+project.
+
+| Kind | Where it happens | Plan | IDs |
+|---|---|---|---|
+| Building a user's project | the active project's code folder | the project's plan (`sh bin/afc plan`) | `S-001`… |
+| Maintaining Flight Control itself | this folder, with maintenance mode on (`/afc mm`) | `docs/master-plan.md` (`sh bin/afc plan` in maintenance mode) | `FC-001`… |
+
+- "build FC-…", "on dev", or anything about Flight Control's own code, skills or plan is maintenance
+  work. If maintenance mode is off, say so and offer `/afc mm`; do not touch the active project.
+- "build S-…" is project work. If maintenance mode is on, say projects are set aside and offer
+  `/afc mm off`.
+- Stop and ask one question, and build nothing, when a request names a spec that isn't in the plan
+  you are working in, a branch that doesn't exist, or could mean either kind of work. If a request
+  has more than one of these problems, ask about the first one only.
+- Never create a branch in a user's app yourself (`git switch -c`, `git checkout -b`,
+  `git branch <name>`). `sh bin/afc deliver` makes the branches a project needs and says so.
+- After undoing or discarding changes, run `git status --short` (and `git branch` if a branch was
+  made) in that folder and show the result before saying it is clean. If anything is left, say what
+  it is and ask before removing it.
+
 ## Simple by default
 
 - End every reply with at most two numbered next steps, the recommended one first,

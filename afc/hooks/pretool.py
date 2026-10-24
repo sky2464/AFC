@@ -9,13 +9,16 @@ from collections.abc import Callable
 
 from afc.hooks.common import WRITE_TOOLS, Context, load_context, read_event
 from afc.hooks.rules_git import check_git
+from afc.hooks.rules_maintenance import check_maintenance
 from afc.hooks.rules_paths import check_paths
+from afc.hooks.rules_process import check_process
 from afc.hooks.rules_resources import check_resources
 from afc.hooks.rules_secrets import check_secrets
 
 Rule = Callable[[dict, Context], str | None]
 
-RULES: list[Rule] = [check_paths, check_secrets, check_resources, check_git]
+RULES: list[Rule] = [check_paths, check_maintenance, check_secrets, check_resources, check_git,
+                     check_process]
 
 GUARDED_TOOLS = (*WRITE_TOOLS, "Bash")
 
@@ -25,7 +28,7 @@ def main(stdin_text: str, stderr) -> int:
         event = read_event(stdin_text)
         if event.get("tool_name") not in GUARDED_TOOLS:
             return 0
-        ctx = load_context()
+        ctx = load_context(event.get("session_id"))
         for rule in RULES:
             reason = rule(event, ctx)
             if reason:

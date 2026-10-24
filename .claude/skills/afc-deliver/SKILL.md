@@ -18,7 +18,8 @@ If `sh bin/afc status` shows no team mode yet (or `unknown`), run:
 sh bin/afc detect-team
 ```
 
-- `{"team_mode": ..., "confirm": false}` — the host answered; use it.
+- `{"team_mode": ..., "confirm": false}` — already known (recorded earlier, answered by the host, or
+  a personal project only you have committed to); use it and do not ask.
 - `{"confirm": true}` — the guess came from local history only. Ask once: "Is anyone else working on
   this project with you?" Then record it: `sh bin/afc set team_mode solo` (or `team`).
 

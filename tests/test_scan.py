@@ -10,6 +10,7 @@ from afc.registry import Project, Registry, save_registry
 from afc.scan import (
     Check,
     builtin_secret_scan,
+    parse_bun_audit,
     parse_npm_audit,
     parse_pip_audit,
     pip_audit_command,
@@ -48,6 +49,41 @@ class ScanTests(AfcTestCase):
         self.assertEqual(c.status, "fail")
         self.assertIn("2 vulnerable deps", c.detail)
         self.assertEqual(c.detail, "2 vulnerable deps (2 high)")
+
+    def test_bun_clean(self):
+        c = parse_bun_audit(fixture("bun-audit-clean.json"))
+        self.assertEqual((c.name, c.status, c.detail), ("bun audit", "pass", "0 vulnerable deps"))
+
+    def test_bun_vulns(self):
+        c = parse_bun_audit(fixture("bun-audit-2high.json"))
+        self.assertEqual((c.status, c.detail), ("fail", "2 vulnerable deps (2 high)"))
+
+    def test_bun_real_output_recorded_2026_10_24(self):
+        """Real `bun audit --json` (Bun 1.3.14) for lodash 4.17.15; Bun prints its banner on stderr."""
+        c = parse_bun_audit(fixture("bun-audit-real-lodash.json"))
+        self.assertEqual((c.name, c.status), ("bun audit", "fail"))
+        self.assertEqual(c.detail, "1 vulnerable deps (3 high)")
+
+    def test_bun_unreadable(self):
+        self.assertEqual(parse_bun_audit("not json").status, "warn")
+
+    def test_bun_audit_used_for_bun_project(self):
+        repo = _git_repo(self.tmp / "app", {"package.json": "{}\n", "bun.lock": "{}\n"})
+        done = subprocess.CompletedProcess([], 1, stdout=fixture("bun-audit-2high.json"), stderr="")
+        with mock.patch("afc.scan.shutil.which", side_effect=lambda n: "/x/bun" if n == "bun" else None), \
+                mock.patch("afc.scan._run_tool", return_value=done) as run:
+            checks = {c.name: c for c in run_checks(repo)}
+        self.assertEqual(checks["bun audit"].status, "fail")
+        self.assertNotIn("npm audit", checks)
+        self.assertEqual(run.call_args[0][0], ["bun", "audit", "--json"])
+
+    def test_npm_without_lockfile_says_so(self):
+        repo = _git_repo(self.tmp / "app", {"package.json": "{}\n"})
+        done = subprocess.CompletedProcess([], 1, stdout='{"error":{"code":"ENOLOCK"}}', stderr="")
+        with mock.patch("afc.scan.shutil.which", side_effect=lambda n: "/x/npm" if n == "npm" else None), \
+                mock.patch("afc.scan._run_tool", return_value=done):
+            checks = {c.name: c for c in run_checks(repo)}
+        self.assertEqual(checks["npm audit"].detail, "no lockfile, so dependencies were not audited")
 
     def test_pip_vulns(self):
         c = parse_pip_audit(fixture("pip-audit-1.json"))

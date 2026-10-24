@@ -16,6 +16,11 @@ The welcome line already asked the first question, and the context line says wha
 straight into that path without asking again or greeting at length. For anything else (hi, a
 question, a request), answer it briefly, then ask the question below for the situation.
 
+- **Maintenance mode** (the context says `Mode: maintenance`): this session is for working on
+  Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
+  maintenance mode is on and projects are set aside, then ask what to work on:
+  1. Keep working on Flight Control (recommended) 2. Go back to your projects (`/afc mm off`)
+  If asked to build or change a project, say it needs `/afc mm off` first.
 - **Projects but none active** (`sh bin/afc status` returns `"active": null` and a `projects`
   list): 1 = pick a project, 2 = start a new one (see New project). To pick: "Which project do
   you want to work on?" and offer up to two of them as numbered steps (more via
@@ -40,15 +45,23 @@ question, a request), answer it briefly, then ask the question below for the sit
 
 ## New project
 
-Ask each of these in its own message, in this order:
+A new project takes at most four questions from "1" to a proposed plan. Work out everything you
+can and state it; ask only what you cannot know.
 
-1. **Parent folder** — where the app folder should go (Mac or Windows style is fine),
-   e.g. `/Users/me/Documents/Code/`.
-2. **What to build** — "What would you like to build?" Keep their words; they become the intent.
-3. **Name** — use theirs, or offer two or three short lowercase-with-dashes suggestions based on what
-   they said.
-4. **Git identity** — which name and email this project commits as.
-5. **AI trailer** — whether commits carry an AI co-author line (default: off for work projects).
+1. **What to build** — "What would you like to build?" Ask this first, before any folder. Keep
+   their words; they become the intent.
+2. **Work out the rest.** Run `sh bin/afc defaults` and use its answer:
+   - **Name** — use theirs, or suggest one short lowercase-with-dashes name from what they said.
+     Ask for a name only if you cannot suggest one.
+   - **Folder** — `parent` is the recommended folder and is never iCloud-synced. If `parent` is
+     null and `suggest_create` is set, propose creating that folder. If both are null, ask for a
+     folder (Mac or Windows style is fine), and tell them to avoid iCloud-synced ones.
+   - **Git identity** — `git_name` and `git_email` are stated with their `source`, not asked. Ask
+     only when `"source": "none"`: which name and email this project commits as.
+   - **AI trailer** — off. State it; do not ask.
+3. **One confirming question.** Say all of it together and ask once, e.g. "I'll set up
+   `php-vuln-checker` in `~/Code`. Commits will use Navid <navid@example.com>, with no AI co-author
+   line; say if you want another. OK?" Change only what they correct.
 
 Then run:
 

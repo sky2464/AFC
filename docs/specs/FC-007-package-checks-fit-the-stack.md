@@ -1,4 +1,4 @@
-# S-007 — Package checks fit the stack
+# FC-007 — Package checks fit the stack
 
 Size: S · Status: next · Started: - · Done: -
 
@@ -32,11 +32,22 @@ pnpm and yarn (add later the same way); fixing vulnerable packages automatically
 
 ## Slices
 
-- [ ] 1. Lock-file detection and the "no lock file" message — you'll check it by scanning a folder
+- [x] 1. Lock-file detection and the "no lock file" message — you'll check it by scanning a folder
       with only `package.json` (tests in `tests/test_scan.py`)
-- [ ] 2. Bun audit — you'll check it by scanning php-vuln-checker and seeing a real dependency result
+- [x] 2. Bun audit — you'll check it by scanning php-vuln-checker and seeing a real dependency result
       (tests with a recorded `bun audit --json` sample)
 
 ## Decisions
+
+- 2026-10-24: Built on the toolkit branch (`77eda62`), brought onto `dev` as `647a474` during FC-010
+  slice 7. Two choices differ from the design notes: a Bun project is recognised by `bun.lock` or
+  `bun.lockb`, and a missing npm lock file is recognised from npm's own `ENOLOCK` error, not by
+  looking for `package-lock.json`. Checked against real output on 2026-10-24: `bun audit --json`
+  (Bun 1.3.14) prints its banner on stderr and `{package: [advisories]}` on stdout, and exits 1 when
+  it finds problems (the scan judges stdout, so that is fine); `npm audit --json` on a folder with
+  only `package.json` reports `ENOLOCK`. Scanning a scratch copy of php-vuln-checker's lock file gave
+  "0 vulnerable deps"; a project with lodash 4.17.15 gave "1 vulnerable deps (3 high)", now recorded
+  as `tests/fixtures/bun-audit-real-lodash.json`. Both slices are done; close this spec with
+  `plan start` then `plan done` once FC-010 is finished.
 
 ## Shipped

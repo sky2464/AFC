@@ -7,10 +7,12 @@ Never fails: any problem reading the registry becomes a context line, and main r
 """
 
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
-from afc.config import afc_home
+from afc.config import afc_home, afc_root, maintain_enabled, valid_session
 from afc.registry import load_registry
 
 INTRO = (
@@ -85,7 +87,51 @@ def _health_line(home: Path) -> str:
             "mention it in one line and offer to look.")
 
 
-def build_output(home: Path) -> dict:
+def _branch(root: Path) -> str:
+    """The Flight Control folder's git branch, or 'unknown'. Never raises."""
+    try:
+        done = subprocess.run(["git", "-C", str(root), "rev-parse", "--abbrev-ref", "HEAD"],
+                              capture_output=True, text=True, timeout=3)
+        name = done.stdout.strip()
+        if done.returncode != 0 or not name:
+            return "unknown"
+        return "detached" if name == "HEAD" else name
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+
+
+def _maintenance_output() -> dict:
+    """The welcome for a maintenance session: Flight Control itself, no projects offered."""
+    root = afc_root()
+    branch = _branch(root)
+    message = (
+        f"{INTRO}\n🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
+        "Projects are set aside. Type /afc mm off to go back to them."
+    )
+    context = (
+        f"Flight Control session. Mode: maintenance — working on Flight Control itself in {root} "
+        f"on branch {branch}. Plan: docs/master-plan.md. Projects are set aside: do not read, "
+        "build or change any project, and ignore the active project. For the first reply, follow "
+        "the maintenance case of the afc-start skill."
+    )
+    return _wrap(message, context)
+
+
+def _wrap(message: str, context: str) -> dict:
+    launcher = afc_root() / "bin" / "afc"
+    context = f"{context} Run Flight Control with: sh {launcher} <command>."
+    return {
+        "systemMessage": message,
+        "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context},
+    }
+
+
+def build_output(home: Path, session: str | None = None) -> dict:
+    if maintain_enabled(home, session):
+        try:
+            return _maintenance_output()
+        except Exception:  # the welcome must never break
+            pass
     try:
         reg = load_registry(home)
         one, two, line = _choices(reg)
@@ -98,21 +144,55 @@ def build_output(home: Path) -> dict:
     except Exception as exc:  # a RegistryError or anything else: the welcome must never break
         message = BANNER
         context = f"Registry unreadable: {exc}. Tell the user and offer to repair it."
-    return {
-        "systemMessage": message,
-        "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context},
-    }
+    return _wrap(message, context)
 
 
-def main(stdout=None) -> int:
+def _with_home_note(out: dict, home: Path) -> dict:
+    """Tell Claude when the workspace isn't ~/.A-FC. Only test copies set one, so the welcome itself
+    stays clean; Claude can mention it when it matters."""
+    try:
+        if home == (Path.home() / ".A-FC").resolve():
+            return out
+    except Exception:  # the welcome must never break
+        return out
+    context = out["hookSpecificOutput"]["additionalContext"]
+    out["hookSpecificOutput"]["additionalContext"] = (
+        f"{context} The workspace is a test home {home}, not ~/.A-FC.")
+    return out
+
+
+def _session_in(stdin_text: str) -> str | None:
+    """The hook event's session_id when it is a safe value."""
+    try:
+        event = json.loads(stdin_text)
+    except ValueError:
+        return None
+    return valid_session(event.get("session_id")) if isinstance(event, dict) else None
+
+
+def _save_session(session: str | None) -> None:
+    """Hand the session ID to later commands through Claude Code's env file, when it gives one."""
+    target = os.environ.get("CLAUDE_ENV_FILE")
+    try:
+        if target and session:
+            with open(target, "a", encoding="utf-8") as handle:
+                handle.write(f"export AFC_SESSION={session}\n")
+    except OSError:
+        pass  # the welcome must never break over this
+
+
+def main(stdout=None, stdin_text: str = "") -> int:
     stdout = stdout or sys.stdout
+    session = _session_in(stdin_text)
+    _save_session(session)
     try:
         home = afc_home()
     except Exception:
         home = Path.home() / ".A-FC"
-    stdout.write(json.dumps(build_output(home), ensure_ascii=False) + "\n")
+    out = _with_home_note(build_output(home, session), home)
+    stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(stdin_text=sys.stdin.read() if not sys.stdin.isatty() else ""))

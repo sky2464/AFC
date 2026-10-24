@@ -39,8 +39,26 @@ def parse_npm_audit(text: str) -> Check:
         total = int(counts.get("total", 0))
         high = int(counts.get("high", 0)) + int(counts.get("critical", 0))
     except (ValueError, KeyError, TypeError, AttributeError):
+        if "ENOLOCK" in text:
+            return Check("npm audit", "warn", "no lockfile, so dependencies were not audited")
         return Check("npm audit", "warn", "npm audit output unreadable")
     return _vuln_check("npm audit", total, high)
+
+
+def parse_bun_audit(text: str) -> Check:
+    """Check from `bun audit --json` output: {package: [advisory with severity, ...]}."""
+    try:
+        found = json.loads(text)
+        total = len(found)
+        high = sum(
+            1 for advisories in found.values() for a in advisories
+            if a.get("severity") in ("high", "critical")
+        )
+        if not isinstance(found, dict):
+            raise TypeError
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return Check("bun audit", "warn", "bun audit output unreadable")
+    return _vuln_check("bun audit", total, high)
 
 
 def parse_pip_audit(text: str) -> Check:
@@ -125,7 +143,10 @@ def run_checks(code_path: Path) -> list[Check]:
         "gitleaks", ["gitleaks", "detect", "--no-git", "-s", str(code), "--report-format", "json"],
         code, _judge_gitleaks,
     ))
-    if (code / "package.json").exists():
+    if (code / "package.json").exists() and ((code / "bun.lock").exists() or (code / "bun.lockb").exists()):
+        checks.append(_tool("bun audit", ["bun", "audit", "--json"], code,
+                            lambda d: parse_bun_audit(d.stdout)))
+    elif (code / "package.json").exists():
         checks.append(_tool("npm audit", ["npm", "audit", "--json"], code,
                             lambda d: parse_npm_audit(d.stdout)))
     if (code / "requirements.txt").exists() or (code / "pyproject.toml").exists():

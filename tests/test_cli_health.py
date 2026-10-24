@@ -41,6 +41,49 @@ class HealthTest(CliTestCase):
         self.assertIn(str(moved.resolve()), self.granted_in_settings())
         self.assertEqual(self.kinds(), [])
 
+    def test_new_decisions_file_has_the_log_after_standing_corrections(self):
+        text = (self.workspace / "plan" / "decisions.md").read_text(encoding="utf-8")
+        self.assertLess(text.index("## Standing Corrections"), text.index("## Log"))
+        self.assertTrue(text[text.rindex("\n## "):].startswith("\n## Log"))  # Log is last, so new entries land in it
+        self.assertEqual(self.kinds(), [])
+
+    def test_an_untouched_architecture_after_a_done_slice_is_reported_but_not_fixable(self):
+        self.assertNotIn("architecture_empty", self.kinds())  # nothing done yet: a fresh project is fine
+        run_cli(["set", "last_slice", "1 first page"])
+        rc, out = run_cli(["check"])
+        found = [p for p in out["problems"] if p["kind"] == "architecture_empty"]
+        self.assertEqual((len(found), found[0]["fixable"], found[0]["project"]), (1, False, "kong-gateway-lab"))
+        self.assertIn("architecture.md", found[0]["detail"])
+        self.assertEqual(run_cli(["repair"])[1]["left"][0]["kind"], "architecture_empty")
+
+    def test_architecture_counts_as_empty_whatever_the_whitespace(self):
+        run_cli(["set", "last_slice", "1 first page"])
+        path = self.workspace / "plan" / "architecture.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("\n\n", "\n\n\n  "), encoding="utf-8")
+        self.assertIn("architecture_empty", self.kinds())
+
+    def test_a_filled_architecture_is_healthy(self):
+        run_cli(["set", "last_slice", "1 first page"])
+        path = self.workspace / "plan" / "architecture.md"
+        path.write_text(path.read_text(encoding="utf-8").replace(
+            "What the architecture must make possible, in two or three lines.", "A small local page."),
+            encoding="utf-8")
+        self.assertNotIn("architecture_empty", self.kinds())
+
+    def test_an_older_decisions_file_without_a_log_is_found_and_repaired(self):
+        path = self.workspace / "plan" / "decisions.md"
+        old = "# Decisions\n\n## Standing Corrections\n\nAlways use tabs.\n"
+        path.write_text(old, encoding="utf-8")
+        rc, out = run_cli(["check"])
+        found = [p for p in out["problems"] if p["kind"] == "decisions_no_log"]
+        self.assertEqual((len(found), found[0]["fixable"]), (1, True))
+        rc, out = run_cli(["repair"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["left"], [])
+        fixed = path.read_text(encoding="utf-8")
+        self.assertTrue(fixed.startswith(old.rstrip("\n")))
+        self.assertGreater(fixed.index("## Log"), fixed.index("Always use tabs."))
+
     def test_old_progress_list_is_upgraded(self):
         plan_dir = self.workspace / "plan"
         (plan_dir / "master-plan.md").unlink()

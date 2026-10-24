@@ -1,16 +1,52 @@
 """Master plan helpers: table rows, spec ids, slices, header, log and compaction.
 
-Pure text helpers plus two workspace functions (next_id, compact). `ws` is a
-project workspace folder; the plan lives in `ws/plan/`. Standard library only.
+Pure text helpers plus workspace functions (next_id, compact, now_line). Where the plan lives is
+a Space: a project's is `<workspace>/plan/`, Flight Control's own is `docs/`. The functions accept
+either a Space or, as before, a project workspace folder. Standard library only.
 """
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
 MASTER = "master-plan.md"
 DONE_KEEP = 10
 LOG_KEEP = 100
 _LOG_HEADER = "| Date | Event |\n|---|---|\n"
+
+
+@dataclass(frozen=True)
+class Space:
+    """A folder holding master-plan.md, its specs/ and the archive of finished specs."""
+
+    base: Path
+    archive: str = "archive"  # relative to base
+    prefix: str = "S"  # spec IDs are <prefix>-001...: S for projects, FC for Flight Control itself
+
+    @property
+    def master(self) -> Path:
+        return self.base / MASTER
+
+    @property
+    def specs(self) -> Path:
+        return self.base / "specs"
+
+    @property
+    def archive_dir(self) -> Path:
+        return self.base / self.archive
+
+
+def project_space(ws: Path) -> Space:
+    return Space(Path(ws) / "plan")
+
+
+def flight_control_space(root: Path) -> Space:
+    """Flight Control's own plan: docs/master-plan.md, docs/specs/ and docs/specs/archive/."""
+    return Space(Path(root) / "docs", archive="specs/archive", prefix="FC")
+
+
+def _space(where) -> Space:
+    return where if isinstance(where, Space) else project_space(where)
 
 
 def cell(value) -> str:
@@ -56,24 +92,39 @@ def write_rows(text: str, section: str, rows: list[list]) -> str:
     return "\n".join(lines)
 
 
+def set_goal(text: str, goal: str) -> str:
+    """Replace the body of `## Goal` with one line; every other section stays as it is."""
+    lines = text.split("\n")
+    start, end = _section_span(lines, "Goal")
+    lines[start:end] = ["", goal, ""]
+    return "\n".join(lines)
+
+
 def slugify(title: str) -> str:
-    """Lowercase, dash-separated, at most 40 chars; 'spec' when nothing is left."""
-    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40].strip("-")
-    return slug or "spec"
+    """Lowercase, dash-separated, at most 40 chars cut at a word end; 'spec' when nothing is left."""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    if len(slug) > 40:
+        head = slug[:40]
+        if slug[40] != "-" and "-" in head:  # the 41st character continues a word: drop it
+            head = head[: head.rindex("-")]
+        slug = head
+    return slug.strip("-") or "spec"
 
 
-def next_id(ws: Path) -> str:
-    """Next spec id (S-001...), counting plan rows, archive index and file names."""
-    plan_dir = Path(ws) / "plan"
+def next_id(where) -> str:
+    """Next spec id (S-001... or FC-001...), counting plan rows, archive index and file names.
+
+    Only IDs with this plan's own prefix count, so the two numberings never mix."""
+    space = _space(where)
     texts = []
-    for path in (plan_dir / MASTER, plan_dir / "archive" / "index.md"):
+    for path in (space.master, space.archive_dir / "index.md"):
         if path.is_file():
             texts.append(path.read_text(encoding="utf-8"))
-    for folder in (plan_dir / "specs", plan_dir / "archive"):
+    for folder in (space.specs, space.archive_dir):
         if folder.is_dir():
             texts.extend(p.name for p in folder.iterdir())
-    nums = [int(n) for t in texts for n in re.findall(r"\bS-(\d+)", t)]
-    return f"S-{max(nums, default=0) + 1:03d}"
+    nums = [int(n) for t in texts for n in re.findall(rf"\b{space.prefix}-(\d+)", t)]
+    return f"{space.prefix}-{max(nums, default=0) + 1:03d}"
 
 
 def all_slices(spec_text: str) -> list[tuple[bool, str]]:
@@ -88,6 +139,21 @@ def all_slices(spec_text: str) -> list[tuple[bool, str]]:
         m = re.match(r"\s*- \[([ xX])\]\s*(.*)$", line)
         if m:
             found.append((m.group(1) != " ", m.group(2).strip()))
+    return found
+
+
+def unreadable_slices(spec_text: str) -> list[str]:
+    """List items under `## Slices` that aren't checkbox lines, so `plan` can't see them."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Slices")
+    except ValueError:
+        return []
+    found = []
+    for line in lines[start:end]:
+        m = re.match(r"(?:[-*]|\d+[.)])\s+(.*)$", line)  # unindented, so continuation lines don't count
+        if m and not re.match(r"\[[ xX]\]", m.group(1)):
+            found.append(m.group(1).strip())
     return found
 
 
@@ -118,10 +184,10 @@ def log(text: str, date: str, event: str) -> str:
     return write_rows(text, "Update log", rows)
 
 
-def compact(ws: Path) -> None:
+def compact(where) -> None:
     """Keep 10 newest Done rows and 100 Update log rows; older log rows are archived."""
-    plan_dir = Path(ws) / "plan"
-    path = plan_dir / MASTER
+    space = _space(where)
+    path = space.master
     text = path.read_text(encoding="utf-8")
     original = text
     done = read_rows(text, "Done")
@@ -134,7 +200,7 @@ def compact(ws: Path) -> None:
         for row in old:
             m = re.match(r"\d{4}", row[0]) if row else None
             by_year.setdefault(m.group(0) if m else "unknown", []).append(row)
-        archive = plan_dir / "archive"
+        archive = space.archive_dir
         archive.mkdir(parents=True, exist_ok=True)
         for year, items in by_year.items():
             target = archive / f"updatelog-{year}.md"
@@ -153,9 +219,10 @@ def compact(ws: Path) -> None:
         path.write_text(text, encoding="utf-8")
 
 
-def now_line(ws: Path) -> str:
+def now_line(where) -> str:
     """'S-002 Title (next slice: ...)' for the spec in Now; '' when there is none."""
-    path = Path(ws) / "plan" / MASTER
+    space = _space(where)
+    path = space.master
     if not path.is_file():
         return ""
     rows = read_rows(path.read_text(encoding="utf-8"), "Now")
@@ -164,7 +231,7 @@ def now_line(ws: Path) -> str:
     row = rows[0]
     line = f"{row[0]} {row[1]}"
     m = re.search(r"\(([^)]*)\)", row[3] if len(row) > 3 else "")
-    spec = Path(ws) / "plan" / m.group(1) if m else None
+    spec = space.base / m.group(1) if m else None
     if spec is None or not spec.is_file():
         return line
     slices = all_slices(spec.read_text(encoding="utf-8"))

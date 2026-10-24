@@ -307,3 +307,54 @@ class RemoteCliTests(RepoTestCase):
         self.assertFalse([c for c in calls if c[0] == "gh"])
         self.assertEqual(out, {"team_mode": "solo", "recent_authors": 1, "confirm": True})
         self.assertEqual(load_registry(self.home).get("lab").team_mode, "solo")
+
+    def commit_as(self, email: str) -> None:
+        git(self.code, "-c", "user.name=X", "-c", f"user.email={email}", "commit", "-qm", email, "--allow-empty")
+
+    def detect(self, outputs: dict | None = None):
+        patch, calls = fake_run(outputs or {})
+        with patch:
+            code, out = run_cli(["detect-team"])
+        self.assertEqual(code, 0, out)
+        return out, calls
+
+    def test_detect_team_personal_alone_does_not_ask(self):
+        self.register(profile="personal")
+        self.commit_as("s@e")
+        out, calls = self.detect({"gh": "9"})
+        self.assertFalse([c for c in calls if c[0] == "gh"])
+        self.assertEqual(out, {"team_mode": "solo", "recent_authors": 1, "confirm": False})
+        self.assertEqual(load_registry(self.home).get("lab").team_mode, "solo")
+
+    def test_detect_team_personal_brand_new_repo_does_not_ask(self):
+        self.register(profile="personal")
+        out, _ = self.detect()
+        self.assertEqual((out["team_mode"], out["confirm"]), ("solo", False))
+
+    def test_detect_team_personal_with_other_authors_still_asks(self):
+        self.register(profile="personal")
+        self.commit_as("a@e")
+        self.commit_as("b@e")
+        out, _ = self.detect()
+        self.assertEqual((out["team_mode"], out["confirm"]), ("team", True))
+
+    def test_detect_team_work_profile_alone_still_asks(self):
+        self.register(profile="work")
+        self.commit_as("s@e")
+        out, _ = self.detect()
+        self.assertEqual(out["confirm"], True)
+
+    def test_detect_team_recorded_mode_is_kept_and_not_asked(self):
+        self.register(team_mode="team")
+        git(self.code, "remote", "add", "origin", "git@github.com:sky/lab.git")
+        out, calls = self.detect({"gh": "1"})
+        self.assertFalse([c for c in calls if c[0] == "gh"])
+        self.assertEqual((out["team_mode"], out["confirm"]), ("team", False))
+        self.assertEqual(load_registry(self.home).get("lab").team_mode, "team")
+
+    def test_detect_team_recorded_solo_beats_many_authors(self):
+        self.register(team_mode="solo")
+        self.commit_as("a@e")
+        self.commit_as("b@e")
+        out, _ = self.detect()
+        self.assertEqual((out["team_mode"], out["confirm"]), ("solo", False))

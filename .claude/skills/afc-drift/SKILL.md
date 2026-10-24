@@ -40,7 +40,15 @@ If nothing drifted, say nothing about drift and carry on.
 - **A new goal that fits the intent** — add it to the master plan with
   `sh bin/afc plan add "<title>"`; it lands in Next. Say so in one line and carry on.
 - **The goal itself moved** — a short re-alignment interview using `afc-interview`'s rules: one
-  question per message, only about what changed (goal, users, success, non-goals).
+  question per message, only about what changed (goal, users, success, non-goals). Then reshape the
+  plan with its commands, never by hand:
+  - the new goal: `sh bin/afc plan goal "<one line>"`
+  - a spec that changed meaning: `sh bin/afc plan rename <id> "<title>"`
+  - a spec no longer wanted: `sh bin/afc plan drop <id>` (it is archived, never deleted)
+  - the order of what is waiting: `sh bin/afc plan move <id> --to <position>`
+  - a new spec: `sh bin/afc plan add "<title>"`
+  Never edit the tables in `master-plan.md` or move spec files yourself. The spec in progress can be
+  renamed, but not dropped or moved: finish it first.
 - **Code drift** — say what changed in one line and why it matters; either update `architecture.md`
   (the change is right) or plan a slice to bring the code back (it is not).
 

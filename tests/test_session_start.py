@@ -27,6 +27,13 @@ class SessionStartTest(AfcTestCase):
         self.assertIn("The welcome asked: 1 = start a new project, "
                       "2 = bring in one already on this computer.", ctx)
 
+    def test_context_names_the_launcher_by_absolute_path(self):
+        from afc.config import afc_root
+        launcher = str(afc_root() / "bin" / "afc")
+        self.assertIn(f"sh {launcher}", self._ctx(build_output(self.home)))
+        with mock.patch("afc.hooks.session_start.maintain_enabled", return_value=True):
+            self.assertIn(f"sh {launcher}", self._ctx(build_output(self.home)))
+
     def test_projects_but_none_active(self):
         reg = Registry()
         reg.add(Project(name="kong-gateway-lab", code_path="/c", workspace_path="/w"))
@@ -129,3 +136,25 @@ class SessionStartTest(AfcTestCase):
         buf = io.StringIO()
         self.assertEqual(main(buf), 0)
         self.assertIn("Registry unreadable", json.loads(buf.getvalue())["hookSpecificOutput"]["additionalContext"])
+
+
+class TestHomeLineTest(AfcTestCase):
+    """Claude is told about a workspace folder that isn't ~/.A-FC; the welcome stays clean."""
+
+    def welcome(self, env):
+        buf = io.StringIO()
+        with mock.patch.dict("os.environ", env):
+            self.assertEqual(main(buf), 0)
+        return json.loads(buf.getvalue())
+
+    def test_other_home_is_in_the_context_only(self):
+        out = self.welcome({"AFC_HOME": str(self.home)})
+        self.assertNotIn("Test home", out["systemMessage"])
+        self.assertIn(f"test home {self.home.resolve()}",
+                      out["hookSpecificOutput"]["additionalContext"])
+
+    def test_default_home_adds_nothing(self):
+        default = self.tmp / ".A-FC"
+        out = self.welcome({"HOME": str(self.tmp), "AFC_HOME": str(default)})
+        self.assertNotIn("Test home", out["systemMessage"])
+        self.assertNotIn("test home", out["hookSpecificOutput"]["additionalContext"])

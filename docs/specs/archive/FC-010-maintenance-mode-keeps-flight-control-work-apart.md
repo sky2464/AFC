@@ -1,8 +1,8 @@
-# S-010 — Maintenance mode keeps Flight Control work apart
+# FC-010 — Maintenance mode keeps Flight Control work apart
 
-Size: L · Status: next · Started: - · Done: -
+Size: L · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
-Findings: the 2026-10-24 mix-up (M1–M10 in the master plan). Priority: before S-001.
+Findings: the 2026-10-24 mix-up (M1–M10 in the master plan). Priority: before FC-001.
 
 ## Goal
 
@@ -36,7 +36,7 @@ is for, so the active project kept winning.
 
 ## Out of scope
 
-Running two Flight Control versions side by side (S-001 covers the test copy's home); production
+Running two Flight Control versions side by side (FC-001 covers the test copy's home); production
 releases (still the user's own step).
 
 ## Design notes
@@ -65,29 +65,76 @@ releases (still the user's own step).
   (unknown ID or branch → ask).
 - **Where things run.** CONTRIBUTING describes three places: the daily `A-FC` folder runs released
   `main`; a developer copy on `dev` with maintenance mode and no active project; the test copy with
-  its own home (S-001).
+  its own home (FC-001).
 
 ## Slices
 
-- [ ] 1. Per-session maintenance mode — you'll check it by turning it on in one session and seeing
+- [x] 1. Per-session maintenance mode — you'll check it by turning it on in one session and seeing
       another session still blocked from editing Flight Control (tests: per-session file, fallback,
       `status` names the scope)
-- [ ] 2. Guard blocks project writes and project git in maintenance mode — you'll check it by asking
+- [x] 2. Guard blocks project writes and project git in maintenance mode — you'll check it by asking
       for a change in php-vuln-checker while in maintenance mode and seeing a plain block (tests in
       `tests/test_guard_paths.py` and a new git-target guard test)
-- [ ] 3. Welcome and context show the mode, and `/afc mm` switches it — you'll check it by starting a
+- [x] 3. Welcome and context show the mode, and `/afc mm` switches it — you'll check it by starting a
       session and typing `/afc mm` (tests in `tests/test_session_start.py`, content test on `afc.md`)
-- [ ] 4. `plan` works on Flight Control's own master plan — you'll check it by `sh bin/afc plan` in
+- [x] 4. `plan` works on Flight Control's own master plan — you'll check it by `sh bin/afc plan` in
       maintenance mode showing this spec (tests in `tests/test_cli_plan.py`)
-- [ ] 5. `FC-` IDs for Flight Control's specs — you'll check it by `docs/master-plan.md` and
+- [x] 5. `FC-` IDs for Flight Control's specs — you'll check it by `docs/master-plan.md` and
       `docs/specs/` using `FC-001`… with working links (tests: `next_id` with a prefix)
-- [ ] 6. "Two kinds of work" in `CLAUDE.md`, the stricter ask-first rule, no branches in apps, and
+- [x] 6. "Two kinds of work" in `CLAUDE.md`, the stricter ask-first rule, no branches in apps, and
       verified undo — you'll check it by repeating "build S-002 on dev" with a project active and
       getting one clear question instead of a build (content tests)
-- [ ] 7. Bring the two stranded fixes onto `dev` (`435bf22`, `77eda62`) and write the three places in
+- [x] 7. Bring the two stranded fixes onto `dev` (`435bf22`, `77eda62`) and write the three places in
       CONTRIBUTING — you'll check it by `git log dev` showing both and a fresh developer copy set up
       from the instructions
 
 ## Decisions
 
+- 2026-10-24: The command learns its session from `AFC_SESSION` (saved by the startup hook through
+  `CLAUDE_ENV_FILE`, which is documented), then `CLAUDE_CODE_SESSION_ID` (present and matching in
+  Claude Code, but not documented), then falls back to the old global switch and says so. Hooks
+  always get `session_id` in their input (documented).
+- 2026-10-24: Rollout order matters. The guard that runs is the one in the folder Claude Code was
+  started from (the daily `A-FC` folder), not the copy being edited. Until that folder has the new
+  code, it can't see session flags and treats maintenance mode as off. Update the folder first, then
+  use the new switch. Slice 7's instructions must say so.
+- 2026-10-24: Turning maintenance off also clears the global switch, so "off" always means off for
+  the person who asked.
+
+- 2026-10-24: The maintenance rule sits second in the guard, after the path rule (a test requires
+  the path rule first). Any git command in a project folder is blocked, including read-only ones such
+  as `git status`; plain reads of project files stay allowed. If the project list can't be read, the
+  rule can't tell project folders and lets the request through; the other rules still apply.
+
+- 2026-10-24: The welcome is built when a session starts, so it can't redraw after `/afc mm` turns
+  the mode on mid-session; Claude restates the mode in its reply instead. The 🔧 welcome shows when a
+  session starts, resumes or clears while maintenance is on (the flag lives as long as the session).
+  The typed `/afc mm` flow is written as instructions and was not run in a live session when this
+  slice was approved.
+
+- 2026-10-24: Each plan numbers only its own prefix (`S` for projects, `FC` for Flight Control), and
+  asking a plan command for the other kind of ID gets a plain hint. Mentions of what was typed in
+  the mix-up keep their `S-` on purpose, as do the old design notes in `docs/superpowers/`, which
+  describe project specs.
+
+- 2026-10-24: The stranded "ask before building another spec" rule (`435bf22`) was brought onto
+  `dev` in slice 6 (as `e05b16a`) and widened, so slice 7 only has the Bun audit fix (`77eda62`) and
+  the "three places" notes left.
+- 2026-10-24: The new rules are instructions, so tests only prove the wording exists. A dry run
+  (a fresh agent reading only `CLAUDE.md` and `afc-slice`) answered correctly for "build S-002 on
+  dev" (one question, no branch), "build FC-002" with maintenance off (offers `/afc mm`),
+  "build S-001" in maintenance mode (offers `/afc mm off`) and an undo (shows `git status --short`).
+  It found two gaps, now closed: ask about the first problem only, and ask before removing leftovers.
+  Still to prove live: repeat "build S-002 on dev" with a project active in the daily folder.
+
+- 2026-10-24: The Bun audit fix (`77eda62`) came onto `dev` as `647a474` and is recorded under
+  FC-007, where it belongs; it was checked against real `bun audit` and `npm audit` output. The
+  three places to work (daily folder, developer copy, test copy) and the rollout order are in
+  CONTRIBUTING.md.
+- 2026-10-24: Left for later, not part of this spec: the test copy still needs `AFC_HOME` typed by
+  hand (FC-001 makes it automatic), and the new rules for Claude are proved only by a dry run until
+  "build S-002 on dev" is repeated in a live session.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 7.

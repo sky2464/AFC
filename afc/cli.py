@@ -15,9 +15,9 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from afc.config import afc_home, afc_root, maintain_enabled, set_maintain
+from afc.config import afc_home, afc_root
 from afc.profile import PROFILES, modules_for
-from afc import cli_delivery, cli_health, cli_index, cli_plan, cli_projects, cli_tools, scan
+from afc import cli_defaults, cli_delivery, cli_health, cli_home, cli_index, cli_maintain, cli_plan, cli_projects, cli_tools, scan
 from afc.registry import (
     PAUSED,
     Project,
@@ -32,7 +32,7 @@ from afc import tools
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_tools.NAMES)
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "modules", "set", "scan", *cli_defaults.NAMES, *cli_delivery.NAMES, *cli_home.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_tools.NAMES, *cli_maintain.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -223,13 +223,6 @@ def cmd_open(args: argparse.Namespace) -> dict:
     return {"opened": True, "path": ws}
 
 
-def cmd_maintain(args: argparse.Namespace) -> dict:
-    home = afc_home()
-    if args.state in ("on", "off"):
-        set_maintain(home, args.state == "on")
-    return {"maintain": maintain_enabled(home)}
-
-
 def cmd_modules(args: argparse.Namespace) -> dict:
     project = load_registry(afc_home()).active()
     if project is None:
@@ -237,7 +230,10 @@ def cmd_modules(args: argparse.Namespace) -> dict:
     if project.profile not in PROFILES:
         raise CliError(NO_PROFILE_INTERVIEW)
     touches = {t.strip() for t in args.touches.split(",") if t.strip()}
-    return {"profile": project.profile, "modules": modules_for(project.profile, touches)}
+    names = modules_for(project.profile, touches)
+    rules = afc_root() / "rules"
+    return {"profile": project.profile, "modules": names,
+            "paths": {name: str(rules / f"{name}.md") for name in names}}
 
 
 def cmd_set(args: argparse.Namespace) -> dict:
@@ -457,10 +453,6 @@ def _build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("open", help="open the active workspace (macOS)")
     p.set_defaults(handler=cmd_open)
 
-    p = sub.add_parser("maintain", help="turn maintenance mode on, off or show it")
-    p.add_argument("state", choices=["on", "off", "status"])
-    p.set_defaults(handler=cmd_maintain)
-
     p = sub.add_parser("modules", help="rule modules for the active project")
     p.add_argument("--touches", default="")
     p.set_defaults(handler=cmd_modules)
@@ -478,6 +470,9 @@ def _build_parser() -> argparse.ArgumentParser:
     cli_index.register(sub)
     cli_projects.register(sub)
     cli_health.register(sub)
+    cli_maintain.register(sub)
     cli_tools.register(sub)
     cli_plan.register(sub)
+    cli_home.register(sub)
+    cli_defaults.register(sub)
     return parser

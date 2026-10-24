@@ -111,6 +111,45 @@ EOF
   exit 1
 fi
 
+# The workspace folder for this copy: AFC_HOME if set, else the full path in .afc-home.
+HOME_FILE="$ROOT/.afc-home"
+AFC_HOME_SOURCE=default
+HOME_PROBLEM=
+if [ -n "${AFC_HOME:-}" ]; then
+  AFC_HOME_SOURCE=env
+elif [ -f "$HOME_FILE" ]; then
+  FILE_HOME=$(cat "$HOME_FILE")
+  FILE_HOME=${FILE_HOME%"$(printf '\r')"}
+  case "$FILE_HOME" in
+    /* | [A-Za-z]:[\\/]*) AFC_HOME=$FILE_HOME; AFC_HOME_SOURCE=file ;;
+    *) HOME_PROBLEM=".afc-home must hold one full folder path, starting with / or a drive letter like C:. Fix the file or delete it." ;;
+  esac
+fi
+export AFC_HOME AFC_HOME_SOURCE
+
+# A bad .afc-home stops the guard the same way a missing Python does: writes blocked, commands asked.
+if [ -n "$HOME_PROBLEM" ]; then
+  if [ "$1" = hook ] && [ "$2" = session_start ]; then
+    cat <<EOF
+{"systemMessage": "✈️  Flight Control: $HOME_PROBLEM", "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "Flight Control's workspace folder can't be used: $HOME_PROBLEM Its safety checks can't run until it is fixed, so file changes are blocked and every command needs the user's approval. In your first reply say this in one or two plain sentences, then ask the user to fix the file or delete it."}}
+EOF
+    exit 0
+  fi
+  if [ "$1" = hook ] && [ "$2" = pretool ]; then
+    case "$(cat)" in
+      *'"tool_name":"Bash"'* | *'"tool_name": "Bash"'*)
+        cat <<EOF
+{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "ask", "permissionDecisionReason": "Flight Control's safety checks are off until .afc-home is fixed, so please check this command yourself."}}
+EOF
+        exit 0 ;;
+    esac
+    echo "Flight Control blocked: $HOME_PROBLEM" >&2
+    exit 2
+  fi
+  echo "{\"error\": \"$HOME_PROBLEM\"}"
+  exit 1
+fi
+
 # Git Bash on Windows would hand Python a /c/... path, which it can't use.
 SRC=$ROOT
 [ "$OS" = windows ] && command -v cygpath >/dev/null 2>&1 && SRC=$(cygpath -w "$ROOT")

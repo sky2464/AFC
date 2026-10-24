@@ -1,6 +1,6 @@
-# S-003 — A real, tested first slice
+# FC-003 — A real, tested first slice
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Findings: 3, 19.
 
@@ -39,13 +39,24 @@ Test coverage targets; choosing test frameworks beyond the stack's default.
 
 ## Slices
 
-- [ ] 1. Spec template and `plan` unreadable-slices report — you'll check it by `plan` on a spec with
+- [x] 1. Spec template and `plan` unreadable-slices report — you'll check it by `plan` on a spec with
       plain `- ` lines (tests in `tests/test_plan.py`, `tests/test_cli_plan.py`)
-- [ ] 2. Interview rules for writing slices — you'll check it by a live run whose specs all use the
+- [x] 2. Interview rules for writing slices — you'll check it by a live run whose specs all use the
       checkbox form and whose first slice is real behavior (content tests on `afc-interview`)
-- [ ] 3. Slice skill requires a passing test — you'll check it by a live slice that shows its test
-      result (content tests on `afc-slice`)
+- [x] 3. Slice skill requires a passing test — you'll check it by a live slice that shows its test
+      result (content tests on `afc-slice`). Live: a fresh copy built the first slice test-first,
+      fixed one failing test before showing anything, and showed `npm test` with 28 passed.
 
 ## Decisions
 
+- 2026-10-24: Wording is checked by live runs, not content tests, for slices 2 and 3 (see FC-013).
+  Slice 1, which is code, has real tests.
+- 2026-10-24: The first interview run still made a spec of error messages alone, so the slice rules
+  also say no spec is made of tests or error handling; the second run folded them into the first
+  slice.
+- 2026-10-24: The live slice cost about $0.68 and 20 turns. The test result and scan summary came in
+  two bullets, not on one line; accepted.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 3.

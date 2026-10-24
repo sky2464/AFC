@@ -1,6 +1,6 @@
-# S-001 — Test copies use their own home
+# FC-001 — Test copies use their own home
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Finding: 1.
 
@@ -13,7 +13,8 @@ php-vuln-checker test into the real workspace and the real code folder.
 ## You'll know it works when
 
 - When a copy has a home file set, then `claude` started there plainly uses that home, with no prefix.
-- When the home in use isn't `~/.A-FC`, then the welcome says so on its own line: `Test home: <path>`.
+- When the home in use isn't `~/.A-FC`, then Claude's start-up context says so (`The workspace is a
+  test home <path>`); the welcome the user sees is unchanged.
 - When nothing is set, then everything behaves exactly as today.
 - When `AFC_HOME` is given explicitly, then it still wins over the home file.
 
@@ -30,22 +31,33 @@ Separate add-on settings per copy; containers.
   `sh bin/afc home` (shows the home in use and where it came from: `env`, `file` or `default`),
   `sh bin/afc home set <path>`, `sh bin/afc home clear`. Changing it needs maintenance mode, since
   the file lives in the Flight Control folder.
-- Welcome: `afc/hooks/session_start.py` adds the `Test home:` line to the message when the home isn't
-  the default, so a mixed-up start is visible at once.
+- Welcome: `afc/hooks/session_start.py` tells Claude about a home that isn't the default, in the
+  context only. A visible line was tried and dropped (see Decisions).
 - CONTRIBUTING: replace the `AFC_HOME=… claude` instructions with `sh bin/afc home set …` once.
 
 ## Slices
 
-- [ ] 1. Launcher reads `.afc-home` — you'll check it by setting a home in a scratch copy and seeing
+- [x] 1. Launcher reads `.afc-home` — you'll check it by setting a home in a scratch copy and seeing
       `sh bin/afc home` report `file` (tests: env wins, file used, default when missing, bad path is
       a plain error)
-- [ ] 2. `home set|clear` commands and `.gitignore` entry — you'll check it by setting and clearing a
+- [x] 2. `home set|clear` commands and `.gitignore` entry — you'll check it by setting and clearing a
       home and seeing `git status` stay clean (tests in `tests/test_cli_home.py`)
-- [ ] 3. Welcome shows `Test home:` — you'll check it by starting `claude` in the test copy (tests in
+- [x] 3. Claude knows about a test home — you'll check it by `sh bin/afc hook session_start` in the
+      test copy: the context names the home, the welcome message doesn't (tests in
       `tests/test_session_start.py`)
-- [ ] 4. CONTRIBUTING and README developer notes updated — you'll check it by following them on a
+- [x] 4. CONTRIBUTING and README developer notes updated — you'll check it by following them on a
       fresh test copy
 
 ## Decisions
 
+- 2026-10-24: The test home goes in Claude's context only, not the welcome. Only test copies set
+  one, `.afc-home` already removes the forgotten-prefix risk, and a visible line wouldn't catch the
+  case that went wrong (a copy with no home set using the real `~/.A-FC`; that belongs to FC-012).
+- 2026-10-24: Setting a home still takes two `AFC_HOME=` prefixes, on `maintain on` and `home set`.
+  `home set` needs maintenance mode, and without the prefix that flag would be written to (and
+  cleared from) the real `~/.A-FC`. After that one-time setup no prefix is needed. Found by
+  following the steps on a fresh clone, which is how slice 4 was checked.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 4.

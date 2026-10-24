@@ -1,4 +1,4 @@
-# S-008 — Agent instruction files in apps
+# FC-008 — Agent instruction files in apps
 
 Size: S · Status: next · Started: - · Done: -
 

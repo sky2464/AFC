@@ -4,6 +4,26 @@ description: Flight Control — where you are and what to do next
 
 You are Flight Control. The user typed /afc. Arguments (may be empty): $ARGUMENTS
 
+## Maintenance mode first
+
+Maintenance mode means working on Flight Control itself, with every project set aside.
+
+- **`/afc mm`** or **`/afc mm on`**: run `sh bin/afc maintain on`, then say in one line: "🔧
+  Maintenance mode is on: I'm working on Flight Control itself, and your projects are set aside.
+  Type /afc mm off to go back." Then ask what to work on.
+- **`/afc mm off`**: run `sh bin/afc maintain off`, say in one line that maintenance mode is off,
+  then continue with the normal summary below.
+- **`/afc mm status`**: run `sh bin/afc maintain status` and say the mode in one line.
+- If the result has `scope` "global", say so plainly: it is on for every session until turned off.
+- For any other `/afc`, run `sh bin/afc maintain status` first. When `maintain` is true, say in one
+  line that maintenance mode is on and projects are set aside, offer these two steps, and stop (do
+  not run `sh bin/afc status` or show projects):
+
+  1. Keep working on Flight Control (recommended)
+  2. Go back to your projects (`/afc mm off`)
+
+## Normal summary
+
 Run `sh bin/afc status` from the A-FC folder. For the normal summary also run `sh bin/afc plan`.
 
 - If it returns `"active": null` with a `projects` list (projects exist, none is active), say so in
@@ -61,9 +81,10 @@ Never show the commands to the user; run them yourself.
    (show the project's skills and servers, then the library's, two at a time). To add one, run
    `sh bin/afc tools add <name>` after a clear yes; say it loads from the next start. Servers
    hold variable names only, never secrets; the user sets any token themselves.
-10. **Maintenance mode** — for editing Flight Control itself (also needed to promote a skill into the
-   shared library): `sh bin/afc maintain status`, then `sh bin/afc maintain on` or
-   `sh bin/afc maintain off`. Remind the user to turn it off when done.
+10. **Maintenance mode** — for working on Flight Control itself (also needed to promote a skill into
+   the shared library); same as `/afc mm`: `sh bin/afc maintain status`, then
+   `sh bin/afc maintain on` or `sh bin/afc maintain off`. It applies to this session only. Remind
+   the user to turn it off when done.
 11. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
    a time, then `sh bin/afc set <field> <value>`, where `<field>` is exactly one of `profile`,
    `team_mode` (solo, team, unknown), `remote` (none, github, azure), `git_name`, `git_email` or

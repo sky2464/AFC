@@ -5,3 +5,4 @@ __pycache__/
 .remember/
 .mcp.json
 .claude/skills/project-*
+.afc-home

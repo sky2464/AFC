@@ -7,7 +7,7 @@
 Spec-driven from day one: Flight Control locks onto your goal, keeps every step on course,<br>
 and delivers a working app.
 
-[![Version](https://img.shields.io/badge/version-0.01a_alpha-orange)](https://github.com/sky2464/AFC/releases/tag/v0.01a)
+[![Version](https://img.shields.io/badge/version-0.02a_alpha-orange)](https://github.com/sky2464/AFC/releases/tag/v0.02a)
 [![Runs in Claude Code](https://img.shields.io/badge/runs_in-Claude_Code-d97757)](https://claude.com/claude-code)
 [![Platforms](https://img.shields.io/badge/macOS_·_Linux_·_Windows-lightgrey)](#questions)
 
@@ -135,5 +135,7 @@ Please [open an issue](https://github.com/sky2464/AFC/issues) and say what you t
 ---
 
 <div align="center">
-<sub>Want to help build Flight Control? See <a href="CONTRIBUTING.md">CONTRIBUTING.md</a>.</sub>
+<sub>Want to help build Flight Control, or keep a second copy for trying things out? See
+<a href="CONTRIBUTING.md">CONTRIBUTING.md</a> — a second copy needs a workspace of its own, or it
+writes into this one's.</sub>
 </div>
