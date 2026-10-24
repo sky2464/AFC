@@ -129,3 +129,25 @@ class SessionStartTest(AfcTestCase):
         buf = io.StringIO()
         self.assertEqual(main(buf), 0)
         self.assertIn("Registry unreadable", json.loads(buf.getvalue())["hookSpecificOutput"]["additionalContext"])
+
+
+class TestHomeLineTest(AfcTestCase):
+    """The welcome names the workspace folder whenever it isn't the default ~/.A-FC."""
+
+    def welcome(self, env):
+        buf = io.StringIO()
+        with mock.patch.dict("os.environ", env):
+            self.assertEqual(main(buf), 0)
+        return json.loads(buf.getvalue())
+
+    def test_other_home_gets_its_own_line(self):
+        out = self.welcome({"AFC_HOME": str(self.home)})
+        self.assertTrue(out["systemMessage"].endswith(f"\nTest home: {self.home.resolve()}"))
+        self.assertIn(f"test home {self.home.resolve()}",
+                      out["hookSpecificOutput"]["additionalContext"])
+
+    def test_default_home_adds_nothing(self):
+        default = self.tmp / ".A-FC"
+        out = self.welcome({"HOME": str(self.tmp), "AFC_HOME": str(default)})
+        self.assertNotIn("Test home", out["systemMessage"])
+        self.assertNotIn("test home", out["hookSpecificOutput"]["additionalContext"])

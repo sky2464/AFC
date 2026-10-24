@@ -145,6 +145,20 @@ def build_output(home: Path, session: str | None = None) -> dict:
     return _wrap(message, context)
 
 
+def _with_home_note(out: dict, home: Path) -> dict:
+    """Add the `Test home:` line when the workspace isn't ~/.A-FC, so a mixed-up start shows."""
+    try:
+        if home == (Path.home() / ".A-FC").resolve():
+            return out
+    except Exception:  # the welcome must never break
+        return out
+    out["systemMessage"] += f"\nTest home: {home}"
+    context = out["hookSpecificOutput"]["additionalContext"]
+    out["hookSpecificOutput"]["additionalContext"] = (
+        f"{context} The workspace is a test home {home}, not ~/.A-FC.")
+    return out
+
+
 def _session_in(stdin_text: str) -> str | None:
     """The hook event's session_id when it is a safe value."""
     try:
@@ -173,7 +187,8 @@ def main(stdout=None, stdin_text: str = "") -> int:
         home = afc_home()
     except Exception:
         home = Path.home() / ".A-FC"
-    stdout.write(json.dumps(build_output(home, session), ensure_ascii=False) + "\n")
+    out = _with_home_note(build_output(home, session), home)
+    stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
     return 0
 
 

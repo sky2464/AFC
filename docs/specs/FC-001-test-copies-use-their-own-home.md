@@ -41,7 +41,7 @@ Separate add-on settings per copy; containers.
       a plain error)
 - [x] 2. `home set|clear` commands and `.gitignore` entry — you'll check it by setting and clearing a
       home and seeing `git status` stay clean (tests in `tests/test_cli_home.py`)
-- [ ] 3. Welcome shows `Test home:` — you'll check it by starting `claude` in the test copy (tests in
+- [x] 3. Welcome shows `Test home:` — you'll check it by starting `claude` in the test copy (tests in
       `tests/test_session_start.py`)
 - [ ] 4. CONTRIBUTING and README developer notes updated — you'll check it by following them on a
       fresh test copy
