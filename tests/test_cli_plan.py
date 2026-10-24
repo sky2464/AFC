@@ -18,7 +18,7 @@ class PlanCommandsTest(CliTestCase):
 
     def write_slices(self, sid, slices):
         path = self.spec_file(sid)
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8").replace("- [ ] 1. <label> — you'll check it by <how>\n", "")
         body = "\n".join(slices) + "\n"
         path.write_text(text.replace("## Slices\n", "## Slices\n\n" + body, 1), encoding="utf-8")
 
@@ -93,8 +93,27 @@ class PlanCommandsTest(CliTestCase):
         self.assertIsNone(p["now"])
         self.assertEqual(p["done_count"], 1)
 
+    def test_plan_says_when_slices_are_unreadable(self):
+        run_cli(["plan", "add", "First"])
+        path = self.spec_file("S-001")
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace("- [ ] 1. <label> — you'll check it by <how>", "- one\n- two"), encoding="utf-8")
+        rc, out = run_cli(["plan", "start", "S-001"])
+        self.assertEqual((out["next_slice"], out["slices"]), (None, "unreadable"))
+        rc, p = run_cli(["plan"])
+        self.assertEqual((p["now"]["next_slice"], p["now"]["slices"]), (None, "unreadable"))
+
+    def test_plan_has_no_slices_key_when_all_are_readable(self):
+        run_cli(["plan", "add", "First"])
+        rc, out = run_cli(["plan", "start", "S-001"])
+        self.assertNotIn("slices", out)
+        rc, p = run_cli(["plan"])
+        self.assertNotIn("slices", p["now"])
+
     def test_done_without_slices(self):
         run_cli(["plan", "add", "First"])
+        path = self.spec_file("S-001")
+        path.write_text(path.read_text(encoding="utf-8").replace("- [ ] 1. <label> — you'll check it by <how>\n", ""), encoding="utf-8")
         run_cli(["plan", "start", "S-001"])
         self.assertError(["plan", "done", "S-001"], "S-001 has no slices yet.")
 

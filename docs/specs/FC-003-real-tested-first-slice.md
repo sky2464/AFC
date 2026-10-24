@@ -1,6 +1,6 @@
 # FC-003 — A real, tested first slice
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-24 · Done: -
 
 Findings: 3, 19.
 
@@ -39,7 +39,7 @@ Test coverage targets; choosing test frameworks beyond the stack's default.
 
 ## Slices
 
-- [ ] 1. Spec template and `plan` unreadable-slices report — you'll check it by `plan` on a spec with
+- [x] 1. Spec template and `plan` unreadable-slices report — you'll check it by `plan` on a spec with
       plain `- ` lines (tests in `tests/test_plan.py`, `tests/test_cli_plan.py`)
 - [ ] 2. Interview rules for writing slices — you'll check it by a live run whose specs all use the
       checkbox form and whose first slice is real behavior (content tests on `afc-interview`)

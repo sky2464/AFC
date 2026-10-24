@@ -12,6 +12,8 @@ Size: {size} · Status: next · Started: - · Done: -
 
 ## Slices
 
+- [ ] 1. <label> — you'll check it by <how>
+
 ## Decisions
 
 ## Shipped

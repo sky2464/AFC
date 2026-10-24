@@ -1,7 +1,6 @@
 """In maintenance mode the plan commands manage Flight Control's own plan (docs/), not a project's."""
 
 import os
-import re
 import shutil
 from pathlib import Path
 from unittest.mock import patch
@@ -39,7 +38,7 @@ class FlightControlPlanTest(CliTestCase):
     def tick_all(self, sid: str) -> None:
         path = self.spec(sid)
         text = path.read_text(encoding="utf-8")
-        text = re.sub(r"(## Slices\n)", r"\1\n- [x] 1. first — you'll check it by looking\n", text, count=1)
+        text = text.replace("- [ ] 1. <label> — you'll check it by <how>", "- [x] 1. first — you'll check it by looking", 1)
         path.write_text(text, encoding="utf-8")
 
     def test_add_start_done_use_docs_and_archive_inside_specs(self):

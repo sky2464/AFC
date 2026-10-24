@@ -18,7 +18,8 @@ from afc.registry import load_registry
 NAMES = ("plan",)
 NO_PLAN = "This project has no master plan yet. A health check repair adds one."
 NO_FC_PLAN = "Flight Control has no master plan at docs/master-plan.md."
-ARCHIVE_INDEX = "# Archive\n\n| ID | Title | Done | Spec |\n|---|---|---|---|\n"
+UNREADABLE = "unreadable"  # slice lines without `- [ ]`, which `plan` cannot see
+ARCHIVE_INDEX ="# Archive\n\n| ID | Title | Done | Spec |\n|---|---|---|---|\n"
 
 
 def register(sub) -> None:
@@ -120,6 +121,8 @@ def cmd_plan(args: argparse.Namespace) -> dict:
         _, spec_text = _read_spec(space, row[0], row)
         open_ = plan.open_slices(spec_text)
         now = {"id": row[0], "title": row[1], "spec": str(_spec_path(space, row)), "next_slice": open_[0] if open_ else None}
+        if plan.unreadable_slices(spec_text):
+            now["slices"] = UNREADABLE
     nxt = [{"id": r[0], "title": r[1], "size": r[2]} for r in plan.read_rows(text, "Next")[:2]]
     return {"for": owner, "goal": _goal(text), "now": now, "next": nxt,
             "done_count": len(plan.read_rows(text, "Done"))}
@@ -171,7 +174,10 @@ def cmd_start(args: argparse.Namespace) -> dict:
         spec_path.write_text(spec_text, encoding="utf-8")
         raise
     open_ = plan.open_slices(plan.set_header(spec_text, status="in progress", started=today))
-    return {"started": sid, "next_slice": open_[0] if open_ else None}
+    started = {"started": sid, "next_slice": open_[0] if open_ else None}
+    if plan.unreadable_slices(spec_text):
+        started["slices"] = UNREADABLE
+    return started
 
 
 def _shipped(spec_text: str, line: str) -> str:

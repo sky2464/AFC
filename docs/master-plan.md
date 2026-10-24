@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-003 | A real, tested first slice | M | [spec](specs/FC-003-real-tested-first-slice.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-003 | A real, tested first slice | M | [spec](specs/FC-003-real-tested-first-slice.md) |
 | FC-004 | Plan goal and plan editing | M | [spec](specs/FC-004-plan-goal-and-plan-editing.md) |
 | FC-005 | Tidy, safe tool use | M | [spec](specs/FC-005-tidy-safe-tool-use.md) |
 | FC-006 | Workspace notes in the right place | S | [spec](specs/FC-006-workspace-notes-in-the-right-place.md) |
@@ -123,3 +123,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-002 started |
 | 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
 | 2026-10-24 | FC-002 done |
+| 2026-10-24 | FC-003 started |

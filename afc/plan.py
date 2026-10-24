@@ -129,6 +129,21 @@ def all_slices(spec_text: str) -> list[tuple[bool, str]]:
     return found
 
 
+def unreadable_slices(spec_text: str) -> list[str]:
+    """List items under `## Slices` that aren't checkbox lines, so `plan` can't see them."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Slices")
+    except ValueError:
+        return []
+    found = []
+    for line in lines[start:end]:
+        m = re.match(r"(?:[-*]|\d+[.)])\s+(.*)$", line)  # unindented, so continuation lines don't count
+        if m and not re.match(r"\[[ xX]\]", m.group(1)):
+            found.append(m.group(1).strip())
+    return found
+
+
 def open_slices(spec_text: str) -> list[str]:
     """Labels of the unticked slices, in order."""
     return [label for done, label in all_slices(spec_text) if not done]

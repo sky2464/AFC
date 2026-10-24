@@ -137,6 +137,19 @@ class SliceTests(PlanTestCase):
         self.assertEqual(plan.all_slices("## Slices\n\n## Decisions\n"), [])
         self.assertEqual(plan.open_slices("# nothing"), [])
 
+    def test_unreadable_slices_are_list_lines_without_a_checkbox(self):
+        text = "## Slices\n\n- plain one\n* star two\n3. numbered\n- [ ] fine\n  - indented note\n\n## Next\n- outside\n"
+        self.assertEqual(plan.unreadable_slices(text), ["plain one", "star two", "numbered"])
+
+    def test_checkbox_slices_are_all_readable(self):
+        self.assertEqual(plan.unreadable_slices(SPEC), [])
+        self.assertEqual(plan.unreadable_slices("# nothing"), [])
+
+    def test_the_template_holds_a_readable_example_slice(self):
+        template = (Path(__file__).resolve().parent.parent / "templates/workspace/spec.md").read_text(encoding="utf-8")
+        self.assertEqual(len(plan.open_slices(template)), 1)
+        self.assertEqual(plan.unreadable_slices(template), [])
+
 
 class HeaderTests(PlanTestCase):
     def test_set_header(self):
