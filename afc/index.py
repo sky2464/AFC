@@ -83,6 +83,9 @@ def _title(rel: str, text: str) -> str:
 def _doc_files(ws: Path, include_resources: bool) -> list[tuple[str, str, Path]]:
     """(kind, rel, path) for every indexable document, sorted by rel."""
     out = [("plan", f"plan/{p.name}", p) for p in sorted((ws / "plan").glob("*.md")) if p.is_file()]
+    for sub in ("specs", "archive"):
+        out += [("plan", f"plan/{sub}/{p.name}", p) for p in sorted((ws / "plan" / sub).glob("*.md")) if p.is_file()]
+    out.sort(key=lambda t: t[1])
     if include_resources and (ws / "resources").is_dir():
         for p in sorted((ws / "resources").rglob("*")):
             if p.is_file():
