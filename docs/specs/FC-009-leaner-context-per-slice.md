@@ -12,8 +12,9 @@ long shell outputs.
 
 ## You'll know it works when
 
-- A measured repeat of the php-vuln-checker start plus first slice uses at least a third fewer tokens
-  than the first run (measured from the session transcript's token counts).
+- A measured repeat of the php-vuln-checker start plus first slice grows its context at least a third
+  less than the first run did: peak context minus the first turn's context (the floor, which Flight
+  Control does not control), measured from the session transcript's token counts.
 - Rule modules have a short form (Do and Never, at most about 25 lines each) that Claude reads by
   default; the long form stays for review.
 - No skill is loaded twice in a row for the same step.
@@ -41,7 +42,9 @@ Changing models or effort settings; removing safety rules.
       `tests/test_content.py` for the size limit, `tests/test_cli.py` for `--full`)
 - [x] 3. Trim always-loaded skills — you'll check it by skill line counts going down with the content
       tests still passing
-- [ ] 4. Measured live re-run — you'll check it by the new number against the baseline
+- [ ] 4. Measured live re-run — you'll check it by `python3 docs/measurements/token_usage.py
+      <baseline> <rerun>` showing growth above the floor at or below 24,490 (a third under the
+      baseline's 36,736), with each run's floor beside it (tests in `tests/test_token_usage.py`)
 
 ## Decisions
 
@@ -71,7 +74,10 @@ Changing models or effort settings; removing safety rules.
   64,312 tokens of context at turn 1, before any Flight Control skill loaded, and "a third fewer"
   means a peak of 67,365 or less, so only about 3k tokens above that floor are left for everything
   the session does. The floor is mostly the system prompt, tool definitions and the plugin and skill
-  listings, which this repo does not control. Not yet decided: a different target, or measuring only
-  what Flight Control adds above the floor.
+  listings, which this repo does not control. Decided the same day: slice 4 measures only what the
+  session adds above its own first turn ("growth": peak context minus first-turn context), and the
+  target is a third less growth than the baseline's 36,736, so 24,490 or less. Judging growth also
+  keeps the comparison fair when the re-run's floor differs, for example because more or fewer
+  plugins are loaded; the floors are shown beside the result.
 
 ## Shipped
