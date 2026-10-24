@@ -99,7 +99,8 @@ class ShortRulesTest(unittest.TestCase):
 
 
 SKILLS = ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver",
-          "afc-enterprise", "afc-architecture", "afc-capabilities"]
+          "afc-enterprise", "afc-architecture", "afc-capabilities",
+          "afc-setup", "afc-remote", "afc-profile"]
 COMMANDS = ["afc"]
 TEXT_DIRS = ["afc", "tests", "rules", ".claude", "templates"]
 TEXT_SUFFIXES = {".py", ".md", ".json", ".txt", ".toml", ".yml", ".yaml", ""}
@@ -158,7 +159,9 @@ class BrainTest(unittest.TestCase):
             self.assertEqual(fm.get("user-invocable", "").strip(), "false", d)
 
     def test_start_skill_flows(self):
+        # The start flows span the start skill (first reply) and the setup skill (new or existing).
         t = (ROOT / ".claude/skills/afc-start/SKILL.md").read_text()
+        t += (ROOT / ".claude/skills/afc-setup/SKILL.md").read_text()
         for term in ["sh bin/afc new", "sh bin/afc adopt", "granted", "/add-dir",
                      "afc-architecture", "afc-interview", "Welcome back"]:
             self.assertIn(term, t)
@@ -221,9 +224,9 @@ class BrainTest(unittest.TestCase):
         self.assertLess(drift.index("keep its output as \"before\""),
                         drift.index("sh bin/afc set profile"))
         self.assertIn("If nothing drifted, say nothing", drift)
-        interview = (ROOT / ".claude/skills/afc-interview/SKILL.md").read_text()
+        profile = (ROOT / ".claude/skills/afc-profile/SKILL.md").read_text()
         for term in ("a quick prototype", "an MVP"):
-            self.assertIn(term, interview)
+            self.assertIn(term, profile)
         self.assertIn("from your own", (ROOT / "README.md").read_text())
 
     def test_skills_use_master_plan(self):
