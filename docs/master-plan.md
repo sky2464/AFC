@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
 | FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
@@ -140,3 +140,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-016 specced and sliced (3 slices): compaction drops Done rows instead of archiving them, which lost the PC and v0.01a rows; FC-015 depends on it |
 | 2026-10-24 | FC-016 started |
 | 2026-10-24 | FC-016 done |
+| 2026-10-24 | FC-008 started |

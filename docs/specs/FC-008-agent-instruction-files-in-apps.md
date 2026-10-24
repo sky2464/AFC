@@ -1,6 +1,6 @@
 # FC-008 — Agent instruction files in apps
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-24 · Done: -
 
 Finding: 13.
 
@@ -31,7 +31,7 @@ Blocking such files; judging whether their advice is good.
 
 ## Slices
 
-- [ ] 1. Scan check for agent instruction files — you'll check it by adding an `AGENTS.md` to a test
+- [x] 1. Scan check for agent instruction files — you'll check it by adding an `AGENTS.md` to a test
       app and running the scan (tests in `tests/test_scan.py`)
 - [ ] 2. Slice skill and ai-safety rule mention it — you'll check it by a live slice in a Next.js app
       (content tests)
