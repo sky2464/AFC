@@ -34,6 +34,11 @@ are still open in the active spec, then ask one question: finish the active spec
 change). Only a spec the user chose is ever started; `afc plan start` refuses while another spec
 is in progress.
 
+The same stop-and-ask applies when the request names a spec that isn't in the plan from
+`sh bin/afc plan` (an `S-` ID in maintenance mode, an `FC-` ID outside it, or one that doesn't exist)
+or a branch that doesn't exist in the project. Ask one question, build nothing, and never create a
+branch in the app to make the request fit.
+
 Before building, give a two-or-three-line note:
 
 > **Next slice:** a `/health` endpoint that returns `ok`.
@@ -94,3 +99,6 @@ Then hand off to `afc-deliver`.
 - **The slice is off** (wrong detail, wrong look): adjust it and show it again from checkpoint 3,
   or checkpoint 1 if what it touches changed.
 - **The goal itself moved**: use `afc-drift`.
+- **Undo it** (the user wants the change gone): undo exactly what this slice changed, then run
+  `git status --short` in the project folder (and `git branch` if a branch was made) and show the
+  result before saying it is clean.
