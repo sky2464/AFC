@@ -24,7 +24,9 @@ git clone https://github.com/sky2464/AFC.git A-FC-dev
 | `bin/afc` | Launcher: finds Python 3.10+ and runs the command line and hooks |
 | `afc/` | The command line (`sh bin/afc <command>`) and the hooks (`afc/hooks/`) |
 | `afc/plan.py`, `afc/cli_plan.py` | Master plan tables, and the `plan` commands |
-| `rules/`, `templates/`, `library/` | Rule modules, project templates and the capability library |
+| `afc/addons.py`, `afc/tools.py`, `afc/cli_tools.py` | Allowed add-on list, swapping a project's skills and MCP servers in and out, and the `addons` / `tools` commands |
+| `afc-addons.json` | The add-ons Flight Control sessions may use |
+| `rules/`, `templates/`, `library/` | Rule modules, project templates and the capability library (`library/skills/`, `library/mcp/` recipes) |
 | `tests/` | Unit tests |
 | `docs/superpowers/` | Design, plans and acceptance results |
 

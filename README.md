@@ -125,6 +125,10 @@ Control adds no services of its own; Claude Code talks to Claude as it always do
 **Can I bring in a project I already have?**
 Yes. Type 2 at the welcome and point it at the folder.
 
+**Why are some of my add-ons off in Flight Control?**
+Flight Control only loads the add-ons on its allowed list (`afc-addons.json`), so a broken add-on
+can't spoil a session. They still work everywhere else; `/afc` → More… → Health check explains each one.
+
 **Something isn't working.**
 Please [open an issue](https://github.com/sky2464/AFC/issues) and say what you typed and what you saw.
 
