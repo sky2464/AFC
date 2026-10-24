@@ -1,6 +1,6 @@
 # FC-016 — Nothing drops out of the plan
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-24 · Done: -
 
 Found on 2026-10-24 while closing FC-007.
 
@@ -58,7 +58,7 @@ already works. `archive/index.md`, which is the per-spec index and keeps its cur
 
 ## Slices
 
-- [ ] 1. Done overflow is archived — you'll check it by compacting a plan with twelve Done rows and
+- [x] 1. Done overflow is archived — you'll check it by compacting a plan with twelve Done rows and
       finding the two oldest in `archive/done-2026.md` with the plan down to ten (tests: a file
       created with its header, an existing file appended to, a row with no year, no overflow
       touching nothing, compacting twice adding no duplicates)

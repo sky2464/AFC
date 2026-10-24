@@ -13,6 +13,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-016 | Nothing drops out of the plan | S | [spec](specs/FC-016-nothing-drops-out-of-the-plan.md) | 2026-10-24 |
 
 ## Next
 
@@ -25,7 +26,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
 | FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
 | FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
-| FC-016 | Nothing drops out of the plan | S | [spec](specs/FC-016-nothing-drops-out-of-the-plan.md) |
 
 ## Done
 
@@ -139,3 +139,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-007 done |
 | 2026-10-24 | FC-016 added |
 | 2026-10-24 | FC-016 specced and sliced (3 slices): compaction drops Done rows instead of archiving them, which lost the PC and v0.01a rows; FC-015 depends on it |
+| 2026-10-24 | FC-016 started |

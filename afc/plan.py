@@ -13,6 +13,7 @@ MASTER = "master-plan.md"
 DONE_KEEP = 10
 LOG_KEEP = 100
 _LOG_HEADER = "| Date | Event |\n|---|---|\n"
+_DONE_HEADER = "| ID | Title | Done | Spec |\n|---|---|---|---|\n"
 
 
 @dataclass(frozen=True)
@@ -185,13 +186,31 @@ def log(text: str, date: str, event: str) -> str:
 
 
 def compact(where) -> None:
-    """Keep 10 newest Done rows and 100 Update log rows; older log rows are archived."""
+    """Keep 10 newest Done rows and 100 Update log rows; older rows are archived."""
     space = _space(where)
     path = space.master
     text = path.read_text(encoding="utf-8")
     original = text
     done = read_rows(text, "Done")
     if len(done) > DONE_KEEP:
+        by_year = {}
+        for row in done[DONE_KEEP:]:
+            m = re.match(r"\d{4}", row[2]) if len(row) > 2 else None
+            by_year.setdefault(m.group(0) if m else "unknown", []).append(row)
+        archive = space.archive_dir
+        archive.mkdir(parents=True, exist_ok=True)
+        for year, items in by_year.items():
+            target = archive / f"done-{year}.md"
+            body = "".join(
+                "| " + " | ".join(cell(c) for c in r) + " |\n" for r in items
+            )
+            if target.is_file():
+                existing = target.read_text(encoding="utf-8")
+                if not existing.endswith("\n"):
+                    existing += "\n"
+                target.write_text(existing + body, encoding="utf-8")
+            else:
+                target.write_text(f"# Done {year}\n\n{_DONE_HEADER}{body}", encoding="utf-8")
         text = write_rows(text, "Done", done[:DONE_KEEP])
     rows = read_rows(text, "Update log")
     if len(rows) > LOG_KEEP:
