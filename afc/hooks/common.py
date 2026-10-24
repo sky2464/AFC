@@ -67,6 +67,7 @@ class Context:
     root: Path
     active: Project | None
     maintain: bool
+    projects: tuple[Project, ...] = ()  # every registered project, for maintenance mode
 
 
 def resolve_path(raw: str, cwd: str | None = None) -> Path:
@@ -96,14 +97,16 @@ def load_context(session_id: str | None = None) -> Context:
     session_id is the hook event's session: maintenance mode is on for that session only."""
     home = afc_home()
     try:
-        active = load_registry(home).active()
+        reg = load_registry(home)
+        active, projects = reg.active(), tuple(reg.projects.values())
     except RegistryError:
-        active = None
+        active, projects = None, ()
     return Context(
         home=home,
         root=afc_root(),
         active=active,
         maintain=maintain_enabled(home, session_id),
+        projects=projects,
     )
 
 
