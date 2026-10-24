@@ -39,7 +39,7 @@ Never show the commands to the user; run them yourself.
    Done. Finished specs are in the workspace's `plan/archive/`.
 4. **Switch project** — `sh bin/afc list`, offer the projects two at a time, then
    `sh bin/afc switch <name>`.
-4. **Open workspace** — `sh bin/afc open` (if it returns `opened: false`, give the path).
+5. **Open workspace** — `sh bin/afc open` (if it returns `opened: false`, give the path).
 6. **Pause or resume a project** — pausing parks a project you're not working on: its folders
    and notes stay exactly as they are, it just stops being offered until resumed. `sh bin/afc list`
    (each project has a `status`), ask which one, then `sh bin/afc pause <name>` or
