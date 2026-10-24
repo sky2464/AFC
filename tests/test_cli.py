@@ -226,6 +226,14 @@ class ReadOnlyCommandsTest(CliTestCase):
         self.assertEqual(out["name"], "kong-gateway-lab")
         self.assertEqual(out["now"], "Writing the health endpoint.")
 
+    def test_status_names_the_active_spec(self):
+        self.new("kong-gateway-lab")
+        run_cli(["plan", "add", "First thing"])
+        run_cli(["plan", "start", "S-001"])
+        rc, out = run_cli(["status"])
+        self.assertEqual(rc, 0)
+        self.assertTrue(out["now"].startswith("S-001 "), out["now"])
+
     def test_status_without_now_section_is_empty(self):
         self.new("kong-gateway-lab")
         rc, out = run_cli(["status"])

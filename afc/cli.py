@@ -357,7 +357,12 @@ def _git_init(code: Path) -> None:
 
 
 def _now_text(ws: Path) -> str:
-    """Text under '## Now' in plan/progress.md, up to the next heading. Empty if none."""
+    """The active spec from the master plan; else text under '## Now' in plan/progress.md."""
+    from afc.plan import now_line
+
+    line = now_line(ws)
+    if line:
+        return line
     path = ws / "plan" / "progress.md"
     if not path.exists():
         return ""

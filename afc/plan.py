@@ -151,3 +151,24 @@ def compact(ws: Path) -> None:
         text = write_rows(text, "Update log", keep)
     if text != original:
         path.write_text(text, encoding="utf-8")
+
+
+def now_line(ws: Path) -> str:
+    """'S-002 Title (next slice: ...)' for the spec in Now; '' when there is none."""
+    path = Path(ws) / "plan" / MASTER
+    if not path.is_file():
+        return ""
+    rows = read_rows(path.read_text(encoding="utf-8"), "Now")
+    if not rows:
+        return ""
+    row = rows[0]
+    line = f"{row[0]} {row[1]}"
+    m = re.search(r"\(([^)]*)\)", row[3] if len(row) > 3 else "")
+    spec = Path(ws) / "plan" / m.group(1) if m else None
+    if spec is None or not spec.is_file():
+        return line
+    slices = all_slices(spec.read_text(encoding="utf-8"))
+    if not slices:
+        return line
+    open_ = [label for done, label in slices if not done]
+    return f"{line} (next slice: {open_[0]})" if open_ else f"{line} (all slices done)"

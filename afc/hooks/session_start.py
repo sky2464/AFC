@@ -45,6 +45,15 @@ def _choices(reg) -> tuple[str, str, str]:
     return one, two, f"Type 1 to {one}, 2 to {two}, {OR_HI}"
 
 
+def _spec_note(active) -> str:
+    try:
+        from afc.plan import now_line
+
+        return now_line(Path(active.workspace_path))
+    except Exception:  # the welcome must never break
+        return ""
+
+
 def _project_line(reg) -> str:
     active = reg.active()
     if active is None:
@@ -54,6 +63,8 @@ def _project_line(reg) -> str:
             f"Active project: {active.name} ({active.profile}), code: {active.code_path}, "
             f"workspace: {active.workspace_path}, last slice: {active.last_slice or 'none'}."
         )
+    spec = _spec_note(active) if active is not None else ""
+    project += f" Active spec: {spec}." if spec else ""
     others = [n for n in reg.ready() if active is None or n != active.name]
     paused = f" Paused: {', '.join(reg.paused())}." if reg.paused() else ""
     return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}"

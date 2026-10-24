@@ -190,3 +190,24 @@ class CompactTests(PlanTestCase):
         plan.compact(self.ws)
         self.assertEqual(self.master(), before)
         self.assertFalse((self.ws / "plan/archive").exists())
+
+
+class NowLineTests(PlanTestCase):
+    def _now(self, spec_name="specs/S-001-thing.md"):
+        text = plan.write_rows(self.master(), "Now", [["S-001", "Thing", "M", f"[spec]({spec_name})", "2026-01-01"]])
+        (self.ws / "plan" / plan.MASTER).write_text(text, encoding="utf-8")
+
+    def test_empty_without_plan_or_now(self):
+        self.assertEqual(plan.now_line(self.ws), "")
+        (self.ws / "plan" / plan.MASTER).unlink()
+        self.assertEqual(plan.now_line(self.ws), "")
+
+    def test_next_slice_all_done_and_missing_spec(self):
+        self._now()
+        self.assertEqual(plan.now_line(self.ws), "S-001 Thing")
+        (self.ws / "plan" / "specs").mkdir()
+        spec = self.ws / "plan" / "specs" / "S-001-thing.md"
+        spec.write_text(SPEC, encoding="utf-8")
+        self.assertEqual(plan.now_line(self.ws), "S-001 Thing (next slice: 1. First \u2014 you'll check it by looking)")
+        spec.write_text("## Slices\n\n- [x] a\n", encoding="utf-8")
+        self.assertEqual(plan.now_line(self.ws), "S-001 Thing (all slices done)")

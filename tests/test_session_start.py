@@ -57,6 +57,19 @@ class SessionStartTest(AfcTestCase):
             "Welcome back. Type 1 to continue kong-gateway-lab (last: add rate limit), "
             "2 for something else, or just say hi."))
 
+    def test_returning_user_sees_active_spec(self):
+        from afc.workspace import create_workspace
+        from afc import plan
+        ws = create_workspace(self.home, "kong-gateway-lab")
+        master = ws / "plan" / plan.MASTER
+        master.write_text(plan.write_rows(master.read_text(encoding="utf-8"), "Now",
+                          [["S-001", "Thing", "M", "[spec](specs/none.md)", "2026-01-01"]]), encoding="utf-8")
+        reg = Registry()
+        reg.add(Project(name="kong-gateway-lab", code_path="/c", workspace_path=str(ws)))
+        reg.set_active("kong-gateway-lab")
+        save_registry(self.home, reg)
+        self.assertIn(" Active spec: S-001 Thing.", self._ctx(build_output(self.home)))
+
     def test_only_paused_projects(self):
         reg = Registry()
         reg.add(Project(name="kong-gateway-lab", code_path="/c", workspace_path="/w", status="paused"))
