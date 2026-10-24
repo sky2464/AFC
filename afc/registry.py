@@ -53,6 +53,14 @@ class Registry:
             raise RegistryError(f"unknown project: {name}")
         self.active_name = name
 
+    def remove(self, name: str) -> Project:
+        project = self.projects.pop(name, None)
+        if project is None:
+            raise RegistryError(f"unknown project: {name}")
+        if self.active_name == name:
+            self.active_name = None
+        return project
+
     def active(self) -> Project | None:
         if self.active_name is None:
             return None
