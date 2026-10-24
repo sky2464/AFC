@@ -1,6 +1,6 @@
 # FC-010 — Maintenance mode keeps Flight Control work apart
 
-Size: L · Status: in progress · Started: 2026-10-24 · Done: -
+Size: L · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Findings: the 2026-10-24 mix-up (M1–M10 in the master plan). Priority: before FC-001.
 
@@ -84,7 +84,7 @@ releases (still the user's own step).
 - [x] 6. "Two kinds of work" in `CLAUDE.md`, the stricter ask-first rule, no branches in apps, and
       verified undo — you'll check it by repeating "build S-002 on dev" with a project active and
       getting one clear question instead of a build (content tests)
-- [ ] 7. Bring the two stranded fixes onto `dev` (`435bf22`, `77eda62`) and write the three places in
+- [x] 7. Bring the two stranded fixes onto `dev` (`435bf22`, `77eda62`) and write the three places in
       CONTRIBUTING — you'll check it by `git log dev` showing both and a fresh developer copy set up
       from the instructions
 
@@ -127,4 +127,14 @@ releases (still the user's own step).
   It found two gaps, now closed: ask about the first problem only, and ask before removing leftovers.
   Still to prove live: repeat "build S-002 on dev" with a project active in the daily folder.
 
+- 2026-10-24: The Bun audit fix (`77eda62`) came onto `dev` as `647a474` and is recorded under
+  FC-007, where it belongs; it was checked against real `bun audit` and `npm audit` output. The
+  three places to work (daily folder, developer copy, test copy) and the rollout order are in
+  CONTRIBUTING.md.
+- 2026-10-24: Left for later, not part of this spec: the test copy still needs `AFC_HOME` typed by
+  hand (FC-001 makes it automatic), and the new rules for Claude are proved only by a dry run until
+  "build S-002 on dev" is repeated in a live session.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 7.

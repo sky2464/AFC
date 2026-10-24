@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-010 | Maintenance mode keeps Flight Control work apart | L | [spec](specs/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) | 2026-10-24 |
 
 ## Next
 
@@ -33,6 +32,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
 | TL | Toolkit layers (allowed add-ons, project tools, recipes) | 2026-10-24 | [stories](superpowers/plans/2026-10-23-toolkit-layers.md) |
 | MP | Master plan, specs and archive | 2026-10-23 | [stories](superpowers/plans/2026-10-23-master-plan.md) |
 | PC | Project controls: remove, pause/resume, health check | 2026-10-23 | — |
@@ -93,3 +93,4 @@ php-vuln-checker app three times instead. All of these map to FC-010:
 | 2026-10-24 | FC-010 started |
 | 2026-10-24 | Flight Control's specs renamed FC-001 to FC-010; S- stays for project specs |
 | 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
+| 2026-10-24 | FC-010 done |
