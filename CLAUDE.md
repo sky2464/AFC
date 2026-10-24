@@ -36,11 +36,13 @@ project.
 - "build S-…" is project work. If maintenance mode is on, say projects are set aside and offer
   `/afc mm off`.
 - Stop and ask one question, and build nothing, when a request names a spec that isn't in the plan
-  you are working in, a branch that doesn't exist, or could mean either kind of work.
+  you are working in, a branch that doesn't exist, or could mean either kind of work. If a request
+  has more than one of these problems, ask about the first one only.
 - Never create a branch in a user's app yourself (`git switch -c`, `git checkout -b`,
   `git branch <name>`). `sh bin/afc deliver` makes the branches a project needs and says so.
 - After undoing or discarding changes, run `git status --short` (and `git branch` if a branch was
-  made) in that folder and show the result before saying it is clean.
+  made) in that folder and show the result before saying it is clean. If anything is left, say what
+  it is and ask before removing it.
 
 ## Simple by default
 

@@ -44,6 +44,10 @@ class TwoKindsOfWorkTest(unittest.TestCase):
         for term in ("isn't in the plan you are working in", "a branch that doesn't exist", "either kind of work"):
             self.assertIn(term, self.text)
 
+    def test_two_problems_get_one_question_and_a_leftover_gets_asked_about(self):
+        self.assertIn("ask about the first one only", self.text)
+        self.assertIn("If anything is left, say what it is and ask before removing it", self.text)
+
     def test_no_branches_in_apps(self):
         self.assertIn("Never create a branch in a user's app", self.text)
         for term in ("git switch -c", "git checkout -b", "sh bin/afc deliver"):
