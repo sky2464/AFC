@@ -41,6 +41,26 @@ class HealthTest(CliTestCase):
         self.assertIn(str(moved.resolve()), self.granted_in_settings())
         self.assertEqual(self.kinds(), [])
 
+    def test_new_decisions_file_has_the_log_after_standing_corrections(self):
+        text = (self.workspace / "plan" / "decisions.md").read_text(encoding="utf-8")
+        self.assertLess(text.index("## Standing Corrections"), text.index("## Log"))
+        self.assertTrue(text[text.rindex("\n## "):].startswith("\n## Log"))  # Log is last, so new entries land in it
+        self.assertEqual(self.kinds(), [])
+
+    def test_an_older_decisions_file_without_a_log_is_found_and_repaired(self):
+        path = self.workspace / "plan" / "decisions.md"
+        old = "# Decisions\n\n## Standing Corrections\n\nAlways use tabs.\n"
+        path.write_text(old, encoding="utf-8")
+        rc, out = run_cli(["check"])
+        found = [p for p in out["problems"] if p["kind"] == "decisions_no_log"]
+        self.assertEqual((len(found), found[0]["fixable"]), (1, True))
+        rc, out = run_cli(["repair"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["left"], [])
+        fixed = path.read_text(encoding="utf-8")
+        self.assertTrue(fixed.startswith(old.rstrip("\n")))
+        self.assertGreater(fixed.index("## Log"), fixed.index("Always use tabs."))
+
     def test_old_progress_list_is_upgraded(self):
         plan_dir = self.workspace / "plan"
         (plan_dir / "master-plan.md").unlink()

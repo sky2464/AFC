@@ -1,6 +1,6 @@
 # FC-006 — Workspace notes in the right place
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-24 · Done: -
 
 Findings: 5, 6.
 
@@ -34,7 +34,7 @@ Rewriting existing projects' `decisions.md`; diagrams.
 
 ## Slices
 
-- [ ] 1. Decisions template with `## Log` and repair for old workspaces — you'll check it by a new
+- [x] 1. Decisions template with `## Log` and repair for old workspaces — you'll check it by a new
       project's `decisions.md` (tests in `tests/test_content.py`, `tests/test_cli_health.py`)
 - [ ] 2. First slice fills the architecture notes — you'll check it by a live first slice (content
       tests on `afc-slice`)

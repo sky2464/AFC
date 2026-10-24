@@ -65,6 +65,10 @@ def cmd_repair(args: argparse.Namespace) -> dict:
         elif p["kind"] == "old_plan_format":
             _upgrade_plan(Path(p["path"]))
             repaired.append(f"Upgraded {p['project']} to a master plan.")
+        elif p["kind"] == "decisions_no_log":
+            path = Path(p["path"])
+            path.write_text(path.read_text(encoding="utf-8").rstrip("\n") + "\n" + LOG_SECTION, encoding="utf-8")
+            repaired.append(f"Added a Log section to {p['project']}'s decisions.")
     access = [p for p in find_problems(home) if p["kind"] in ACCESS]
     if access:
         undo = cli._settings_undo()
@@ -185,6 +189,7 @@ def find_problems(home: Path) -> list[dict]:
             problems.append(_problem(
                 "old_plan_format", str(Path(p.workspace_path) / "plan"), True, project=p.name,
                 detail=f"{p.name}: still uses the old progress list; repair upgrades it to a master plan."))
+        problems += _decisions_problems(p)
     projects_dir = home / "projects"
     if projects_dir.is_dir():
         for d in sorted(projects_dir.iterdir()):
@@ -212,6 +217,20 @@ def find_problems(home: Path) -> list[dict]:
             problems.append(_problem("missing_access", entry, True,
                                      detail=f"The active project's folder {entry} isn't open to Claude."))
     return problems
+
+
+LOG_SECTION = ("\n## Log\n\nDated entries, newest last. Each says what was decided and why. "
+               "Add new entries here, at the end.\n")
+
+
+def _decisions_problems(project) -> list[dict]:
+    """An older decisions.md has no `## Log`, so new entries would land under Standing Corrections."""
+    path = Path(project.workspace_path) / "plan" / "decisions.md"
+    if not path.is_file() or "\n## Log" in "\n" + path.read_text(encoding="utf-8"):
+        return []
+    return [_problem("decisions_no_log", str(path), True, project=project.name,
+                     detail=f"{project.name}: decisions.md has no Log section; repair adds one so "
+                            "decisions stop landing under the always/never rules.")]
 
 
 def _wanted(reg) -> list[str]:
