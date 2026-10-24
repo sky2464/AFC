@@ -1,6 +1,6 @@
 # FC-001 — Test copies use their own home
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-24 · Done: -
 
 Finding: 1.
 
@@ -36,7 +36,7 @@ Separate add-on settings per copy; containers.
 
 ## Slices
 
-- [ ] 1. Launcher reads `.afc-home` — you'll check it by setting a home in a scratch copy and seeing
+- [x] 1. Launcher reads `.afc-home` — you'll check it by setting a home in a scratch copy and seeing
       `sh bin/afc home` report `file` (tests: env wins, file used, default when missing, bad path is
       a plain error)
 - [ ] 2. `home set|clear` commands and `.gitignore` entry — you'll check it by setting and clearing a
