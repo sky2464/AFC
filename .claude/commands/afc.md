@@ -10,8 +10,11 @@ Run `sh bin/afc status` from the A-FC folder.
   one line and offer up to two of those projects to switch to, as numbered steps
   (`sh bin/afc switch <name>`); if there are more, put "More…" as an unnumbered last line and
   show the rest two at a time from `sh bin/afc list`. Do not hand off to `afc-start`.
-- If it returns `"active": null` with an empty `projects` list (no projects at all), follow the
-  `afc-start` skill instead.
+  Paused projects (a `paused` list) are not offered here.
+- If it returns `"active": null` with an empty `projects` list but a `paused` list, say all
+  projects are paused and offer up to two to resume (`sh bin/afc resume <name>`), or a new one.
+- If it returns `"active": null` with an empty `projects` list and no `paused` list (no projects at
+  all), follow the `afc-start` skill instead.
 - Otherwise say in one or two plain lines which project is active and where it stands (use `now`
   and `last_slice`). Then offer exactly these choices, recommended first:
 
@@ -35,15 +38,20 @@ Never show the commands to the user; run them yourself.
 3. **Switch project** — `sh bin/afc list`, offer the projects two at a time, then
    `sh bin/afc switch <name>`.
 4. **Open workspace** — `sh bin/afc open` (if it returns `opened: false`, give the path).
-5. **Remove a project** — `sh bin/afc list`, ask which one (two at a time). Then ask one question:
+5. **Pause or resume a project** — pausing parks a project you're not working on: its folders
+   and notes stay exactly as they are, it just stops being offered until resumed. `sh bin/afc list`
+   (each project has a `status`), ask which one, then `sh bin/afc pause <name>` or
+   `sh bin/afc resume <name>` (resume also makes it the active project). If they try to switch to
+   a paused project, offer to resume it.
+6. **Remove a project** — `sh bin/afc list`, ask which one (two at a time). Then ask one question:
    put away only Flight Control's notes for it, or its code folder too? Say that nothing is deleted:
    everything moves to `~/.A-FC/removed/`, where they can get it back or delete it themselves.
    Run `sh bin/afc remove <name>` (add `--code` for the code folder) only after a clear yes, then
    say in one line what moved where, and where the code is if it stayed.
-6. **Maintenance mode** — for editing Flight Control itself (also needed to promote a skill into the
+7. **Maintenance mode** — for editing Flight Control itself (also needed to promote a skill into the
    shared library): `sh bin/afc maintain status`, then `sh bin/afc maintain on` or
    `sh bin/afc maintain off`. Remind the user to turn it off when done.
-7. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
+8. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
    a time, then `sh bin/afc set <field> <value>`, where `<field>` is exactly one of `profile`,
    `team_mode` (solo, team, unknown), `remote` (none, github, azure), `git_name`, `git_email` or
    `ai_trailer` (true, false).

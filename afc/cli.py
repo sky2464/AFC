@@ -17,8 +17,9 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root, maintain_enabled, set_maintain
 from afc.profile import PROFILES, modules_for
-from afc import cli_delivery, cli_index, cli_remove, scan
+from afc import cli_delivery, cli_index, cli_projects, scan
 from afc.registry import (
+    PAUSED,
     Project,
     RegistryError,
     load_registry,
@@ -30,7 +31,7 @@ from afc.session_dirs import GrantError, check_settings, grant_dirs, settings_pa
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_remove.NAMES)
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "maintain", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_projects.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -175,6 +176,8 @@ def cmd_switch(args: argparse.Namespace) -> dict:
     project = reg.get(args.name)
     if project is None:
         raise CliError(_unknown_name(args.name))
+    if project.status == PAUSED:
+        raise CliError(f"{project.name} is paused. Resume it to work on it again.")
     reg.set_active(args.name)
     reg.update(args.name, last_active=_today())
     undo = _settings_undo()
@@ -197,7 +200,10 @@ def cmd_list(args: argparse.Namespace) -> dict:
 def cmd_status(args: argparse.Namespace) -> dict:
     reg = load_registry(afc_home())
     if reg.active() is None:
-        return {"active": None, "projects": list(reg.projects)}
+        result: dict = {"active": None, "projects": reg.ready()}
+        if reg.paused():
+            result["paused"] = reg.paused()
+        return result
     project = _active(reg)
     data = dataclasses.asdict(project)
     data["now"] = _now_text(Path(project.workspace_path))
@@ -459,5 +465,5 @@ def _build_parser() -> argparse.ArgumentParser:
 
     cli_delivery.register(sub)
     cli_index.register(sub)
-    cli_remove.register(sub)
+    cli_projects.register(sub)
     return parser

@@ -21,13 +21,18 @@ question, a request), answer it briefly, then ask the question below for the sit
   you want to work on?" and offer up to two of them as numbered steps (more via
   `sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop back to `/afc`
   for this.
+- **Only paused projects** (`status` returns `"active": null`, an empty `projects` list and a
+  `paused` list): 1 = resume one, 2 = start a new one (see New project). To resume: "Which one do
+  you want to pick up again?" and offer up to two of the paused projects as numbered steps, then
+  `sh bin/afc resume <name>`.
 - **Returning** (an active project exists): 1 = continue *<project>*, 2 = something else.
   Asked again it is: "Welcome back — continue *<project>* (last: <last slice>), or something else?"
   1. Continue *<project>* (recommended) 2. Something else
   If they continue, run `sh bin/afc status`, then hand off to `afc-interview` (or `afc-slice` if
   the intent is already agreed). For something else, ask what they want: a new project or another
   of their projects.
-- **First run** (no projects; `status` returns `"active": null` and an empty `projects` list):
+- **First run** (no projects; `status` returns `"active": null`, an empty `projects` list and no
+  `paused` list):
   1 = a new project (see New project), 2 = one already on this computer (see Existing project).
   Asked again it is: "Are you starting a new project, or working on one that already exists on
   this machine?"

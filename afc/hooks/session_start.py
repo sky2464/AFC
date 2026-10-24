@@ -35,8 +35,11 @@ def _choices(reg) -> tuple[str, str, str]:
         last = f" (last: {_short(active.last_slice)})" if active.last_slice else ""
         one, two = f"continue {active.name}", "something else"
         return one, two, f"Welcome back. Type 1 to {one}{last}, 2 for {two}, {OR_HI}"
-    if reg.projects:
+    if reg.ready():
         one, two = "pick one of your projects", "start a new project"
+        return one, two, f"Welcome back. Type 1 to {one}, 2 to {two}, {OR_HI}"
+    if reg.paused():
+        one, two = "resume a paused project", "start a new project"
         return one, two, f"Welcome back. Type 1 to {one}, 2 to {two}, {OR_HI}"
     one, two = "start a new project", "bring in one already on this computer"
     return one, two, f"Type 1 to {one}, 2 to {two}, {OR_HI}"
@@ -51,8 +54,9 @@ def _project_line(reg) -> str:
             f"Active project: {active.name} ({active.profile}), code: {active.code_path}, "
             f"workspace: {active.workspace_path}, last slice: {active.last_slice or 'none'}."
         )
-    others = [n for n in reg.projects if active is None or n != active.name]
-    return f"{project} Other projects: {', '.join(others) or 'none'}."
+    others = [n for n in reg.ready() if active is None or n != active.name]
+    paused = f" Paused: {', '.join(reg.paused())}." if reg.paused() else ""
+    return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}"
 
 
 def build_output(home: Path) -> dict:

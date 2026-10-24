@@ -57,6 +57,27 @@ class SessionStartTest(AfcTestCase):
             "Welcome back. Type 1 to continue kong-gateway-lab (last: add rate limit), "
             "2 for something else, or just say hi."))
 
+    def test_only_paused_projects(self):
+        reg = Registry()
+        reg.add(Project(name="kong-gateway-lab", code_path="/c", workspace_path="/w", status="paused"))
+        save_registry(self.home, reg)
+        out = build_output(self.home)
+        self.assertTrue(out["systemMessage"].endswith(
+            "Welcome back. Type 1 to resume a paused project, 2 to start a new project, "
+            "or just say hi."))
+        ctx = self._ctx(out)
+        self.assertIn("Active project: none. Other projects: none. Paused: kong-gateway-lab.", ctx)
+        self.assertIn("1 = resume a paused project, 2 = start a new project.", ctx)
+
+    def test_paused_projects_are_not_picked(self):
+        reg = Registry()
+        reg.add(Project(name="old-app", code_path="/c", workspace_path="/w", status="paused"))
+        reg.add(Project(name="new-app", code_path="/c2", workspace_path="/w2"))
+        save_registry(self.home, reg)
+        ctx = self._ctx(build_output(self.home))
+        self.assertIn("Other projects: new-app. Paused: old-app.", ctx)
+        self.assertIn("1 = pick one of your projects", ctx)
+
     def test_long_last_slice_is_shortened(self):
         reg = Registry()
         reg.add(Project(name="app", code_path="/c", workspace_path="/w",

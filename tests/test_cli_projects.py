@@ -1,4 +1,4 @@
-"""Tests for the remove command."""
+"""Tests for the project lifecycle commands: pause, resume and remove."""
 
 import shutil
 from datetime import date
@@ -92,3 +92,75 @@ class RemoveTest(CliTestCase):
         self.assertFalse(self.away.exists())
         self.assertEqual(load_registry(self.home).active_name, "kong-gateway-lab")
         self.assertEqual(self.granted_in_settings(), before)
+
+
+class PauseResumeTest(CliTestCase):
+    def setUp(self):
+        super().setUp()
+        _, self.created = self.new()
+        self.code = Path(self.created["code_path"])
+        self.workspace = Path(self.created["workspace_path"])
+
+    def test_pausing_the_active_project_parks_it(self):
+        rc, out = run_cli(["pause", "kong-gateway-lab"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out, {"paused": "kong-gateway-lab", "was_active": True})
+        reg = load_registry(self.home)
+        self.assertEqual(reg.get("kong-gateway-lab").status, "paused")
+        self.assertIsNone(reg.active_name)
+        self.assertEqual(self.granted_in_settings(), [])
+        self.assertTrue(self.code.is_dir() and self.workspace.is_dir())
+        self.assertEqual(run_cli(["status"])[1],
+                         {"active": None, "projects": [], "paused": ["kong-gateway-lab"]})
+
+    def test_paused_projects_are_not_offered_for_picking(self):
+        self.new("other-app")
+        run_cli(["pause", "kong-gateway-lab"])
+        run_cli(["pause", "other-app"])
+        self.new("third-app")
+        reg = load_registry(self.home)
+        reg.active_name = None
+        save_registry(self.home, reg)
+        self.assertEqual(run_cli(["status"])[1], {
+            "active": None, "projects": ["third-app"],
+            "paused": ["kong-gateway-lab", "other-app"]})
+
+    def test_pausing_another_project_keeps_the_active_one(self):
+        self.new("other-app")
+        rc, out = run_cli(["pause", "kong-gateway-lab"])
+        self.assertEqual(rc, 0, out)
+        self.assertFalse(out["was_active"])
+        self.assertEqual(load_registry(self.home).active_name, "other-app")
+        self.assertIn(str((self.parent / "other-app").resolve()), self.granted_in_settings())
+
+    def test_resume_makes_it_active_again(self):
+        run_cli(["pause", "kong-gateway-lab"])
+        rc, out = run_cli(["resume", "kong-gateway-lab"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["resumed"], "kong-gateway-lab")
+        reg = load_registry(self.home)
+        self.assertEqual((reg.get("kong-gateway-lab").status, reg.active_name),
+                         ("active", "kong-gateway-lab"))
+        self.assertEqual(reg.get("kong-gateway-lab").last_active, date.today().isoformat())
+        self.assertIn(str(self.code.resolve()), self.granted_in_settings())
+
+    def test_switch_refuses_a_paused_project(self):
+        self.new("other-app")
+        run_cli(["pause", "kong-gateway-lab"])
+        rc, out = run_cli(["switch", "kong-gateway-lab"])
+        self.assertEqual(rc, 1)
+        self.assertIn("is paused. Resume it", out["error"])
+        self.assertEqual(load_registry(self.home).active_name, "other-app")
+
+    def test_plain_errors(self):
+        self.assertIn("isn't paused", run_cli(["resume", "kong-gateway-lab"])[1]["error"])
+        run_cli(["pause", "kong-gateway-lab"])
+        self.assertIn("already paused", run_cli(["pause", "kong-gateway-lab"])[1]["error"])
+        self.assertIn("No project named nope", run_cli(["pause", "nope"])[1]["error"])
+        self.assertIn("No project named nope", run_cli(["resume", "nope"])[1]["error"])
+
+    def test_remove_works_on_a_paused_project(self):
+        run_cli(["pause", "kong-gateway-lab"])
+        rc, out = run_cli(["remove", "kong-gateway-lab"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(load_registry(self.home).projects, {})
