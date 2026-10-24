@@ -131,10 +131,28 @@ class BrainTest(unittest.TestCase):
                      "afc-architecture", "afc-interview", "Welcome back"]:
             self.assertIn(term, t)
 
-    def test_progress_template_sections(self):
-        t = (ROOT / "templates/workspace/plan/progress.md").read_text()
+    def test_master_plan_template_sections(self):
+        t = (ROOT / "templates/workspace/plan/master-plan.md").read_text()
         heads = re.findall(r"^## (.+)$", t, re.M)
-        self.assertEqual(heads, ["Now", "Next", "Done"])
+        self.assertEqual(heads, ["Goal", "Now", "Next", "Done", "Update log"])
+
+    def test_spec_template_sections(self):
+        t = (ROOT / "templates/workspace/spec.md").read_text()
+        heads = re.findall(r"^## (.+)$", t, re.M)
+        self.assertEqual(
+            heads,
+            [
+                "Goal",
+                "You'll know it works when",
+                "Out of scope",
+                "Design notes",
+                "Slices",
+                "Decisions",
+                "Shipped",
+            ],
+        )
+        self.assertRegex(t.splitlines()[0], r"^# \{id\} — \{title\}$")
+        self.assertIn("Size: {size}", t)
 
     def test_slice_skill_names_three_checkpoints(self):
         t = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
