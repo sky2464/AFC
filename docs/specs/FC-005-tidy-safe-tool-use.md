@@ -1,4 +1,4 @@
-# S-005 — Tidy, safe tool use
+# FC-005 — Tidy, safe tool use
 
 Size: M · Status: next · Started: - · Done: -
 

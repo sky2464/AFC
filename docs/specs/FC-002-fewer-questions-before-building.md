@@ -1,4 +1,4 @@
-# S-002 — Fewer questions before building
+# FC-002 — Fewer questions before building
 
 Size: M · Status: next · Started: - · Done: -
 

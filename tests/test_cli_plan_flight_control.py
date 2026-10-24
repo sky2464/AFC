@@ -46,20 +46,20 @@ class FlightControlPlanTest(CliTestCase):
         rc, added = run_cli(["plan", "add", "Maintenance thing", "--size", "S"])
         self.assertEqual(rc, 0, added)
         self.assertEqual(Path(added["spec"]).parent, self.docs / "specs")
-        self.assertIn("| S-001 | Maintenance thing | S | [spec](specs/S-001-maintenance-thing.md) |",
+        self.assertIn("| FC-001 | Maintenance thing | S | [spec](specs/FC-001-maintenance-thing.md) |",
                       self.master.read_text())
-        rc, started = run_cli(["plan", "start", "S-001"])
+        rc, started = run_cli(["plan", "start", "FC-001"])
         self.assertEqual(rc, 0, started)
-        self.tick_all("S-001")
-        rc, done = run_cli(["plan", "done", "S-001"])
+        self.tick_all("FC-001")
+        rc, done = run_cli(["plan", "done", "FC-001"])
         self.assertEqual(rc, 0, done)
-        archived = self.docs / "specs" / "archive" / "S-001-maintenance-thing.md"
+        archived = self.docs / "specs" / "archive" / "FC-001-maintenance-thing.md"
         self.assertTrue(archived.is_file())
-        self.assertFalse(list((self.docs / "specs").glob("S-001-*")))
+        self.assertFalse(list((self.docs / "specs").glob("FC-001-*")))
         text = self.master.read_text()
-        self.assertIn("[S-001](specs/archive/S-001-maintenance-thing.md)", text)
+        self.assertIn("[FC-001](specs/archive/FC-001-maintenance-thing.md)", text)
         index = (self.docs / "specs" / "archive" / "index.md").read_text()
-        self.assertIn("S-001-maintenance-thing.md", index)
+        self.assertIn("FC-001-maintenance-thing.md", index)
         self.assertEqual(run_cli(["plan"])[1]["done_count"], 1)
 
     def test_plan_says_whose_plan_it_is(self):
@@ -90,9 +90,36 @@ class FlightControlPlanTest(CliTestCase):
         self.assertNotIn("Project thing", self.master.read_text())
 
     def test_ids_count_the_archive_and_never_repeat(self):
-        (self.docs / "specs" / "archive" / "S-007-old.md").write_text("# old\n")
+        (self.docs / "specs" / "archive" / "FC-007-old.md").write_text("# old\n")
+        (self.docs / "specs" / "archive" / "S-020-project-style.md").write_text("# not ours\n")
         rc, out = run_cli(["plan", "add", "Next one"])
-        self.assertEqual(out["created"], "S-008")
+        self.assertEqual(out["created"], "FC-008")
+
+    def test_project_plans_keep_s_ids(self):
+        with patch.dict(os.environ, {"AFC_SESSION": OTHER}):
+            self.new("kong-gateway-lab")
+            self.assertEqual(run_cli(["plan", "add", "First"])[1]["created"], "S-001")
+
+    def test_a_project_id_in_maintenance_mode_gets_a_plain_hint(self):
+        run_cli(["plan", "add", "Thing"])
+        rc, out = run_cli(["plan", "start", "S-001"])
+        self.assertEqual(rc, 1)
+        self.assertIn("S-001 is a project spec", out["error"])
+        self.assertIn("maintenance mode is on", out["error"])
+        self.assertEqual(run_cli(["plan", "start", "FC-001"])[1]["started"], "FC-001")
+
+    def test_a_flight_control_id_outside_maintenance_mode_gets_a_plain_hint(self):
+        self.new("kong-gateway-lab")
+        with patch.dict(os.environ, {"AFC_SESSION": OTHER}):
+            for command in ("start", "done"):
+                rc, out = run_cli(["plan", command, "FC-003"])
+                self.assertEqual(rc, 1)
+                self.assertIn("FC-003 is a Flight Control spec", out["error"])
+                self.assertIn("/afc mm", out["error"])
+
+    def test_an_unknown_id_of_the_right_kind_stays_the_old_error(self):
+        self.assertEqual(run_cli(["plan", "start", "FC-099"])[1]["error"],
+                         "No spec FC-099 in the master plan.")
 
     def test_missing_master_plan_is_a_plain_error(self):
         self.master.unlink()

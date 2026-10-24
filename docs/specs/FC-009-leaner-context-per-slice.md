@@ -1,4 +1,4 @@
-# S-009 — Leaner context per slice
+# FC-009 — Leaner context per slice
 
 Size: M · Status: next · Started: - · Done: -
 
@@ -32,7 +32,7 @@ Changing models or effort settings; removing safety rules.
   by default and the full one with `--full`.
 - Skills: move rarely used parts (enterprise, remotes, Azure) out of the always-loaded skills into
   ones loaded only when needed.
-- S-005's "no `cat` of rules" already removes the biggest single block.
+- FC-005's "no `cat` of rules" already removes the biggest single block.
 
 ## Slices
 

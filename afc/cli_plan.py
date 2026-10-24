@@ -71,12 +71,22 @@ def _spec_path(space: plan.Space, row: list[str]) -> Path:
     return space.base / (m.group(1) if m else "")
 
 
-def _find(text: str, sid: str) -> tuple[str, list[str]]:
+def _missing(space: plan.Space, sid: str) -> str:
+    """Why a spec ID isn't here; an ID from the other numbering gets a plain hint."""
+    if space.prefix == "FC" and sid.startswith("S-"):
+        return (f"{sid} is a project spec, but maintenance mode is on, so only Flight Control's "
+                "own plan (FC-…) is in use. Turn maintenance mode off with /afc mm off.")
+    if space.prefix == "S" and sid.startswith("FC-"):
+        return f"{sid} is a Flight Control spec. Turn on maintenance mode first (/afc mm)."
+    return f"No spec {sid} in the master plan."
+
+
+def _find(space: plan.Space, text: str, sid: str) -> tuple[str, list[str]]:
     for section in ("Now", "Next", "Done"):
         for row in plan.read_rows(text, section):
             if row and row[0] == sid:
                 return section, row
-    raise _error(f"No spec {sid} in the master plan.")
+    raise _error(_missing(space, sid))
 
 
 def _read_spec(space: plan.Space, sid: str, row: list[str]) -> tuple[Path, str]:
@@ -143,7 +153,7 @@ def cmd_start(args: argparse.Namespace) -> dict:
     space, _, text = _load()
     path = space.master
     sid = args.id
-    section, row = _find(text, sid)
+    section, row = _find(space, text, sid)
     now_rows = plan.read_rows(text, "Now")
     if now_rows:
         raise _error(f"{now_rows[0][0]} is still in progress. Finish it first.")
@@ -188,7 +198,7 @@ def cmd_done(args: argparse.Namespace) -> dict:
     space, _, text = _load()
     path = space.master
     sid = args.id
-    section, row = _find(text, sid)
+    section, row = _find(space, text, sid)
     if section != "Now":
         raise _error(f"{sid} isn't in progress.")
     spec_path, spec_text = _read_spec(space, sid, row)

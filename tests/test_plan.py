@@ -81,6 +81,19 @@ class NextIdTests(PlanTestCase):
     def test_empty(self):
         self.assertEqual(plan.next_id(self.ws), "S-001")
 
+    def test_prefix_keeps_the_two_numberings_apart(self):
+        space = plan.Space(self.ws / "plan", prefix="FC")
+        self.assertEqual(plan.next_id(space), "FC-001")
+        (self.ws / "plan" / "archive").mkdir(parents=True, exist_ok=True)
+        (self.ws / "plan" / "archive" / "FC-004-x.md").write_text("# x\n")
+        (self.ws / "plan" / "archive" / "S-030-y.md").write_text("# y\n")
+        self.assertEqual(plan.next_id(space), "FC-005")
+        self.assertEqual(plan.next_id(self.ws), "S-031")
+
+    def test_flight_control_space_uses_the_fc_prefix(self):
+        self.assertEqual(plan.flight_control_space(self.ws).prefix, "FC")
+        self.assertEqual(plan.project_space(self.ws).prefix, "S")
+
     def test_no_master_plan(self):
         (self.ws / "plan" / plan.MASTER).unlink()
         self.assertEqual(plan.next_id(self.ws), "S-001")

@@ -1,8 +1,8 @@
-# S-010 — Maintenance mode keeps Flight Control work apart
+# FC-010 — Maintenance mode keeps Flight Control work apart
 
 Size: L · Status: in progress · Started: 2026-10-24 · Done: -
 
-Findings: the 2026-10-24 mix-up (M1–M10 in the master plan). Priority: before S-001.
+Findings: the 2026-10-24 mix-up (M1–M10 in the master plan). Priority: before FC-001.
 
 ## Goal
 
@@ -36,7 +36,7 @@ is for, so the active project kept winning.
 
 ## Out of scope
 
-Running two Flight Control versions side by side (S-001 covers the test copy's home); production
+Running two Flight Control versions side by side (FC-001 covers the test copy's home); production
 releases (still the user's own step).
 
 ## Design notes
@@ -65,7 +65,7 @@ releases (still the user's own step).
   (unknown ID or branch → ask).
 - **Where things run.** CONTRIBUTING describes three places: the daily `A-FC` folder runs released
   `main`; a developer copy on `dev` with maintenance mode and no active project; the test copy with
-  its own home (S-001).
+  its own home (FC-001).
 
 ## Slices
 

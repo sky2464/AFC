@@ -1,4 +1,4 @@
-# S-006 — Workspace notes in the right place
+# FC-006 — Workspace notes in the right place
 
 Size: S · Status: next · Started: - · Done: -
 

@@ -21,6 +21,7 @@ class Space:
 
     base: Path
     archive: str = "archive"  # relative to base
+    prefix: str = "S"  # spec IDs are <prefix>-001...: S for projects, FC for Flight Control itself
 
     @property
     def master(self) -> Path:
@@ -41,7 +42,7 @@ def project_space(ws: Path) -> Space:
 
 def flight_control_space(root: Path) -> Space:
     """Flight Control's own plan: docs/master-plan.md, docs/specs/ and docs/specs/archive/."""
-    return Space(Path(root) / "docs", archive="specs/archive")
+    return Space(Path(root) / "docs", archive="specs/archive", prefix="FC")
 
 
 def _space(where) -> Space:
@@ -98,7 +99,9 @@ def slugify(title: str) -> str:
 
 
 def next_id(where) -> str:
-    """Next spec id (S-001...), counting plan rows, archive index and file names."""
+    """Next spec id (S-001... or FC-001...), counting plan rows, archive index and file names.
+
+    Only IDs with this plan's own prefix count, so the two numberings never mix."""
     space = _space(where)
     texts = []
     for path in (space.master, space.archive_dir / "index.md"):
@@ -107,8 +110,8 @@ def next_id(where) -> str:
     for folder in (space.specs, space.archive_dir):
         if folder.is_dir():
             texts.extend(p.name for p in folder.iterdir())
-    nums = [int(n) for t in texts for n in re.findall(r"\bS-(\d+)", t)]
-    return f"S-{max(nums, default=0) + 1:03d}"
+    nums = [int(n) for t in texts for n in re.findall(rf"\b{space.prefix}-(\d+)", t)]
+    return f"{space.prefix}-{max(nums, default=0) + 1:03d}"
 
 
 def all_slices(spec_text: str) -> list[tuple[bool, str]]:

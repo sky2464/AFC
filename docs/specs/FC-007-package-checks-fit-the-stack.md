@@ -1,4 +1,4 @@
-# S-007 — Package checks fit the stack
+# FC-007 — Package checks fit the stack
 
 Size: S · Status: next · Started: - · Done: -
 

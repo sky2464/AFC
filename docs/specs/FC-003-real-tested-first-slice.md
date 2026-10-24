@@ -1,4 +1,4 @@
-# S-003 — A real, tested first slice
+# FC-003 — A real, tested first slice
 
 Size: M · Status: next · Started: - · Done: -
 

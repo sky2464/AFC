@@ -1,4 +1,4 @@
-# S-004 — Plan goal and plan editing
+# FC-004 — Plan goal and plan editing
 
 Size: M · Status: next · Started: - · Done: -
 
