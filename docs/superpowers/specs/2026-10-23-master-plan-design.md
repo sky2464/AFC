@@ -142,10 +142,10 @@ rows (Threat | STRIDE category | Mitigation).
 ### 5.4 Lifecycle
 
 ```
-spec new  ──►  Next  ──spec start──►  Now  ──(slices approved one by one)──►  spec done  ──►  archive
+plan add  ──►  Next  ──plan start──►  Now  ──(slices approved one by one)──►  plan done  ──►  archive
 ```
 
-- **new**: allocates the next ID, writes the spec file from the template, adds a `Next` row.
+- **add**: allocates the next ID, writes the spec file from the template, adds a `Next` row.
 - **start**: moves the row from `Next` to `Now`, stamps the status and start date. Refused while
   another spec is in `Now`.
 - **done**: refused while any slice is unticked. Moves the spec file to `archive/`, fills its
@@ -158,20 +158,20 @@ spec new  ──►  Next  ──spec start──►  Now  ──(slices approve
 | Command | Does |
 |---|---|
 | `sh bin/afc plan` | Reads only. Returns the active spec (id, title, spec path), its next open slice, the first two `Next` rows, and the done count |
-| `sh bin/afc spec new --title "…" [--size S\|M\|L]` | As in 5.4 |
-| `sh bin/afc spec start <id>` | As in 5.4 |
-| `sh bin/afc spec done <id>` | As in 5.4 |
+| `sh bin/afc plan add "<title>" [--size S\|M\|L]` | As in 5.4 |
+| `sh bin/afc plan start <id>` | As in 5.4 |
+| `sh bin/afc plan done <id>` | As in 5.4 |
 
 All act on the active project. All print one JSON object; errors are plain sentences.
 
 ### 5.6 How the flow changes
 
 - **afc-interview**: after writing `intent.md`, break the goal into two to five specs, smallest
-  useful first, with `spec new`, fill each spec's Goal and "You'll know it works when", then give the
+  useful first, with `plan add`, fill each spec's Goal and "You'll know it works when", then give the
   user the master plan in three to five plain lines and ask one question: start with the first one?
-  `spec start` on yes.
+  `plan start` on yes.
 - **afc-slice**: pick the next open slice of the active spec (`plan` tells you). On yes: tick it in
-  the spec, add any decision, then the existing steps. When no slices are left: `spec done`, tell the
+  the spec, add any decision, then the existing steps. When no slices are left: `plan done`, tell the
   user in one line, and offer the suggested next spec.
 - **afc-drift**: a new goal becomes a new spec in `Next` (or changes the intent, as today).
 - **afc-start** (returning) and **/afc**: show the active spec and its next slice; /afc → More…
