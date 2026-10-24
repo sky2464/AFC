@@ -69,11 +69,14 @@ they will see.
 
 ## checkpoint 3 — showing the slice
 
-1. Run the tests.
+1. Run the tests. When the stack has tests, a slice is not shown until at least one test for it
+   ran and passed. Never show a slice with a failing test, or with none: write the test first. If
+   the slice truly cannot have one (say, a pure look-and-feel change), say why in one line instead.
 2. Run `sh bin/afc scan --slice "<n> <label>"` (e.g. `"3 health endpoint"`). It returns a
    one-line `summary` and the path of the full `report`.
 3. Show the demo: for a screen, how to open it; for an API or CLI, the exact command and its real
-   output. Put the scan summary on one line beside it.
+   output. Put one line beside it with the test command and its result (for example
+   "`bun test` — 6 passed") and the scan summary.
 4. If a scanner is missing, say so and offer to install it (with their approval).
 5. Ask: "Is this what you meant?"
    1. Yes, keep it (recommended) 2. Change something

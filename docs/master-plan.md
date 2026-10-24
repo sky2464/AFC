@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-003 | A real, tested first slice | M | [spec](specs/FC-003-real-tested-first-slice.md) | 2026-10-24 |
 
 ## Next
 
@@ -33,6 +32,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-003 | A real, tested first slice | 2026-10-24 | [FC-003](specs/archive/FC-003-real-tested-first-slice.md) |
 | FC-002 | Fewer questions before building | 2026-10-24 | [FC-002](specs/archive/FC-002-fewer-questions-before-building.md) |
 | FC-001 | Test copies use their own home | 2026-10-24 | [FC-001](specs/archive/FC-001-test-copies-use-their-own-home.md) |
 | FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
@@ -124,3 +124,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
 | 2026-10-24 | FC-002 done |
 | 2026-10-24 | FC-003 started |
+| 2026-10-24 | FC-003 done |
