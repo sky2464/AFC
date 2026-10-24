@@ -190,6 +190,7 @@ def find_problems(home: Path) -> list[dict]:
                 "old_plan_format", str(Path(p.workspace_path) / "plan"), True, project=p.name,
                 detail=f"{p.name}: still uses the old progress list; repair upgrades it to a master plan."))
         problems += _decisions_problems(p)
+        problems += _architecture_problems(p)
     projects_dir = home / "projects"
     if projects_dir.is_dir():
         for d in sorted(projects_dir.iterdir()):
@@ -231,6 +232,20 @@ def _decisions_problems(project) -> list[dict]:
     return [_problem("decisions_no_log", str(path), True, project=project.name,
                      detail=f"{project.name}: decisions.md has no Log section; repair adds one so "
                             "decisions stop landing under the always/never rules.")]
+
+
+def _architecture_problems(project) -> list[dict]:
+    """A project with a done slice whose architecture.md is still the bare template (whitespace
+    aside). Claude fills it from the code, so it is reported, never auto-fixed."""
+    path = Path(project.workspace_path) / "plan" / "architecture.md"
+    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
+    if not project.last_slice or not path.is_file() or not template.is_file():
+        return []
+    if " ".join(path.read_text(encoding="utf-8").split()) != " ".join(template.read_text(encoding="utf-8").split()):
+        return []
+    return [_problem("architecture_empty", str(path), False, project=project.name,
+                     detail=f"{project.name}: slices are done but architecture.md is still the empty "
+                            "template; Claude fills it in from the code.")]
 
 
 def _wanted(reg) -> list[str]:
