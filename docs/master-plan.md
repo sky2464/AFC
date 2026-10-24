@@ -27,6 +27,7 @@ safe slices, with as few questions and as little noise as possible.
 | FC-007 | Package checks fit the stack | S | [spec](specs/FC-007-package-checks-fit-the-stack.md) |
 | FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
 | FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
+| FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
 
 ## Done
 
@@ -94,3 +95,4 @@ php-vuln-checker app three times instead. All of these map to FC-010:
 | 2026-10-24 | Flight Control's specs renamed FC-001 to FC-010; S- stays for project specs |
 | 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
 | 2026-10-24 | FC-010 done |
+| 2026-10-24 | FC-011 One-click updates specced and sliced (7 slices); queued in Next |
