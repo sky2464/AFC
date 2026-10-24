@@ -81,7 +81,7 @@ releases (still the user's own step).
       maintenance mode showing this spec (tests in `tests/test_cli_plan.py`)
 - [x] 5. `FC-` IDs for Flight Control's specs — you'll check it by `docs/master-plan.md` and
       `docs/specs/` using `FC-001`… with working links (tests: `next_id` with a prefix)
-- [ ] 6. "Two kinds of work" in `CLAUDE.md`, the stricter ask-first rule, no branches in apps, and
+- [x] 6. "Two kinds of work" in `CLAUDE.md`, the stricter ask-first rule, no branches in apps, and
       verified undo — you'll check it by repeating "build S-002 on dev" with a project active and
       getting one clear question instead of a build (content tests)
 - [ ] 7. Bring the two stranded fixes onto `dev` (`435bf22`, `77eda62`) and write the three places in
@@ -116,5 +116,15 @@ releases (still the user's own step).
   asking a plan command for the other kind of ID gets a plain hint. Mentions of what was typed in
   the mix-up keep their `S-` on purpose, as do the old design notes in `docs/superpowers/`, which
   describe project specs.
+
+- 2026-10-24: The stranded "ask before building another spec" rule (`435bf22`) was brought onto
+  `dev` in slice 6 (as `e05b16a`) and widened, so slice 7 only has the Bun audit fix (`77eda62`) and
+  the "three places" notes left.
+- 2026-10-24: The new rules are instructions, so tests only prove the wording exists. A dry run
+  (a fresh agent reading only `CLAUDE.md` and `afc-slice`) answered correctly for "build S-002 on
+  dev" (one question, no branch), "build FC-002" with maintenance off (offers `/afc mm`),
+  "build S-001" in maintenance mode (offers `/afc mm off`) and an undo (shows `git status --short`).
+  It found two gaps, now closed: ask about the first problem only, and ask before removing leftovers.
+  Still to prove live: repeat "build S-002 on dev" with a project active in the daily folder.
 
 ## Shipped
