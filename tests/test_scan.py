@@ -58,6 +58,12 @@ class ScanTests(AfcTestCase):
         c = parse_bun_audit(fixture("bun-audit-2high.json"))
         self.assertEqual((c.status, c.detail), ("fail", "2 vulnerable deps (2 high)"))
 
+    def test_bun_real_output_recorded_2026_10_24(self):
+        """Real `bun audit --json` (Bun 1.3.14) for lodash 4.17.15; Bun prints its banner on stderr."""
+        c = parse_bun_audit(fixture("bun-audit-real-lodash.json"))
+        self.assertEqual((c.name, c.status), ("bun audit", "fail"))
+        self.assertEqual(c.detail, "1 vulnerable deps (3 high)")
+
     def test_bun_unreadable(self):
         self.assertEqual(parse_bun_audit("not json").status, "warn")
 
