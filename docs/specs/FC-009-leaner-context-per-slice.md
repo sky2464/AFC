@@ -1,6 +1,6 @@
 # FC-009 — Leaner context per slice
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-24 · Done: -
 
 Finding: 14.
 
@@ -36,7 +36,7 @@ Changing models or effort settings; removing safety rules.
 
 ## Slices
 
-- [ ] 1. Baseline measurement — you'll check it by a written number for the first live run
+- [x] 1. Baseline measurement — you'll check it by a written number for the first live run
 - [ ] 2. Short rule modules — you'll check it by `modules` returning short paths (tests in
       `tests/test_content.py` for the size limit, `tests/test_cli.py` for `--full`)
 - [ ] 3. Trim always-loaded skills — you'll check it by skill line counts going down with the content

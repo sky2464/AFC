@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
@@ -141,3 +141,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-016 done |
 | 2026-10-24 | FC-008 started |
 | 2026-10-24 | FC-008 done |
+| 2026-10-24 | FC-009 started |
