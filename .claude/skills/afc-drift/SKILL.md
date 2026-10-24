@@ -37,6 +37,8 @@ If nothing drifted, say nothing about drift and carry on.
 - **Small drift** — one line, then carry on with their answer:
   "This is heading toward X instead of Y — still right?"
   1. Yes, X is right now (recommended if they have been asking for X) 2. Back to Y
+- **A new goal that fits the intent** — add it to the master plan with
+  `sh bin/afc plan add "<title>"`; it lands in Next. Say so in one line and carry on.
 - **The goal itself moved** — a short re-alignment interview using `afc-interview`'s rules: one
   question per message, only about what changed (goal, users, success, non-goals).
 - **Code drift** — say what changed in one line and why it matters; either update `architecture.md`
@@ -61,5 +63,8 @@ When the profile should change:
   decided.
 - Update `plan/intent.md` (goal, non-goals, assumptions, open questions) when the intent changed.
 - Record lasting decisions in `plan/decisions.md`.
+
+A new goal that fits the intent is only added to `master-plan.md` (via `plan add`), not to
+`intent.md`.
 
 Then go back to `afc-slice` with the next slice.

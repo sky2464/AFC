@@ -194,6 +194,18 @@ class BrainTest(unittest.TestCase):
             self.assertIn(term, interview)
         self.assertIn("from your own", (ROOT / "README.md").read_text())
 
+    def test_skills_use_master_plan(self):
+        sk = lambda n: (ROOT / f".claude/skills/{n}/SKILL.md").read_text()
+        for term in ("sh bin/afc plan add", "sh bin/afc plan start"):
+            self.assertIn(term, sk("afc-interview"))
+        for term in ("sh bin/afc plan", "sh bin/afc plan done"):
+            self.assertIn(term, sk("afc-slice"))
+        self.assertIn("**Master plan**", (ROOT / ".claude/commands/afc.md").read_text())
+        for p in (ROOT / ".claude").rglob("*"):
+            if (p.is_file() and "worktrees" not in p.parts
+                    and not p.name.startswith("settings")):
+                self.assertNotIn("progress.md", p.read_text(errors="ignore"), p)
+
     def test_own_naming(self):
         paths = [ROOT / "CLAUDE.md", *ROOT.glob(".claude/**/*.md"), *ROOT.glob("rules/*.md"),
                  *ROOT.glob("templates/**/*")]

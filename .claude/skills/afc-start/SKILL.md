@@ -26,7 +26,7 @@ question, a request), answer it briefly, then ask the question below for the sit
   you want to pick up again?" and offer up to two of the paused projects as numbered steps, then
   `sh bin/afc resume <name>`.
 - **Returning** (an active project exists): 1 = continue *<project>*, 2 = something else.
-  Asked again it is: "Welcome back — continue *<project>* (last: <last slice>), or something else?"
+  Asked again it is: "Welcome back — continue *<project>* (last: <last slice>, or the active spec from the context line "Active spec: …"), or something else?"
   1. Continue *<project>* (recommended) 2. Something else
   If they continue, run `sh bin/afc status`, then hand off to `afc-interview` (or `afc-slice` if
   the intent is already agreed). For something else, ask what they want: a new project or another

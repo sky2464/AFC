@@ -23,13 +23,13 @@ numbered next steps, the recommended one first.
 
 ## Pick the slice
 
-Choose the smallest next piece that moves toward the goal in `intent.md` and that the user can check
-themselves. Before building, give a two-or-three-line note:
+Run `sh bin/afc plan`. The next open slice of the active spec (`next_slice`) is the one to build.
+With no active spec, take the top `Next` spec: say a one-line summary of it, then run
+`sh bin/afc plan start <id>`. If there are no specs at all, use `afc-interview`.
+Before building, give a two-or-three-line note:
 
 > **Next slice:** a `/health` endpoint that returns `ok`.
 > **You'll check it by:** running `curl localhost:8000/health` and seeing `ok`.
-
-Update `## Now` in `plan/progress.md` with the slice.
 
 ## checkpoint 1 — before coding
 
@@ -69,13 +69,15 @@ they will see.
 
 Without being asked, update the workspace docs:
 
-- `plan/progress.md` — move the slice from `## Now` to the end of `## Done` (Done is append-only),
-  refresh `## Next`.
+- The active spec file — tick the slice (`- [x]`) and note any decision under it.
 - `plan/decisions.md` — dated entry for anything decided and why.
 - `plan/architecture.md` — only if structure changed (new module, boundary, dependency, external
   call).
 - Record the slice: `sh bin/afc set last_slice "<n> <label>"`.
 - Refresh the indexes: `sh bin/afc index refresh`, then `sh bin/afc index rebuild --all`.
+
+When `sh bin/afc plan` shows no open slice left in the spec, run `sh bin/afc plan done <id>`, tell
+the user in one line that the spec is finished, and offer the `suggest_next` spec as numbered step 1.
 
 Then hand off to `afc-deliver`.
 
