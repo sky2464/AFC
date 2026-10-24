@@ -62,7 +62,7 @@ already works. `archive/index.md`, which is the per-spec index and keeps its cur
       finding the two oldest in `archive/done-2026.md` with the plan down to ten (tests: a file
       created with its header, an existing file appended to, a row with no year, no overflow
       touching nothing, compacting twice adding no duplicates)
-- [ ] 2. A failed archive leaves the plan whole — you'll check it by making the archive folder
+- [x] 2. A failed archive leaves the plan whole — you'll check it by making the archive folder
       unwritable, compacting, and finding all twelve rows still in the plan with the reason reported
       (tests)
 - [ ] 3. The lost rows are put back — you'll check it by reading `docs/specs/archive/done-2026.md`
