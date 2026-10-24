@@ -36,8 +36,10 @@ Rewriting existing projects' `decisions.md`; diagrams.
 
 - [x] 1. Decisions template with `## Log` and repair for old workspaces — you'll check it by a new
       project's `decisions.md` (tests in `tests/test_content.py`, `tests/test_cli_health.py`)
-- [ ] 2. First slice fills the architecture notes — you'll check it by a live first slice (content
-      tests on `afc-slice`)
+- [x] 2. First slice fills the architecture notes — you'll check it by a live first slice (content
+      tests on `afc-slice`). Live, from a fresh project: decisions under `## Log`; architecture
+      sections 1, 4 and 6 filled; 0 heredoc writes. A first run skipped section 6 and used a script,
+      so the wording was tightened and the run repeated.
 - [ ] 3. Health check reports an empty architecture — you'll check it by `check` on a project with a
       done slice and the template file (tests in `tests/test_cli_health.py`)
 

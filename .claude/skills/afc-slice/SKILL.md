@@ -101,9 +101,16 @@ How to work, quietly and safely:
 Without being asked, update the workspace docs:
 
 - The active spec file — tick the slice (`- [x]`) and note any decision under it.
-- `plan/decisions.md` — dated entry for anything decided and why.
-- `plan/architecture.md` — only if structure changed (new module, boundary, dependency, external
-  call).
+- `plan/decisions.md` — a dated entry for anything decided and why, added at the end under
+  `## Log`. Never under Standing Corrections, which hold only the user's always/never rules.
+- `plan/architecture.md` — after the project's first approved slice, while the file is still the
+  template (it still says "What the architecture must make possible"), fill all three of section 1
+  (goal), section 4 (the main parts) and section 6 (the stack with versions, how it runs and what
+  configuration it needs) in a few lines each, from what this slice built. Section 6 is the one
+  most often skipped: check it before moving on. After that, only if structure changed (new module,
+  boundary, dependency, external call).
+
+Make these edits with the file tools (Edit), never a shell script or heredoc.
 - Record the slice: `sh bin/afc set last_slice "<n> <label>"`.
 - Refresh the indexes: `sh bin/afc index refresh`, then `sh bin/afc index rebuild --all`.
 
