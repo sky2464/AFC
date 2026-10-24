@@ -41,6 +41,30 @@ class HealthTest(CliTestCase):
         self.assertIn(str(moved.resolve()), self.granted_in_settings())
         self.assertEqual(self.kinds(), [])
 
+    def test_old_progress_list_is_upgraded(self):
+        plan_dir = self.workspace / "plan"
+        (plan_dir / "master-plan.md").unlink()
+        shutil.rmtree(plan_dir / "specs", ignore_errors=True)
+        shutil.rmtree(plan_dir / "archive", ignore_errors=True)
+        (plan_dir / "progress.md").write_text("# Progress\n\n## Now\n\nold slice\n", encoding="utf-8")
+        rc, out = run_cli(["check"])
+        found = [p for p in out["problems"] if p["kind"] == "old_plan_format"]
+        self.assertEqual(len(found), 1)
+        self.assertTrue(found[0]["fixable"])
+        self.assertEqual(found[0]["path"], str(plan_dir))
+        rc, out = run_cli(["repair"])
+        self.assertEqual(rc, 0, out)
+        self.assertIn("Upgraded kong-gateway-lab to a master plan.", out["repaired"])
+        self.assertEqual(out["left"], [])
+        master = (plan_dir / "master-plan.md").read_text(encoding="utf-8")
+        self.assertIn("## Earlier progress", master)
+        self.assertIn("old slice", master.split("## Earlier progress")[1])
+        self.assertNotIn("# Progress", master.split("## Earlier progress")[1])
+        self.assertTrue((plan_dir / "archive" / "progress-legacy.md").is_file())
+        self.assertFalse((plan_dir / "progress.md").exists())
+        self.assertTrue((plan_dir / "specs").is_dir())
+        self.assertEqual(run_cli(["plan"])[0], 0)
+
     def test_relocate_refuses_bad_folders(self):
         self.assertIn("does not exist",
                       run_cli(["relocate", "kong-gateway-lab", "--path", str(self.tmp / "nope")])[1]["error"])

@@ -60,6 +60,9 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             dest.mkdir(parents=True)
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
+        elif p["kind"] == "old_plan_format":
+            _upgrade_plan(Path(p["path"]))
+            repaired.append(f"Upgraded {p['project']} to a master plan.")
     access = [p for p in find_problems(home) if p["kind"] in ACCESS]
     if access:
         undo = cli._settings_undo()
@@ -72,6 +75,24 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             raise
         repaired.append("Folder access now matches the active project.")
     return {"repaired": repaired, "left": find_problems(home)}
+
+
+def _upgrade_plan(plan_dir: Path) -> None:
+    """Add a master plan, carry the old progress text over, archive progress.md."""
+    from afc.config import afc_root
+
+    old = plan_dir / "progress.md"
+    text = old.read_text(encoding="utf-8")
+    lines = text.split("\n")
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+    template = afc_root() / "templates" / "workspace" / "plan" / "master-plan.md"
+    master = template.read_text(encoding="utf-8").rstrip("\n")
+    (plan_dir / "specs").mkdir(exist_ok=True)
+    (plan_dir / "archive").mkdir(exist_ok=True)
+    (plan_dir / "master-plan.md").write_text(
+        master + "\n\n## Earlier progress\n\n" + "\n".join(lines).strip("\n") + "\n", encoding="utf-8")
+    shutil.move(str(old), str(plan_dir / "archive" / "progress-legacy.md"))
 
 
 def cmd_relocate(args: argparse.Namespace) -> dict:
@@ -122,6 +143,11 @@ def find_problems(home: Path) -> list[dict]:
                 "workspace_missing", p.workspace_path, ours, project=p.name,
                 detail=f"{p.name}: its Flight Control workspace is missing; "
                        + ("repair recreates an empty one." if ours else "it lives outside ~/.A-FC.")))
+        elif (Path(p.workspace_path) / "plan" / "progress.md").is_file() and not (
+                Path(p.workspace_path) / "plan" / "master-plan.md").exists():
+            problems.append(_problem(
+                "old_plan_format", str(Path(p.workspace_path) / "plan"), True, project=p.name,
+                detail=f"{p.name}: still uses the old progress list; repair upgrades it to a master plan."))
     projects_dir = home / "projects"
     if projects_dir.is_dir():
         for d in sorted(projects_dir.iterdir()):
