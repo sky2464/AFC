@@ -92,6 +92,14 @@ def write_rows(text: str, section: str, rows: list[list]) -> str:
     return "\n".join(lines)
 
 
+def set_goal(text: str, goal: str) -> str:
+    """Replace the body of `## Goal` with one line; every other section stays as it is."""
+    lines = text.split("\n")
+    start, end = _section_span(lines, "Goal")
+    lines[start:end] = ["", goal, ""]
+    return "\n".join(lines)
+
+
 def slugify(title: str) -> str:
     """Lowercase, dash-separated, at most 40 chars; 'spec' when nothing is left."""
     slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40].strip("-")

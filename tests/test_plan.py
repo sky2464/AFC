@@ -151,6 +151,17 @@ class SliceTests(PlanTestCase):
         self.assertEqual(plan.unreadable_slices(template), [])
 
 
+class GoalTests(PlanTestCase):
+    def test_set_goal_replaces_only_the_goal_body(self):
+        text = "# Plan\n\n## Goal\n\nold words\nmore old\n\n## Now\n\n| a |\n"
+        self.assertEqual(plan.set_goal(text, "New goal."),
+                         "# Plan\n\n## Goal\n\nNew goal.\n\n## Now\n\n| a |\n")
+
+    def test_set_goal_without_a_goal_section_is_an_error(self):
+        with self.assertRaises(ValueError):
+            plan.set_goal("# Plan\n\n## Now\n", "x")
+
+
 class HeaderTests(PlanTestCase):
     def test_set_header(self):
         out = plan.set_header(SPEC, status="now", started="2026-02-01")

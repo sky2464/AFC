@@ -93,6 +93,18 @@ class PlanCommandsTest(CliTestCase):
         self.assertIsNone(p["now"])
         self.assertEqual(p["done_count"], 1)
 
+    def test_goal_is_set_shown_by_plan_and_logged(self):
+        rc, out = run_cli(["plan", "goal", "  A calm\nco-pilot for small  slices. "])
+        self.assertEqual((rc, out), (0, {"goal": "A calm co-pilot for small slices."}))
+        rc, p = run_cli(["plan"])
+        self.assertEqual(p["goal"], "A calm co-pilot for small slices.")
+        self.assertIn("Goal set", self.master.read_text(encoding="utf-8"))
+        run_cli(["plan", "goal", "Second goal."])
+        self.assertEqual(run_cli(["plan"])[1]["goal"], "Second goal.")
+
+    def test_goal_cannot_be_empty(self):
+        self.assertError(["plan", "goal", "   "], "Give the goal as one line of text.")
+
     def test_plan_says_when_slices_are_unreadable(self):
         run_cli(["plan", "add", "First"])
         path = self.spec_file("S-001")

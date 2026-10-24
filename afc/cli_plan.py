@@ -30,6 +30,9 @@ def register(sub) -> None:
     q.add_argument("title")
     q.add_argument("--size", choices=("S", "M", "L"), default="M")
     q.set_defaults(handler=cmd_add)
+    q = psub.add_parser("goal", help="set the master plan's goal")
+    q.add_argument("text")
+    q.set_defaults(handler=cmd_goal)
     q = psub.add_parser("start", help="move a spec from Next to Now")
     q.add_argument("id")
     q.set_defaults(handler=cmd_start)
@@ -150,6 +153,19 @@ def cmd_add(args: argparse.Namespace) -> dict:
         target.unlink(missing_ok=True)
         raise
     return {"created": sid, "title": title, "size": args.size, "spec": str(target)}
+
+
+def cmd_goal(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    goal = " ".join(args.text.split())
+    if not goal:
+        raise _error("Give the goal as one line of text.")
+    try:
+        new = plan.set_goal(text, goal)
+    except ValueError as exc:
+        raise _error(str(exc)) from None
+    space.master.write_text(plan.log(new, _cli()._today(), "Goal set"), encoding="utf-8")
+    return {"goal": goal}
 
 
 def cmd_start(args: argparse.Namespace) -> dict:

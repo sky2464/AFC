@@ -1,6 +1,6 @@
 # FC-004 — Plan goal and plan editing
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-24 · Done: -
 
 Findings: 4, 7, 12.
 
@@ -37,7 +37,7 @@ Merging or splitting specs; editing slice lines (Claude edits the spec file for 
 
 ## Slices
 
-- [ ] 1. `plan goal` — you'll check it by setting a goal and seeing it in `plan` (tests in
+- [x] 1. `plan goal` — you'll check it by setting a goal and seeing it in `plan` (tests in
       `tests/test_cli_plan.py`)
 - [ ] 2. `plan rename` and word-boundary slugs — you'll check it by renaming a spec and listing
       `plan/specs/` (tests in `tests/test_plan.py`, `tests/test_cli_plan.py`)
