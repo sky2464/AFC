@@ -1,6 +1,6 @@
 # FC-001 — Test copies use their own home
 
-Size: S · Status: in progress · Started: 2026-10-24 · Done: -
+Size: S · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Finding: 1.
 
@@ -45,7 +45,7 @@ Separate add-on settings per copy; containers.
 - [x] 3. Claude knows about a test home — you'll check it by `sh bin/afc hook session_start` in the
       test copy: the context names the home, the welcome message doesn't (tests in
       `tests/test_session_start.py`)
-- [ ] 4. CONTRIBUTING and README developer notes updated — you'll check it by following them on a
+- [x] 4. CONTRIBUTING and README developer notes updated — you'll check it by following them on a
       fresh test copy
 
 ## Decisions
@@ -53,5 +53,11 @@ Separate add-on settings per copy; containers.
 - 2026-10-24: The test home goes in Claude's context only, not the welcome. Only test copies set
   one, `.afc-home` already removes the forgotten-prefix risk, and a visible line wouldn't catch the
   case that went wrong (a copy with no home set using the real `~/.A-FC`; that belongs to FC-012).
+- 2026-10-24: Setting a home still takes two `AFC_HOME=` prefixes, on `maintain on` and `home set`.
+  `home set` needs maintenance mode, and without the prefix that flag would be written to (and
+  cleared from) the real `~/.A-FC`. After that one-time setup no prefix is needed. Found by
+  following the steps on a fresh clone, which is how slice 4 was checked.
 
 ## Shipped
+
+Shipped 2026-10-24. Slices: 4.

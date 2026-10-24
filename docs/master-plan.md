@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-001 | Test copies use their own home | S | [spec](specs/FC-001-test-copies-use-their-own-home.md) | 2026-10-24 |
 
 ## Next
 
@@ -34,6 +33,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-001 | Test copies use their own home | 2026-10-24 | [FC-001](specs/archive/FC-001-test-copies-use-their-own-home.md) |
 | FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
 | TL | Toolkit layers (allowed add-ons, project tools, recipes) | 2026-10-24 | [stories](superpowers/plans/2026-10-23-toolkit-layers.md) |
 | MP | Master plan, specs and archive | 2026-10-23 | [stories](superpowers/plans/2026-10-23-master-plan.md) |
@@ -118,3 +118,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-012 added |
 | 2026-10-24 | FC-012 specced and sliced (5 slices) from the update session's findings; queued last in Next |
 | 2026-10-24 | FC-001 started |
+| 2026-10-24 | FC-001 done |

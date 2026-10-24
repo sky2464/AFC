@@ -135,5 +135,7 @@ Please [open an issue](https://github.com/sky2464/AFC/issues) and say what you t
 ---
 
 <div align="center">
-<sub>Want to help build Flight Control? See <a href="CONTRIBUTING.md">CONTRIBUTING.md</a>.</sub>
+<sub>Want to help build Flight Control, or keep a second copy for trying things out? See
+<a href="CONTRIBUTING.md">CONTRIBUTING.md</a> — a second copy needs a workspace of its own, or it
+writes into this one's.</sub>
 </div>
