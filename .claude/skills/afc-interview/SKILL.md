@@ -92,7 +92,9 @@ Do not ask the user to approve the document. Give a three-line summary of the fu
 
 ## Break the goal into specs
 
-Right after the intent is written, split the goal into two to five specs, smallest useful first.
+Right after the intent is written, put its goal on the master plan with
+`sh bin/afc plan goal "<one line, in their words>"`. Then split the goal into two to five specs,
+smallest useful first.
 For each one run `sh bin/afc plan add "<title>" --size <S|M|L>`. The spec file path is in the
 result (and in `sh bin/afc plan`). Fill each spec file's **Goal**, **You'll know it works when**
 and **Slices**, replacing the example slice line the template starts with.

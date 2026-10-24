@@ -1,6 +1,6 @@
 # FC-004 — Plan goal and plan editing
 
-Size: M · Status: in progress · Started: 2026-10-24 · Done: -
+Size: M · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Findings: 4, 7, 12.
 
@@ -43,9 +43,20 @@ Merging or splitting specs; editing slice lines (Claude edits the spec file for 
       `plan/specs/` (tests in `tests/test_plan.py`, `tests/test_cli_plan.py`)
 - [x] 3. `plan drop` and `plan move` — you'll check it by dropping and reordering specs and reading
       `master-plan.md` (tests: dropped spec archived, Now spec refused, order changes)
-- [ ] 4. Interview and drift skills use the commands — you'll check it by a live pivot like the
-      PHP2Shell one, with no hand edits in the transcript (content tests)
+- [x] 4. Interview and drift skills use the commands — you'll check it by a live pivot like the
+      PHP2Shell one, with no hand edits in the transcript (content tests). Live: a pivot ran
+      `plan drop` and `plan rename` with no hand edits; a fresh start set the plan's goal through
+      `plan goal`.
 
 ## Decisions
 
+- 2026-10-24: Slice 4 was checked by live runs, not content tests (see FC-013).
+- 2026-10-24: The live pivot dropped one spec and renamed another through the commands, and updated
+  the intent, decisions and drift notes with its own file edits, which the drift skill allows. It
+  did not call `plan goal` because that project was started before the interview change; a fresh
+  start set the goal through the command.
+- 2026-10-24: Renaming an apostrophe title splits the word ("site's" becomes `site-s`); accepted.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 4.
