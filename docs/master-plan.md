@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-002 | Fewer questions before building | M | [spec](specs/FC-002-fewer-questions-before-building.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-002 | Fewer questions before building | M | [spec](specs/FC-002-fewer-questions-before-building.md) |
 | FC-003 | A real, tested first slice | M | [spec](specs/FC-003-real-tested-first-slice.md) |
 | FC-004 | Plan goal and plan editing | M | [spec](specs/FC-004-plan-goal-and-plan-editing.md) |
 | FC-005 | Tidy, safe tool use | M | [spec](specs/FC-005-tidy-safe-tool-use.md) |
@@ -119,3 +119,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-012 specced and sliced (5 slices) from the update session's findings; queued last in Next |
 | 2026-10-24 | FC-001 started |
 | 2026-10-24 | FC-001 done |
+| 2026-10-24 | FC-002 started |

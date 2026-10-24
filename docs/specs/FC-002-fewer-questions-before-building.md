@@ -1,6 +1,6 @@
 # FC-002 — Fewer questions before building
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-24 · Done: -
 
 Findings: 2, 10, 11, 20.
 
@@ -43,7 +43,7 @@ their extra questions.
 
 ## Slices
 
-- [ ] 1. `defaults` command — you'll check it by running it on this Mac and seeing a non-iCloud
+- [x] 1. `defaults` command — you'll check it by running it on this Mac and seeing a non-iCloud
       folder and your git identity (tests: iCloud folders skipped, identity from projects then git
       config, nothing found)
 - [ ] 2. `detect-team` stops asking when it already knows — you'll check it by delivering a first
