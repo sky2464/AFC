@@ -16,6 +16,11 @@ The welcome line already asked the first question, and the context line says wha
 straight into that path without asking again or greeting at length. For anything else (hi, a
 question, a request), answer it briefly, then ask the question below for the situation.
 
+- **Maintenance mode** (the context says `Mode: maintenance`): this session is for working on
+  Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
+  maintenance mode is on and projects are set aside, then ask what to work on:
+  1. Keep working on Flight Control (recommended) 2. Go back to your projects (`/afc mm off`)
+  If asked to build or change a project, say it needs `/afc mm off` first.
 - **Projects but none active** (`sh bin/afc status` returns `"active": null` and a `projects`
   list): 1 = pick a project, 2 = start a new one (see New project). To pick: "Which project do
   you want to work on?" and offer up to two of them as numbered steps (more via
