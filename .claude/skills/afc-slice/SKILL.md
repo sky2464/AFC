@@ -48,7 +48,7 @@ Before building, give a two-or-three-line note:
 
 1. Decide what the slice touches, from: `auth`, `api`, `data`, `deploy`, `logs`, `deps`, `input`.
 2. Run `sh bin/afc modules --touches <a,b>` (leave out `--touches` if it touches none).
-3. Read only the returned `rules/<module>.md` files. Do not load the others.
+3. Read only the returned rule files, at the `paths` it gives. Do not load the others.
 4. Do a mini threat check sized to the slice, at most five rows:
 
 | Threat | Category | Mitigation |
@@ -66,6 +66,21 @@ they will see.
 - Code goes only into the active project's code path. The guards are active: if one blocks you
   ("Flight Control blocked …"), do not work around it; fix the cause or tell the user in plain words.
 - Check versions of anything you add against current docs, never from memory.
+
+How to work, quietly and safely:
+
+- **Files:** create and change them with the file tools (Write, Edit), never `cat > … <<EOF` or
+  `sed -i` through the shell. The guards check file tools fully.
+- **Rules and specs:** read them with the file-reading tool at the exact `paths` that
+  `sh bin/afc modules` returns, or the spec path from `sh bin/afc plan`. Never print them with
+  `cat` and never guess where they live.
+- **Flight Control:** run it with the launcher path from the context line
+  (`sh <path>/bin/afc …`). Do not `cd` into the Flight Control folder and back; use absolute paths
+  so the working folder never changes.
+- **A dev server:** pick a free port, start it in the background, write its process ID to a file in
+  the project workspace's `reports/` folder, and send its log there too, never `/tmp`. When done,
+  stop only that process with `kill <pid>`. `pkill`, `killall` and `pkill -f` are blocked: they
+  stop other people's programs too.
 
 ## checkpoint 3 — showing the slice
 

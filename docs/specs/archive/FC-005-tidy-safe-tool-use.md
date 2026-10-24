@@ -1,6 +1,6 @@
 # FC-005 — Tidy, safe tool use
 
-Size: M · Status: in progress · Started: 2026-10-24 · Done: -
+Size: M · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Findings: 9, 16, 17, 18, 21.
 
@@ -43,9 +43,19 @@ Blocking all shell file writes (too broad); process sandboxing.
       both (tests in `tests/test_cli.py`, `tests/test_session_start.py`)
 - [x] 2. Guard blocks pattern kills — you'll check it by asking Claude to run `pkill -f node` and
       seeing a plain block (tests in a new `tests/test_guard_process.py`)
-- [ ] 3. Slice skill "How to work" rules — you'll check it by a live slice with no `cat` of rules, no
-      heredoc writes and no `cd` back (content tests on `afc-slice`)
+- [x] 3. Slice skill "How to work" rules — you'll check it by a live slice with no `cat` of rules, no
+      heredoc writes and no `cd` back (content tests on `afc-slice`). Live: 18 tool calls, 0 heredoc
+      writes, 0 `cat` of rules, 0 `pkill`, nothing in `/tmp`; 8 file-tool writes, rules read by path,
+      servers stopped with `kill <pid>`.
 
 ## Decisions
 
+- 2026-10-24: Slice 3 was checked by a live run, not content tests (see FC-013).
+- 2026-10-24: One `cd <project folder> && npm test` remains. The rule is about not changing folders
+  to run Flight Control; a project command that needs its own folder is fine.
+- 2026-10-24: `pkill` and `killall` are blocked outright (not only with `-f`), since both match by
+  name; `kill <pid>` and `pgrep` stay allowed.
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 3.
