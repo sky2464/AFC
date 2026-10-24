@@ -1,6 +1,6 @@
 # S-010 — Maintenance mode keeps Flight Control work apart
 
-Size: L · Status: next · Started: - · Done: -
+Size: L · Status: in progress · Started: 2026-10-24 · Done: -
 
 Findings: the 2026-10-24 mix-up (M1–M10 in the master plan). Priority: before S-001.
 
@@ -77,7 +77,7 @@ releases (still the user's own step).
       `tests/test_guard_paths.py` and a new git-target guard test)
 - [x] 3. Welcome and context show the mode, and `/afc mm` switches it — you'll check it by starting a
       session and typing `/afc mm` (tests in `tests/test_session_start.py`, content test on `afc.md`)
-- [ ] 4. `plan` works on Flight Control's own master plan — you'll check it by `sh bin/afc plan` in
+- [x] 4. `plan` works on Flight Control's own master plan — you'll check it by `sh bin/afc plan` in
       maintenance mode showing this spec (tests in `tests/test_cli_plan.py`)
 - [ ] 5. `FC-` IDs for Flight Control's specs — you'll check it by `docs/master-plan.md` and
       `docs/specs/` using `FC-001`… with working links (tests: `next_id` with a prefix)

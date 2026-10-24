@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| S-010 | Maintenance mode keeps Flight Control work apart | L | [spec](specs/S-010-maintenance-mode-keeps-flight-control-work-apart.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| S-010 | Maintenance mode keeps Flight Control work apart | L | [spec](specs/S-010-maintenance-mode-keeps-flight-control-work-apart.md) |
 | S-001 | Test copies use their own home | S | [spec](specs/S-001-test-copies-use-their-own-home.md) |
 | S-002 | Fewer questions before building | M | [spec](specs/S-002-fewer-questions-before-building.md) |
 | S-003 | A real, tested first slice | M | [spec](specs/S-003-real-tested-first-slice.md) |
@@ -90,3 +90,4 @@ times instead. All of these map to S-010:
 |---|---|
 | 2026-10-24 | Master plan started; S-001 to S-009 added from the first live run |
 | 2026-10-24 | S-010 added at the top after the maintenance mix-up; the Bun audit fix for S-007 already exists on `claude/toolkit-layers-build-0d5bc1` (`77eda62`) |
+| 2026-10-24 | S-010 started |
