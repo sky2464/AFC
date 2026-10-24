@@ -37,12 +37,23 @@ Changing models or effort settings; removing safety rules.
 ## Slices
 
 - [x] 1. Baseline measurement — you'll check it by a written number for the first live run
-- [ ] 2. Short rule modules — you'll check it by `modules` returning short paths (tests in
+- [x] 2. Short rule modules — you'll check it by `modules` returning short paths (tests in
       `tests/test_content.py` for the size limit, `tests/test_cli.py` for `--full`)
 - [ ] 3. Trim always-loaded skills — you'll check it by skill line counts going down with the content
       tests still passing
 - [ ] 4. Measured live re-run — you'll check it by the new number against the baseline
 
 ## Decisions
+
+- 2026-10-24: The short form is a separate file per module, `rules/short/<name>.md`, not a
+  `## Short` section in the long file: `modules` hands out a path, so a section inside the same file
+  would still be read in full. It is derived from the long file (title, Do and Never) by
+  `afc/rules.py`, so the long file stays the only place a rule is edited; regenerate with
+  `python3 -m afc.rules`, and a test fails if a short file drifts.
+- 2026-10-24: The short-form line limit is 30, not "about 25": nine modules fit in 25 and `identity`
+  needs 29. No safety rule was cut to meet the number.
+- 2026-10-24: The saving is small on its own: about 22% of the rule text, roughly 440 tokens for an
+  auth slice, under half a percent of the 101k baseline. The one-third target depends on slices 3
+  and 4.
 
 ## Shipped

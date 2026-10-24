@@ -66,6 +66,38 @@ class RuleModulesTest(unittest.TestCase):
             self.assertTrue(any(v in check for v in verifiers), m)
 
 
+class ShortRulesTest(unittest.TestCase):
+    """The short form Claude reads by default: Do and Never only (FC-009 slice 2)."""
+
+    SHORT_LINE_LIMIT = 30  # the spec says about 25; identity needs 29 and no safety rule is cut
+
+    def short(self, name: str) -> str:
+        return (ROOT / "rules" / "short" / f"{name}.md").read_text()
+
+    def test_every_module_has_a_short_form_and_nothing_else_is_there(self):
+        names = {p.stem for p in (ROOT / "rules" / "short").glob("*.md")}
+        self.assertEqual(names, set(ALL_MODULES))
+
+    def test_short_form_is_only_do_and_never_and_small(self):
+        for m in ALL_MODULES:
+            text = self.short(m)
+            self.assertEqual(re.findall(r"^## (.+)$", text, re.M), ["Do", "Never"], m)
+            self.assertLessEqual(len(text.splitlines()), self.SHORT_LINE_LIMIT, m)
+
+    def test_short_form_is_shorter_than_the_long_form(self):
+        for m in ALL_MODULES:
+            self.assertLess(len(self.short(m)), len(rule(m)), m)
+
+    def test_short_form_matches_the_long_form(self):
+        from afc import rules
+
+        for m in ALL_MODULES:
+            self.assertEqual(
+                self.short(m), rules.short_form(rule(m)),
+                f"rules/short/{m}.md is out of date; run: python3 -m afc.rules",
+            )
+
+
 SKILLS = ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver",
           "afc-enterprise", "afc-architecture", "afc-capabilities"]
 COMMANDS = ["afc"]
