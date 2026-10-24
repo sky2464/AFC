@@ -7,10 +7,11 @@ Never fails: any problem reading the registry becomes a context line, and main r
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
-from afc.config import afc_home
+from afc.config import afc_home, valid_session
 from afc.registry import load_registry
 
 INTRO = (
@@ -104,8 +105,22 @@ def build_output(home: Path) -> dict:
     }
 
 
-def main(stdout=None) -> int:
+def _save_session(stdin_text: str) -> None:
+    """Hand the session ID to later commands through Claude Code's env file, when it gives one."""
+    target = os.environ.get("CLAUDE_ENV_FILE")
+    try:
+        event = json.loads(stdin_text)
+        session = valid_session(event.get("session_id")) if isinstance(event, dict) else None
+        if target and session:
+            with open(target, "a", encoding="utf-8") as handle:
+                handle.write(f"export AFC_SESSION={session}\n")
+    except (OSError, ValueError):
+        pass  # the welcome must never break over this
+
+
+def main(stdout=None, stdin_text: str = "") -> int:
     stdout = stdout or sys.stdout
+    _save_session(stdin_text)
     try:
         home = afc_home()
     except Exception:
@@ -115,4 +130,4 @@ def main(stdout=None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(stdin_text=sys.stdin.read() if not sys.stdin.isatty() else ""))

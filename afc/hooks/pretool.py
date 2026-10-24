@@ -25,7 +25,7 @@ def main(stdin_text: str, stderr) -> int:
         event = read_event(stdin_text)
         if event.get("tool_name") not in GUARDED_TOOLS:
             return 0
-        ctx = load_context()
+        ctx = load_context(event.get("session_id"))
         for rule in RULES:
             reason = rule(event, ctx)
             if reason:

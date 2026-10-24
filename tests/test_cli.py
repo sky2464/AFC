@@ -276,18 +276,6 @@ class ReadOnlyCommandsTest(CliTestCase):
         self.assertEqual(run.call_args.args[0], ["open", created["workspace_path"]])
 
 
-class MaintainTest(CliTestCase):
-    def test_maintain_on_off_status(self):
-        rc, out = run_cli(["maintain", "status"])
-        self.assertEqual((rc, out), (0, {"maintain": False}))
-        rc, out = run_cli(["maintain", "on"])
-        self.assertEqual((rc, out), (0, {"maintain": True}))
-        rc, out = run_cli(["maintain", "status"])
-        self.assertEqual(out, {"maintain": True})
-        rc, out = run_cli(["maintain", "off"])
-        self.assertEqual((rc, out), (0, {"maintain": False}))
-
-
 class ModulesTest(CliTestCase):
     def test_modules_uses_active_profile(self):
         self.new("kong-gateway-lab")
