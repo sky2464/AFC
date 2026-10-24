@@ -26,6 +26,14 @@ numbered next steps, the recommended one first.
 Run `sh bin/afc plan`. The next open slice of the active spec (`next_slice`) is the one to build.
 With no active spec, take the top `Next` spec: say a one-line summary of it, then run
 `sh bin/afc plan start <id>`. If there are no specs at all, use `afc-interview`.
+
+If the user names a spec that is not the active one (for example "build S-002" while S-001 is
+active with open slices), do not start it and do not build anything. Say in one line which slices
+are still open in the active spec, then ask one question: finish the active spec first
+(recommended), or change the plan first (there is no way to park a spec; reordering is a plan
+change). Only a spec the user chose is ever started; `afc plan start` refuses while another spec
+is in progress.
+
 Before building, give a two-or-three-line note:
 
 > **Next slice:** a `/health` endpoint that returns `ok`.
