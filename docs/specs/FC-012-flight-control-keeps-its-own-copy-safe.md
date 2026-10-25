@@ -1,6 +1,6 @@
 # FC-012 — Flight Control keeps its own copy safe
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-24, after an update session changed Flight Control's own code with a hand
 `git merge` while maintenance mode was off, and left that copy on a detached HEAD.
@@ -92,7 +92,7 @@ from the same review — argparse errors that don't name their allowed values (`
       non-fast-forward `git merge` being blocked with a one-sentence reason, while `git switch dev`
       still works in maintenance mode (tests: `--detach`, tag and commit targets, existing branch
       allowed, `--no-ff` and `--squash` blocked, git unavailable blocks rather than allows)
-- [ ] 3. The health check sees the `A-FC` folder — you'll check it by `sh bin/afc check` on a
+- [x] 3. The health check sees the `A-FC` folder — you'll check it by `sh bin/afc check` on a
       detached copy naming the problem in plain words, and saying nothing about git on a clean copy
       on `main` (tests: detached, dirty, unexpected branch, missing `origin`, git unavailable)
 - [ ] 4. Repair puts a stranded copy back — you'll check it by `sh bin/afc repair` moving a clean
@@ -110,5 +110,6 @@ from the same review — argparse errors that don't name their allowed values (`
   existing local branch — no merge commits made by Flight Control, and never a detached HEAD.
 - 2026-10-24: `repair` fixes only a clean detached HEAD whose commit is already on `main`;
   everything else is reported, because risky git stays the user's own action.
+- 2026-10-25: Slice 3 approved as built. The root problems are reported and never fixable here; repair is slice 4. Git runs in the A-FC folder with a 3-second timeout, twice per welcome, so the welcome can take up to about 6 seconds more in the worst case. Untracked files count as uncommitted changes; git-ignored files do not. Not built yet: the "says so once" line for git that can't run, which is carried to a later slice. Slices 1, 2, 4 and 5 are not built.
 
 ## Shipped
