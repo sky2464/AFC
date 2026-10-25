@@ -101,3 +101,40 @@ class ShipGateTest(CliTestCase):
 
     def test_gate_function_without_test_command(self):
         self.assertIn("no test command", ship.tests_green(self.code, None)[0].lower())
+
+
+class PlanDoneGateTest(ShipGateTest):
+    """`plan done` runs the gate first and changes nothing when it refuses."""
+
+    def snapshot(self):
+        files = {}
+        for p in sorted(self.ws.rglob("*")):
+            if p.is_file():
+                files[str(p)] = p.read_text(encoding="utf-8", errors="replace")
+        return files
+
+    def test_done_refuses_with_the_gate_list_and_changes_nothing(self):
+        self.tick(False)
+        self.record_tests(FAIL)
+        (self.code / "new.txt").write_text("hi\n", encoding="utf-8")
+        before = self.snapshot()
+        rc, out = run_cli(["plan", "done", "S-001"])
+        self.assertNotEqual(rc, 0)
+        text = out["error"]
+        self.assertIn("not ticked", text)
+        self.assertIn("test suite is failing", text)
+        self.assertIn("uncommitted", text)
+        self.assertEqual(self.snapshot(), before)
+        self.assertFalse((self.ws / "plan" / "archive").exists() and
+                         list((self.ws / "plan" / "archive").glob("S-001*")))
+
+    def test_done_without_test_command_refuses(self):
+        (self.ws / "plan" / "architecture.md").write_text("# Architecture\n", encoding="utf-8")
+        rc, out = run_cli(["plan", "done", "S-001"])
+        self.assertNotEqual(rc, 0)
+        self.assertIn("no test command", out["error"].lower())
+
+    def test_done_passes_when_ready(self):
+        rc, out = run_cli(["plan", "done", "S-001"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(out["done"], "S-001")

@@ -70,7 +70,7 @@ publishing, which FC-011 covers from the update side.
       ready on a clean one (tests, one per check)
 - [ ] 2. `plan done` runs the gate first — you'll check it by `plan done` refusing with the gate's
       list while the spec, the plan and the archive stay exactly as they were (tests)
-- [ ] 3. The changelog entry — you'll check it by finishing a spec and reading `changelog.md` in the
+- [x] 3. The changelog entry — you'll check it by finishing a spec and reading `changelog.md` in the
       workspace: date, goal, slices, newest first (tests: one entry per spec, order, Flight
       Control's own plan included)
 - [ ] 4. `WIP` commits and an unpushed branch — you'll check it by a `WIP:` commit and an unpushed

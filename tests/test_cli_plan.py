@@ -1,5 +1,6 @@
 import shutil
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.helpers import run_cli
 from tests.test_cli import CliTestCase
@@ -8,6 +9,11 @@ from tests.test_cli import CliTestCase
 class PlanCommandsTest(CliTestCase):
     def setUp(self):
         super().setUp()
+        # These tests are about moving specs; the gate's test run and git checks have their own tests.
+        for name in ("tests_green", "clean_tree"):
+            patcher = patch(f"afc.ship.{name}", return_value=[])
+            patcher.start()
+            self.addCleanup(patcher.stop)
         rc, out = self.new()
         self.assertEqual(rc, 0)
         self.ws = Path(out["workspace_path"])
@@ -70,7 +76,9 @@ class PlanCommandsTest(CliTestCase):
         self.assertEqual(p["now"]["next_slice"], "one")
         self.assertEqual([r["id"] for r in p["next"]], ["S-002"])
         self.assertError(["plan", "start", "S-002"], "S-001 is still in progress. Finish it first.")
-        self.assertError(["plan", "done", "S-001"], "S-001 still has 2 open slice(s), starting with: one")
+        self.assertError(["plan", "done", "S-001"], (
+            "S-001 is not ready to finish yet:\n- A slice is not ticked: one\n- A slice is not ticked: two\n"
+            "Next: A slice is not ticked: one"))
         path = self.spec_file("S-001")
         path.write_text(path.read_text(encoding="utf-8").replace("- [ ]", "- [x]"), encoding="utf-8")
         rc, out = run_cli(["plan", "done", "S-001"])
@@ -208,7 +216,8 @@ class PlanCommandsTest(CliTestCase):
         path = self.spec_file("S-001")
         path.write_text(path.read_text(encoding="utf-8").replace("- [ ] 1. <label> — you'll check it by <how>\n", ""), encoding="utf-8")
         run_cli(["plan", "start", "S-001"])
-        self.assertError(["plan", "done", "S-001"], "S-001 has no slices yet.")
+        self.assertError(["plan", "done", "S-001"], (
+            "S-001 is not ready to finish yet:\n- The spec has no slices yet.\nNext: The spec has no slices yet."))
 
     def test_done_not_in_now_and_start_not_in_next(self):
         run_cli(["plan", "add", "First"])

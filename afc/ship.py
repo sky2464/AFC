@@ -66,3 +66,41 @@ def gate(spec_text: str, code: Path, test_command: str | None) -> dict:
     missing = [*open_slices(spec_text), *tests_green(code, test_command), *clean_tree(code)]
     return {"ready": not missing, "missing": missing,
             "next": "Ready to finish." if not missing else missing[0]}
+
+
+CHANGELOG_HEAD = "# Changelog\n"
+
+
+def changelog_entry(spec_text: str, sid: str, title: str, today: str) -> str:
+    """One entry in the user's words: the date, the spec's goal and the slices that shipped.
+
+    Written from the Goal section and the slice labels, never from commit subjects."""
+    lines = spec_text.split("\n")
+    goal = ""
+    try:
+        start, end = plan._section_span(lines, "Goal")
+        paragraph: list[str] = []
+        for line in lines[start:end]:
+            if line.strip():
+                paragraph.append(line.strip())
+            elif paragraph:
+                break
+        goal = " ".join(paragraph)
+    except ValueError:
+        pass
+    out = [f"## {today} — {sid} {title}", ""]
+    if goal:
+        out += [goal, ""]
+    for _, label in plan.all_slices(spec_text):
+        label = re.sub(r"^\d+\.\s*", "", label)
+        label = re.split(r"\s+—\s+you'll check", label)[0].strip()
+        out.append(f"- {label}")
+    return "\n".join(out) + "\n"
+
+
+def add_to_changelog(current: str, entry: str) -> str:
+    """Put the entry first, under the heading; one entry per spec, newest on top."""
+    body = current if current.strip() else CHANGELOG_HEAD
+    head, _, rest = body.partition("\n## ")
+    head = head.rstrip("\n") + "\n"
+    return head + "\n" + entry + (("\n## " + rest) if rest else "")

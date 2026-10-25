@@ -27,6 +27,10 @@ class FlightControlPlanTest(CliTestCase):
         patcher = patch("afc.cli_plan.afc_root", return_value=self.root)
         patcher.start()
         self.addCleanup(patcher.stop)
+        for name in ("tests_green", "clean_tree"):  # the gate's own tests cover these
+            patcher = patch(f"afc.ship.{name}", return_value=[])
+            patcher.start()
+            self.addCleanup(patcher.stop)
         env = patch.dict(os.environ, {"AFC_SESSION": SESSION, "CLAUDE_CODE_SESSION_ID": ""})
         env.start()
         self.addCleanup(env.stop)

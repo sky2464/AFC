@@ -21,17 +21,24 @@ def register(sub) -> None:
 
 
 def cmd_ship(args: argparse.Namespace) -> dict:
-    from afc import cli, cli_plan
+    from afc import cli_plan
 
     space, _, text = cli_plan._load()
     section, row = cli_plan._find(space, text, args.check)
     if section != "Now":
         raise cli_plan._error(f"{args.check} isn't in progress.")
     _, spec_text = cli_plan._read_spec(space, args.check, row)
+    return {"id": args.check, **run_gate(spec_text)}
+
+
+def run_gate(spec_text: str) -> dict:
+    """The readiness gate for the active plan's code folder (Flight Control's own in maintenance)."""
+    from afc import cli
+
     home = afc_home()
     if maintain_enabled(home, current_session()):
         code, command = afc_root(), ship.FC_TEST_COMMAND
     else:
         project = cli._active(load_registry(home))
         code, command = Path(project.code_path), ship.recorded_test_command(Path(project.workspace_path))
-    return {"id": args.check, **ship.gate(spec_text, code, command)}
+    return ship.gate(spec_text, code, command)
