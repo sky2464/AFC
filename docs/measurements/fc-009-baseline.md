@@ -18,19 +18,22 @@ The peak context matches finding 14 ("about 101k tokens"). The floor is the syst
 definitions and the plugin and skill listings that load before Flight Control does anything, so it
 is mostly outside this repo. That is why slice 4 judges growth, not the peak: "at least a third
 fewer" would otherwise mean a peak of 67,365, only about 3k above the floor. The target is growth
-of 24,490 or less (a third under 36,736), compared with each run's floor shown beside it.
+of 24,490 or less (a third under 36,736), compared with each run's floor shown beside it. That was
+the first target; it is re-aimed at the end of this file.
 
 ## Re-run
 
-Do the same start and first slice again on a copy of `dev` with its own home (`CONTRIBUTING.md`,
-"Set up"), then compare:
+Do the same start and first slice twice, on copies of `dev` with their own homes (`CONTRIBUTING.md`,
+"Set up"), the same day: once on `dev` before FC-009 slices 2 and 3 (`281d4fc`) as the control, once on
+the commit being measured as the re-run. Then compare:
 
 ```
-python3 docs/measurements/token_usage.py <baseline.jsonl> <rerun.jsonl>
+python3 docs/measurements/token_usage.py <control.jsonl> <rerun.jsonl>
 ```
 
-The re-run's transcript is under `~/.claude/projects/` in the folder named for where `claude` was
-started. `target_met` is true when growth is 24,490 or less.
+Each transcript is under `~/.claude/projects/` in the folder named for where `claude` was started.
+`target_met` is true when the re-run's growth is at most 90% of the control's. The first live run
+above is no longer the control: it built a skeleton, and the first slice is now real and tested.
 
 Both runs must be a whole start plus first slice: the transcript has to show `afc new`, `afc scan`
 and `afc deliver` run through the Bash tool. Anything shorter is refused with a plain error naming
@@ -76,3 +79,12 @@ commit exists, because the session had set Flight Control's path in a variable (
 `sh $A deliver`), which is natural when the app and Flight Control are in different folders.
 `token_usage.py` now follows a variable that the same command sets to a path ending in `bin/afc`, and
 no other variable. The "hi" session and the runs that stopped early are still refused.
+
+## Target re-aimed (2026-10-24)
+
+The target moved from a third under the first live run to 10% under a like-for-like control. The
+reasons, the numbers and the 10% itself (a judgment, one constant in the script) are recorded in the
+Decisions of `docs/specs/FC-009-leaner-context-per-slice.md`. Against the two controls made so far the
+limit is 39,846 (control 44,274) or 42,020 (control 46,689); the re-run's 46,010 fails both, so slice 4
+stays open. A control only counts when it is made the same day as the re-run, on `dev` before the
+change; the two so far are from earlier on 2026-10-24 and give the scale, not a verdict.
