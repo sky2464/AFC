@@ -92,7 +92,7 @@ enough.
       `tests/test_afc_test.py`: a change to `afc/ship.py` picks `test_ship_gate` and not
       `test_update_check`, a change to `tests/helpers.py` runs all 60 files, and a change to the
       workflow picks `test_spec_checks`.
-- [ ] 3. Quick gate and risky list — the workflow runs the code gate after each builder and the
+- [x] 3. Quick gate and risky list — the workflow runs the code gate after each builder and the
       checker only for risky slices or `check: 'all'`; you'll check it by
       `tests/test_build_workflow.py`: a slice changing only `afc/plan.py` runs 1 helper,
       a slice changing `afc/hooks/rules_git.py` runs 2, `check: 'all'` runs 2 for both, a gate
