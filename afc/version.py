@@ -5,6 +5,7 @@ They compare number by number (so v0.02a < v0.10a), then by letter.
 """
 
 import re
+import subprocess
 from pathlib import Path
 
 PATTERN = re.compile(r"^v(\d+(?:\.\d+)+)([a-z]?)$")
@@ -48,3 +49,23 @@ def installed(root: Path) -> str:
     if not is_version(text):
         raise VersionError(f"Flight Control's VERSION file holds {text!r}, not a version like v0.01a.")
     return text
+
+
+def newest_release(root: Path, ref: str = "main") -> str | None:
+    """The newest v* tag reachable from ref in the repo at root, or None (no tags, no ref, no git)."""
+    try:
+        done = subprocess.run(["git", "-C", str(root), "tag", "--merged", ref, "v*"],
+                              capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if done.returncode != 0:
+        return None
+    return newest(done.stdout.split())
+
+
+def behind_release(current: str, root: Path, ref: str = "main") -> str | None:
+    """A plain line when current is older than the newest release tag on ref, else None."""
+    tag = newest_release(root, ref)
+    if tag and is_newer(tag, current):
+        return f"VERSION says {current}, which is older than the newest release {tag}."
+    return None

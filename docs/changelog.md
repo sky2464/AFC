@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-10-25 — FC-026 Release check and v0.03a
+
+Releasing is a checked, repeatable step: Flight Control says whether `main` is ready to tag, the version it reports is never older than the newest release, and the one-click update is proven on a real copy before v0.03a goes out. Publishing stays the user's own step.
+
+- Version is never behind the newest release
+- Release check
+- Real update between two copies
+- Ready for v0.03a
+
+## v0.03a
+
+- One-click updates: Flight Control tells you when a newer release is out and updates itself.
+- `sh bin/afc release check` says whether `main` is ready to tag.
+- The version it reports is never older than the newest release.
+- Role agents, a slice build workflow and model routing for every project.
+- Quicker checks: only the tests for what changed, and one full run at the end.
+- `sh bin/afc slice record` ticks the spec and logs the decision in one call.
+- Shorter skill text and replies; a smoother welcome.
+- Optional token cost estimate by model.
+
 ## 2026-10-25 — FC-025 Token usage cost by model
 
 The measurement script can estimate run cost from transcript models, so role and model experiments can be compared in dollars as well as tokens.

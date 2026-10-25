@@ -70,6 +70,9 @@ with `claude --continue` in the `A-FC` folder, which picks up the same conversat
 can't be applied safely (you edited files in the folder, or it's on another branch), nothing is
 changed and Flight Control tells you why.
 
+Copies on v0.02a or older have no updater: update them once with `git pull` in the `A-FC` folder. From v0.03a on,
+Flight Control offers updates itself.
+
 ## How a session goes
 
 1. **You say what you want to build.** Flight Control asks one question at a time until the goal is
