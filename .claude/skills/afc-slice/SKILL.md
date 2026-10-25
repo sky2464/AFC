@@ -80,7 +80,7 @@ How to work, quietly and safely:
   (`sh <path>/bin/afc …`). Never `cd` into its folder.
 - **A dev server:** pick a free port, start it in the background, keep its process ID and log in
   the workspace's `reports/` folder (never `/tmp`), and stop it with `kill <pid>`.
-  `pkill`, `killall` and `pkill -f` are blocked.
+  `pkill` and `killall` are blocked.
 
 ## checkpoint 3 — showing the slice
 
@@ -113,7 +113,7 @@ Unasked, update the workspace docs:
   configuration it needs) in a few lines each, from what this slice built. After that, only if
   structure changed.
 
-Make these edits with the file tools (Edit), never a shell script or heredoc.
+Use Edit, never a shell script. Change only the lines that change; never rewrite a whole file.
 - Record the slice: `sh bin/afc set last_slice "<n> <label>"`.
 - Refresh the indexes: `sh bin/afc index refresh`, then `sh bin/afc index rebuild --all`.
 

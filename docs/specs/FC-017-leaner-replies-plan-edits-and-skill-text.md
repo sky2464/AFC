@@ -44,7 +44,7 @@ first real tested slice that FC-003 added.
 - [x] 1. Measure the parts — the token script prints growth by part from the transcript, with a
       fixture transcript covering each part (tests in `tests/test_token_usage.py`); run on the
       FC-009 transcript pair, the breakdown is printed.
-- [ ] 2. Plan and spec edits — the rules and skills say to edit changed lines only; you'll check it
+- [x] 2. Plan and spec edits — the rules and skills say to edit changed lines only; you'll check it
       by content tests and by the plan-and-spec share falling on a re-run of the breakdown.
 - [ ] 3. Shorter replies and skill text — the short rule modules and `afc-slice` say each step once
       and keep build replies to a status line and one question; you'll check it by content tests
