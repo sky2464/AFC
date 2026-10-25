@@ -1,6 +1,6 @@
 # FC-026 — Release check and v0.03a
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25. Fifteen specs (FC-011 to FC-025) reached `main` after the
 v0.02a release, and the one-click update (FC-011) has never updated a real older copy.
