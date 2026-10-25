@@ -142,6 +142,14 @@ class RootCheckTest(CliTestCase):
     def test_check_says_nothing_about_git_on_a_clean_main(self):
         self.assertEqual(self.check(make_repo(self.tmp / "afc")), {"ok": True, "problems": []})
 
+    def test_check_says_once_when_git_cannot_run(self):
+        folder = make_repo(self.tmp / "afc")
+        with patch("afc.cli_health.subprocess.run", side_effect=FileNotFoundError("git")):
+            out = self.check(folder)
+        self.assertEqual(out["problems"], [])
+        self.assertIn("Git couldn't run", out["note"])
+        self.assertEqual(out["note"].count("Git couldn't run"), 1)
+
 
 class RootRepairTest(CliTestCase):
     """sh bin/afc repair puts a clean detached copy whose commit is on main back onto main."""

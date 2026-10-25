@@ -83,22 +83,22 @@ from the same review — argparse errors that don't name their allowed values (`
 
 ## Slices
 
-- [ ] 1. Changing git in the `A-FC` folder needs maintenance mode — you'll check it by
+- [x] 1. Changing git in the `A-FC` folder needs maintenance mode — you'll check it by
       `git merge --ff-only <tag>` in the `A-FC` folder being blocked with maintenance mode off and
       running with it on, while `git status` works in both (tests: read-only versus changing
       subcommands, unknown subcommand treated as changing, `-C` / `--git-dir` / `--work-tree`
       locations, project git unaffected)
-- [ ] 2. No detached HEAD and no surprise merges — you'll check it by `git checkout <tag>` and a
+- [x] 2. No detached HEAD and no surprise merges — you'll check it by `git checkout <tag>` and a
       non-fast-forward `git merge` being blocked with a one-sentence reason, while `git switch dev`
       still works in maintenance mode (tests: `--detach`, tag and commit targets, existing branch
       allowed, `--no-ff` and `--squash` blocked, git unavailable blocks rather than allows)
 - [x] 3. The health check sees the `A-FC` folder — you'll check it by `sh bin/afc check` on a
       detached copy naming the problem in plain words, and saying nothing about git on a clean copy
       on `main` (tests: detached, dirty, unexpected branch, missing `origin`, git unavailable)
-- [ ] 4. Repair puts a stranded copy back — you'll check it by `sh bin/afc repair` moving a clean
+- [x] 4. Repair puts a stranded copy back — you'll check it by `sh bin/afc repair` moving a clean
       detached copy whose commit is on `main` back onto `main`, and leaving a dirty copy or a commit
       that is on no branch untouched with a reason (tests: both repaired and refused cases)
-- [ ] 5. A guard that should have fired is a full stop — you'll check it by CLAUDE.md covering the
+- [x] 5. A guard that should have fired is a full stop — you'll check it by CLAUDE.md covering the
       case where something needing maintenance mode happened without it, and the skills that act on
       guard output following it (content tests)
 
@@ -111,5 +111,9 @@ from the same review — argparse errors that don't name their allowed values (`
 - 2026-10-24: `repair` fixes only a clean detached HEAD whose commit is already on `main`;
   everything else is reported, because risky git stays the user's own action.
 - 2026-10-25: Slice 3 approved as built. The root problems are reported and never fixable here; repair is slice 4. Git runs in the A-FC folder with a 3-second timeout, twice per welcome, so the welcome can take up to about 6 seconds more in the worst case. Untracked files count as uncommitted changes; git-ignored files do not. Not built yet: the "says so once" line for git that can't run, which is carried to a later slice. Slices 1, 2, 4 and 5 are not built.
+- 2026-10-25: Slices 1, 2, 4 and 5 approved as built, plus the "says so once" note for git that
+  can't run (`sh bin/afc check` returns a `note`). Pulls in the `A-FC` folder must be `--ff-only`
+  in every mode, like merges. Left open as minor: `git checkout -` isn't resolved, a failed
+  `git switch main` during repair isn't explained, and `rebase` is allowed with maintenance on.
 
 ## Shipped

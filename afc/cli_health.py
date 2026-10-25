@@ -45,7 +45,11 @@ def _cli():
 
 def cmd_check(args: argparse.Namespace) -> dict:
     problems = find_problems(afc_home())
-    return {"ok": not problems, "problems": problems}
+    result = {"ok": not problems, "problems": problems}
+    note = root_git_note(_cli().afc_root())
+    if note:
+        result["note"] = note
+    return result
 
 
 def cmd_repair(args: argparse.Namespace) -> dict:
@@ -312,6 +316,15 @@ def root_problems(root: Path, git: Callable[..., str | None] | None = None) -> l
             detail="Flight Control's own copy has no origin remote, so it has nowhere to fetch "
                    "updates from."))
     return found
+
+
+def root_git_note(root: Path, git: Callable[..., str | None] | None = None) -> str | None:
+    """One sentence when git can't run in Flight Control's own folder, else None. The check then
+    reports no git problems for it rather than guessing."""
+    run = git if git is not None else _git
+    if run(root, "status", "--porcelain=v2", "--branch") is not None:
+        return None
+    return "Git couldn't run in Flight Control's own folder, so its git state wasn't checked."
 
 
 def _head_branch(status: str) -> str | None:
