@@ -18,6 +18,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-020 | Trim skill text and plan bookkeeping | M | [spec](specs/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
 
 ## Done
 
@@ -158,3 +159,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-019 done |
 | 2026-10-25 | FC-017 started |
 | 2026-10-25 | FC-017 done |
+| 2026-10-25 | FC-020 added |
