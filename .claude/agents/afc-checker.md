@@ -1,6 +1,7 @@
 ---
 name: afc-checker
 description: Checks one built slice of a Flight Control spec against its spec and the safety rules, changing nothing. Used by the afc-build-spec workflow.
+model: haiku
 tools: Read, Glob, Grep, Bash
 ---
 

@@ -54,16 +54,9 @@ class SessionStartTest(AfcTestCase):
         self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "SessionStart")
         ctx = self._ctx(out)
         self.assertIn("Active project: none — first run.", ctx)
-        self.assertIn("The welcome asked: 1 = start a new project, "
-                      "2 = bring in one already on this computer.", ctx)
-
-    def test_the_first_question_is_asked_once(self):
-        from afc.config import afc_root
-        ctx = self._ctx(build_output(self.home))
-        self.assertIn("never list them again", ctx)
-        skill = (afc_root() / ".claude" / "skills" / "afc-start" / "SKILL.md").read_text()
-        self.assertIn("never list them again", skill)
-        self.assertNotIn("then ask the question\nfor the situation", skill)
+        self.assertIn("The welcome asked: 1 = start a new project", ctx)
+        self.assertIn("2 = bring in one already on this computer", ctx)
+        self.assertIn("do not ask that question again", ctx)
 
     def test_context_names_the_launcher_by_absolute_path(self):
         from afc.config import afc_root

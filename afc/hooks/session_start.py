@@ -21,6 +21,7 @@ from pathlib import Path
 
 from afc import update, update_apply, version
 from afc.config import afc_home, afc_root, maintain_enabled, valid_session
+from afc.context_brief import brief_path
 from afc.registry import load_registry
 
 INTRO = (
@@ -75,6 +76,10 @@ def _project_line(reg) -> str:
         )
     spec = _spec_note(active) if active is not None else ""
     project += f" Active spec: {spec}." if spec else ""
+    if active is not None:
+        brief = brief_path(Path(active.workspace_path))
+        if brief.is_file():
+            project += f" Compact context: {brief} — read once per slice, not intent+architecture separately."
     others = [n for n in reg.ready() if active is None or n != active.name]
     paused = f" Paused: {', '.join(reg.paused())}." if reg.paused() else ""
     return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}"
@@ -195,7 +200,12 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
             asked = _update_question(*offer, one, two)
         else:
             message = f"{INTRO}\n{line}"
-            asked = f"The welcome asked: 1 = {one}, 2 = {two}. It is still on screen: never list them again."
+            asked = (
+                f"The welcome asked: 1 = {one}, 2 = {two}. "
+                "If the user's first message is 1 or 2, treat it as their answer — do not ask that "
+                "question again. If they said hi or asked something else, answer briefly, then ask "
+                f"one question: 1 = {one} (recommended) or 2 = {two}."
+            )
         message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}", 1)
         context = (
             f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "
