@@ -61,7 +61,7 @@ are. A coverage tool, a faster test runner, or running tests in parallel.
       `afc-slice` checkpoint 2 and seeing risk-sized tests, no prose assertions, and run-one-file
       then run-all-once (one structural test each: the Tests section names the one-file command; the
       skill keeps its three checkpoints)
-- [ ] 2. Trim the wording-only tests — you'll check it by the full suite passing with fewer tests and
+- [x] 2. Trim the wording-only tests — you'll check it by the full suite passing with fewer tests and
       fewer lines than the 943 tests and 8,792 lines in `tests/test_*.py` on 2026-10-25, and a commit message listing every
       deleted test (tests: the suite itself; the structural checks stay)
 - [ ] 3. Try it on the next slice — you'll check it by FC-002 slice 4 or the next one adding tests
