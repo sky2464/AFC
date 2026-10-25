@@ -19,7 +19,7 @@ numbered next steps, the recommended one first.
 - **Nothing agreed yet** (no intent): use `afc-interview` first.
 - **A standing rule** ("always use tabs", "never touch the billing folder"): add it to the
   `## Standing Corrections` section of `plan/decisions.md` with the date, confirm in one line, and
-  follow it from then on.
+  follow it.
 
 ## Pick the slice
 
@@ -61,12 +61,14 @@ they will see.
 
 ## checkpoint 2 — while building
 
-- Write tests first where the stack has tests; then the code to pass them.
+- Write tests first, sized to risk (by what it touches): thorough for guards, secrets, data
+  moves or deletes; three to five for a small read-only piece. Never test prose.
+- Run only the changed test file while building; the whole suite once, before commit.
 - Keep the rules from checkpoint 1 in context. Files stay under 500 lines.
 - Code goes only into the active project's code path. If a guard blocks you
   ("Flight Control blocked …"), fix the cause or say so; never work around it.
   A guard that should have fired is a full stop.
-- Check versions of anything you add against current docs, never from memory.
+- Check versions of anything you add against current docs.
 
 How to work, quietly and safely:
 
@@ -76,12 +78,10 @@ How to work, quietly and safely:
   `sh bin/afc modules` returns, or the spec path from `sh bin/afc plan`. Never print them with
   `cat` and never guess where they live.
 - **Flight Control:** run it with the launcher path from the context line
-  (`sh <path>/bin/afc …`). Do not `cd` into the Flight Control folder and back; use absolute paths
-  so the working folder never changes.
-- **A dev server:** pick a free port, start it in the background, write its process ID to a file in
-  the project workspace's `reports/` folder, and send its log there too, never `/tmp`. When done,
-  stop only that process with `kill <pid>`. `pkill`, `killall` and `pkill -f` are blocked: they
-  stop other people's programs too.
+  (`sh <path>/bin/afc …`). Never `cd` into its folder; use absolute paths.
+- **A dev server:** pick a free port, start it in the background, keep its process ID and log in
+  the project workspace's `reports/` folder (never `/tmp`), and stop it with `kill <pid>`.
+  `pkill`, `killall` and `pkill -f` are blocked.
 
 ## checkpoint 3 — showing the slice
 

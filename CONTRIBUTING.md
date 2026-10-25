@@ -116,6 +116,20 @@ the spec line or safety rule it breaks; anything else is reported as a note.
 python3 -m unittest discover -s tests -v
 ```
 
+Size tests by risk. Guards, secrets and anything that moves or deletes data get thorough tests.
+A small read-only command gets three to five: happy path, nothing found, one failure. Do not
+assert the prose of a skill, doc or prompt; at most add one structural check (for example, a named
+command still exists) and check the wording in a live run.
+
+While building, run only the file for what changed, then run everything once before the commit:
+
+```bash
+python3 -m unittest tests.test_<name>
+python3 -m unittest discover -s tests
+```
+
+To find a test, list names with `grep -n "def test_" tests/test_<name>.py` instead of reading the file.
+
 Tests always use a temporary `AFC_HOME`, so they never touch your real `~/.A-FC`.
 
 ## Editing Flight Control itself

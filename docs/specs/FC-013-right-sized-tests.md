@@ -57,7 +57,7 @@ are. A coverage tool, a faster test runner, or running tests in parallel.
 
 ## Slices
 
-- [ ] 1. The rule is written down — you'll check it by reading CONTRIBUTING's Tests section and
+- [x] 1. The rule is written down — you'll check it by reading CONTRIBUTING's Tests section and
       `afc-slice` checkpoint 2 and seeing risk-sized tests, no prose assertions, and run-one-file
       then run-all-once (one structural test each: the Tests section names the one-file command; the
       skill keeps its three checkpoints)
