@@ -33,6 +33,11 @@ class BuildHelpersTest(unittest.TestCase):
         self.assertIn("agentType: 'afc-builder'", text)
         self.assertIn("agentType: 'afc-checker'", text)
 
+    def test_agents_name_a_model(self):
+        for name in ("afc-builder", "afc-checker", "afc-research", "afc-plan"):
+            text = (AGENTS / f"{name}.md").read_text()
+            self.assertRegex(text, r"model:\s+\S+")
+
 
 if __name__ == "__main__":
     unittest.main()

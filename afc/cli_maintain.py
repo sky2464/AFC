@@ -17,7 +17,13 @@ GLOBAL_NOTE = (
 
 def register(sub) -> None:
     p = sub.add_parser("maintain", help="turn maintenance mode on, off or show it")
-    p.add_argument("state", choices=["on", "off", "status"])
+    p.add_argument(
+        "state",
+        nargs="?",
+        choices=["on", "off", "status"],
+        default="status",
+        help="on, off or status (default: status)",
+    )
     p.set_defaults(handler=cmd_maintain)
 
 

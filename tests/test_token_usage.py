@@ -51,6 +51,21 @@ class TokenUsageTests(AfcTestCase):
         path.write_text("not json\n" + _line("a", 1, 1, 1, 1) + "\n{}\n", encoding="utf-8")
         self.assertEqual(_load().measure(path)["turns"], 1)
 
+    def test_estimates_cost_when_model_present(self):
+        path = self.tmp / "s.jsonl"
+        line = json.dumps({
+            "type": "assistant",
+            "model": "claude-haiku",
+            "message": {"id": "a", "model": "claude-haiku", "usage": {
+                "input_tokens": 1_000_000, "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0, "output_tokens": 0,
+            }},
+        })
+        path.write_text(line, encoding="utf-8")
+        r = _load().measure(path)
+        self.assertGreater(r["estimated_cost_usd"], 0)
+        self.assertIn("haiku", r["tokens_by_model_key"])
+
 
 FULL_RUN = ("sh bin/afc new --name demo", "sh bin/afc scan --slice 1", "sh bin/afc deliver --message x")
 

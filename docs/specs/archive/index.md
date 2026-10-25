@@ -2,6 +2,11 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-025 | Token usage cost by model | 2026-10-25 | FC-025-token-usage-by-model.md |
+| FC-024 | Optional TypeSafe Jev (stub) | 2026-10-25 | FC-024-optional-jev.md |
+| FC-023 | Smoother flow and welcome fixes | 2026-10-25 | FC-023-smoother-flow-and-fixes.md |
+| FC-022 | Project role agents, workflow and init | 2026-10-25 | FC-022-project-role-agents-and-workflow.md |
+| FC-021 | Role agents and model routing | 2026-10-25 | FC-021-role-agents-and-model-routing.md |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | FC-020-trim-skill-text-and-plan-bookkeeping.md |
 | FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | FC-017-leaner-replies-plan-edits-and-skill-text.md |
 | FC-019 | Checks only when needed | 2026-10-25 | FC-019-checks-only-when-needed.md |

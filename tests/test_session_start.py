@@ -54,8 +54,9 @@ class SessionStartTest(AfcTestCase):
         self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "SessionStart")
         ctx = self._ctx(out)
         self.assertIn("Active project: none — first run.", ctx)
-        self.assertIn("The welcome asked: 1 = start a new project, "
-                      "2 = bring in one already on this computer.", ctx)
+        self.assertIn("The welcome asked: 1 = start a new project", ctx)
+        self.assertIn("2 = bring in one already on this computer", ctx)
+        self.assertIn("do not ask that question again", ctx)
 
     def test_context_names_the_launcher_by_absolute_path(self):
         from afc.config import afc_root

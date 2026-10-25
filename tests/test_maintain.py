@@ -88,6 +88,14 @@ class MaintainCommandTest(CliTestCase):
         self.assertIn("every session", out["note"])
         self.assertEqual(self.maintain("status", A)[1]["scope"], "global")
 
+    def test_bare_maintain_shows_status(self):
+        env = {"AFC_SESSION": A, "CLAUDE_CODE_SESSION_ID": ""}
+        with patch.dict(os.environ, env):
+            rc, out = run_cli(["maintain"])
+        self.assertEqual(rc, 0)
+        self.assertIn("maintain", out)
+        self.assertIn("scope", out)
+
 
 class MaintainGuardTest(AfcTestCase):
     def test_load_context_uses_the_event_session(self):

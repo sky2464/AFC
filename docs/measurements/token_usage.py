@@ -27,6 +27,21 @@ import re
 import sys
 from pathlib import Path
 
+# USD per million input tokens (output often bundled; cache reads priced lower). FC-025 estimates only.
+PRICE_INPUT_PER_MTOK = {
+    "haiku": 1.0,
+    "sonnet": 3.0,
+    "opus": 15.0,
+    "default": 3.0,
+}
+PRICE_CACHE_READ_PER_MTOK = {
+    "haiku": 0.1,
+    "sonnet": 0.3,
+    "opus": 1.5,
+    "default": 0.3,
+}
+ROLE_ALIASES = ("research", "plan", "build", "check", "main", "helper")
+
 # What a whole start plus first slice does: create the project, check the slice, commit it.
 STEPS = (
     ("new", "create the project"),
@@ -50,8 +65,25 @@ def _steps_in(command: str) -> set[str]:
     return found
 
 
+def _model_key(name: str | None) -> str:
+    if not name:
+        return "default"
+    low = name.lower()
+    for key in ("haiku", "sonnet", "opus"):
+        if key in low:
+            return key
+    return "default"
+
+
+def _price_tokens(tokens: int, model: str | None, *, cache_read: bool = False) -> float:
+    table = PRICE_CACHE_READ_PER_MTOK if cache_read else PRICE_INPUT_PER_MTOK
+    rate = table.get(_model_key(model), table["default"])
+    return tokens * rate / 1_000_000
+
+
 def measure(path) -> dict:
     seen: dict[str, dict] = {}
+    models: dict[str, str] = {}
     for line in Path(path).read_text(encoding="utf-8", errors="replace").splitlines():
         try:
             entry = json.loads(line)
@@ -61,8 +93,13 @@ def measure(path) -> dict:
             continue
         message = entry.get("message") or {}
         usage = message.get("usage")
-        if message.get("id") and isinstance(usage, dict):
-            seen[message["id"]] = usage
+        mid = message.get("id")
+        if mid and isinstance(usage, dict):
+            seen[mid] = usage
+            if isinstance(message.get("model"), str):
+                models[mid] = message["model"]
+            elif isinstance(entry.get("model"), str):
+                models[mid] = entry["model"]
     peak = fresh = cached = 0
     floor = first_input = 0
     for n, u in enumerate(seen.values()):
@@ -74,9 +111,26 @@ def measure(path) -> dict:
         cached += cr
         if n == 0:
             floor, first_input = i + cc + cr, i + cc
-    return {"turns": len(seen), "peak_context": peak, "fresh_tokens": fresh, "cache_read_tokens": cached,
-            "floor_context": floor, "growth": max(peak - floor, 0),
-            "added_fresh_tokens": fresh - first_input}
+    cost_usd = 0.0
+    by_model: dict[str, int] = {}
+    for mid, u in seen.items():
+        model = models.get(mid)
+        key = _model_key(model)
+        i = u.get("input_tokens", 0) + u.get("cache_creation_input_tokens", 0) + u.get("output_tokens", 0)
+        cr = u.get("cache_read_input_tokens", 0)
+        cost_usd += _price_tokens(i, model) + _price_tokens(cr, model, cache_read=True)
+        by_model[key] = by_model.get(key, 0) + i + cr
+    return {
+        "turns": len(seen),
+        "peak_context": peak,
+        "fresh_tokens": fresh,
+        "cache_read_tokens": cached,
+        "floor_context": floor,
+        "growth": max(peak - floor, 0),
+        "added_fresh_tokens": fresh - first_input,
+        "estimated_cost_usd": round(cost_usd, 4),
+        "tokens_by_model_key": by_model,
+    }
 
 
 PARTS = ("code_and_tests", "replies", "skill_text", "plan_and_spec_edits", "files_read", "other")

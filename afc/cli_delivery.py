@@ -70,7 +70,9 @@ def cmd_deliver(args: argparse.Namespace) -> dict:
     code = Path(project.code_path)
     try:
         if not git_ops.has_remote(code):
-            return {"commit": git_ops.commit_slice(project, args.message), "pushed": False, "pr_needed": False}
+            result = {"commit": git_ops.commit_slice(project, args.message), "pushed": False, "pr_needed": False}
+            result["brief"] = _refresh_brief(project)
+            return result
         git_ops.check_ready(project)
         default = git_ops.default_branch(code)
         mode = git_ops.decide_mode(project.team_mode, 0, git_ops.recent_authors(code))
@@ -90,7 +92,19 @@ def cmd_deliver(args: argparse.Namespace) -> dict:
         git_ops.push(code, branch)
     except RuntimeError as exc:
         raise _error(str(exc)) from None
-    return {"commit": sha, "pushed": True, "branch": branch, "pr_needed": pr_needed}
+    return {
+        "commit": sha,
+        "pushed": True,
+        "branch": branch,
+        "pr_needed": pr_needed,
+        "brief": _refresh_brief(project),
+    }
+
+
+def _refresh_brief(project) -> dict:
+    from afc.context_brief import refresh
+
+    return refresh(project.workspace_path, profile=project.profile or "personal")
 
 
 AZ_NO_DEFAULTS = (

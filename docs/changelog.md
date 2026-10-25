@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-10-25 — FC-025 Token usage cost by model
+
+The measurement script can estimate run cost from transcript models, so role and model experiments can be compared in dollars as well as tokens.
+
+- Cost fields
+
+## 2026-10-25 — FC-024 Optional TypeSafe Jev (stub)
+
+A place to plug TypeSafe Jev later without committing to product behavior now. Off by default; always off for enterprise; shadow-only when enabled; `TYPESAFE_API_KEY` from the environment; stdlib `urllib`; mockable tests; never overrides Flight Control hard blocks.
+
+- Isolated adapter
+
+## 2026-10-25 — FC-023 Smoother flow and welcome fixes
+
+Fewer wasted turns at session start and clearer maintenance commands, without changing what maintenance mode means.
+
+- Default maintain to status
+- No duplicate welcome
+
+## 2026-10-25 — FC-022 Project role agents, workflow and init
+
+Every new or adopted project gets role agents under `.claude/agents/`, a slice build workflow, workspace routing JSON, and a first compact brief — without manual copying.
+
+- Install on new/adopt
+- Brief on init and after deliver
+- Workflow template
+
+## 2026-10-25 — FC-021 Role agents and model routing
+
+Dedicated role agents (research, plan, build, check) with predictable model routing so spec and slice work can use cheaper or stronger models where it helps, without changing safety guards.
+
+- Role resolution and defaults
+- Maintenance agents name models
+- `sh bin/afc agents` show
+
 ## 2026-10-25 — FC-020 Trim skill text and plan bookkeeping
 
 A whole start plus first slice adds less context in the two parts FC-017 left short: skill text and plan and spec edits. The code and tests a slice writes, and the review that runs before approval, are left as they are.
