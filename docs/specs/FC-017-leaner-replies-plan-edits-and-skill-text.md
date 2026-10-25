@@ -46,7 +46,7 @@ first real tested slice that FC-003 added.
       FC-009 transcript pair, the breakdown is printed.
 - [x] 2. Plan and spec edits — the rules and skills say to edit changed lines only; you'll check it
       by content tests and by the plan-and-spec share falling on a re-run of the breakdown.
-- [ ] 3. Shorter replies and skill text — the short rule modules and `afc-slice` say each step once
+- [x] 3. Shorter replies and skill text — the short rule modules and `afc-slice` say each step once
       and keep build replies to a status line and one question; you'll check it by content tests
       and by the reply and skill-text shares falling on a re-run.
 - [ ] 4. Measured live re-run — same method as FC-009 slice 4 (a whole start plus first slice on a
