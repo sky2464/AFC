@@ -91,3 +91,40 @@ class VersionCommandTest(AfcTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NotBehindReleaseTest(AfcTestCase):
+    """FC-026 slice 1: VERSION is never older than the newest v* tag merged into main."""
+
+    def _repo(self, tags):
+        import subprocess
+
+        def git(*args):
+            subprocess.run(["git", "-C", str(self.tmp), "-c", "user.name=t", "-c", "user.email=t@t",
+                            *args], check=True, capture_output=True)
+
+        git("init", "-q", "-b", "main")
+        (self.tmp / "f").write_text("x", encoding="utf-8")
+        git("add", "f")
+        git("commit", "-q", "-m", "one")
+        for tag in tags:
+            git("tag", tag)
+        return self.tmp
+
+    def test_equal_passes(self):
+        self.assertIsNone(version.behind_release("v0.02a", self._repo(["v0.01a", "v0.02a"])))
+
+    def test_newer_passes(self):
+        self.assertIsNone(version.behind_release("v0.03a", self._repo(["v0.02a"])))
+
+    def test_older_fails(self):
+        problem = version.behind_release("v0.01a", self._repo(["v0.01a", "v0.02a"]))
+        self.assertIn("v0.02a", problem)
+
+    def test_no_tags_passes(self):
+        self.assertIsNone(version.behind_release("v0.01a", self._repo([])))
+
+    def test_this_repo_is_not_behind(self):
+        root = afc_root()
+        problem = version.behind_release(version.installed(root), root)
+        self.assertIsNone(problem, problem)

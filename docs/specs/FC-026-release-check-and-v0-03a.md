@@ -49,7 +49,7 @@ have no update code, so they move once by hand.
 
 ## Slices
 
-- [ ] 1. Version is never behind the newest release — you'll check it by `sh bin/afc version`
+- [x] 1. Version is never behind the newest release — you'll check it by `sh bin/afc version`
       printing `v0.02a` on `dev`, and `tests/test_version.py` failing when `VERSION` is older than
       the newest `v*` tag merged into `main` (tests: equal passes, newer passes, older fails, no tags
       passes)
