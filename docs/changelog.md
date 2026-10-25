@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 — FC-024 Optional TypeSafe Jev (stub)
+
+A place to plug TypeSafe Jev later without committing to product behavior now. Off by default; always off for enterprise; shadow-only when enabled; `TYPESAFE_API_KEY` from the environment; stdlib `urllib`; mockable tests; never overrides Flight Control hard blocks.
+
+- Isolated adapter
+
 ## 2026-10-25 — FC-023 Smoother flow and welcome fixes
 
 Fewer wasted turns at session start and clearer maintenance commands, without changing what maintenance mode means.

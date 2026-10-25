@@ -1,6 +1,6 @@
 # FC-024 — Optional TypeSafe Jev (stub)
 
-Size: S · Status: in progress · Started: 2026-10-25 · Done: -
+Size: S · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 ## Goal
 
@@ -23,3 +23,7 @@ Calling Jev from review, scan, or hooks. Billing UI. Any dependency beyond stdli
 ## Decisions
 
 - 2026-10-25: Ship adapter only; integration waits on owner priority.
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 1.

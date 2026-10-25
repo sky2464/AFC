@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-024 | Optional TypeSafe Jev (stub) | 2026-10-25 | FC-024-optional-jev.md |
 | FC-023 | Smoother flow and welcome fixes | 2026-10-25 | FC-023-smoother-flow-and-fixes.md |
 | FC-022 | Project role agents, workflow and init | 2026-10-25 | FC-022-project-role-agents-and-workflow.md |
 | FC-021 | Role agents and model routing | 2026-10-25 | FC-021-role-agents-and-model-routing.md |
