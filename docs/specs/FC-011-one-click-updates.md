@@ -1,6 +1,6 @@
 # FC-011 — One-click updates
 
-Size: L · Status: next · Started: - · Done: -
+Size: L · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-24.
 
@@ -63,7 +63,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
 
 ## Slices
 
-- [ ] 1. Flight Control knows its version — you'll check it by `sh bin/afc version` printing
+- [x] 1. Flight Control knows its version — you'll check it by `sh bin/afc version` printing
       `v0.02a` (tests: `VERSION` file read, version ordering such as `v0.01a` < `v0.02a` < `v0.10a`)
 - [ ] 2. Check for a newer release — you'll check it by `sh bin/afc update --check` against a test
       remote with a newer tag, then with none, then offline (tests: `v*` tags only, short timeout,
@@ -98,5 +98,6 @@ Publishing releases (still the user's own step); updating projects' code; updati
   This copy is built from v0.02a plus later work; reporting v0.01a would make the update check offer
   v0.02a to a copy that already has it. The welcome example above describes an older copy, so it is
   unchanged.
+- 2026-10-25: Slice 1 approved as built. `sh bin/afc version` prints {"version": "v0.02a"}. Versions order by number, then letter, with a bare version before its letters, so 0.01a < 0.02a < 0.10a and 0.01a < 0.01b. Slices 2 to 7 are not built.
 
 ## Shipped
