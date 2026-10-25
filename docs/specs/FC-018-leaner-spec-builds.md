@@ -1,6 +1,6 @@
 # FC-018 — Leaner spec builds
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25, after the FC-011 build with Sonnet builders and Sonnet/Haiku checkers
 used 21 helpers and 2.6M tokens for five slices and showed one 3h36m step.
@@ -88,7 +88,7 @@ settings.
 
 ## Slices
 
-- [ ] 1. One build workflow with one checker — you'll check it by the workflow file existing in
+- [x] 1. One build workflow with one checker — you'll check it by the workflow file existing in
       `.claude/workflows/` and taking spec, slices and models as inputs, and by a structural test that
       it starts one checker per round and at most two fix rounds (tests; no live build yet)
 - [ ] 2. Lean helpers — you'll check it by a do-nothing helper's starting tokens measured before and
