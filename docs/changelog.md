@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-25 — FC-023 Smoother flow and welcome fixes
+
+Fewer wasted turns at session start and clearer maintenance commands, without changing what maintenance mode means.
+
+- Default maintain to status
+- No duplicate welcome
+
 ## 2026-10-25 — FC-022 Project role agents, workflow and init
 
 Every new or adopted project gets role agents under `.claude/agents/`, a slice build workflow, workspace routing JSON, and a first compact brief — without manual copying.

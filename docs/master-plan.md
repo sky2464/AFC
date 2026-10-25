@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-023 | Smoother flow and welcome fixes | S | [spec](specs/FC-023-smoother-flow-and-fixes.md) | 2026-10-25 |
 
 ## Next
 
@@ -26,6 +25,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-023 | Smoother flow and welcome fixes | 2026-10-25 | [FC-023](specs/archive/FC-023-smoother-flow-and-fixes.md) |
 | FC-022 | Project role agents, workflow and init | 2026-10-25 | [FC-022](specs/archive/FC-022-project-role-agents-and-workflow.md) |
 | FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
@@ -35,7 +35,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-014 | Review before delivery | 2026-10-25 | [FC-014](specs/archive/FC-014-review-before-delivery.md) |
 | FC-013 | Right-sized tests | 2026-10-25 | [FC-013](specs/archive/FC-013-right-sized-tests.md) |
 | FC-018 | Leaner spec builds (helpers and tokens met, test runs missed; rest in FC-013) | 2026-10-25 | [FC-018](specs/archive/FC-018-leaner-spec-builds.md) |
-| FC-011 | One-click updates | 2026-10-25 | [FC-011](specs/archive/FC-011-one-click-updates.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -169,3 +168,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-022 started |
 | 2026-10-25 | FC-022 done |
 | 2026-10-25 | FC-023 started |
+| 2026-10-25 | FC-023 done |

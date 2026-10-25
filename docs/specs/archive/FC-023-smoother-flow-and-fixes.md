@@ -1,6 +1,6 @@
 # FC-023 — Smoother flow and welcome fixes
 
-Size: S · Status: in progress · Started: 2026-10-25 · Done: -
+Size: S · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Finding U8: `sh bin/afc maintain` with no argument printed only "Missing state." Finding U9: the first welcome question was sometimes asked twice.
 
@@ -20,3 +20,7 @@ Fewer wasted turns at session start and clearer maintenance commands, without ch
 - [x] 2. No duplicate welcome — you'll check it by `tests/test_session_start.py` and the `afc-start` skill text
 
 ## Decisions
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 2.
