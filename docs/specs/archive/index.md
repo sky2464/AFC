@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-011 | One-click updates | 2026-10-25 | FC-011-one-click-updates.md |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | FC-012-flight-control-keeps-its-own-copy-safe.md |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | FC-008-agent-instruction-files-in-apps.md |
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | FC-009-leaner-context-per-slice.md |

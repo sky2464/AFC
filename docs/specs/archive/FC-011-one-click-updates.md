@@ -1,6 +1,6 @@
 # FC-011 — One-click updates
 
-Size: L · Status: in progress · Started: 2026-10-25 · Done: -
+Size: L · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-24.
 
@@ -108,3 +108,5 @@ Publishing releases (still the user's own step); updating projects' code; updati
   by running git. Every git call of the look shares one budget.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 7.

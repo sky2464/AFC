@@ -18,7 +18,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
 | FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
 | FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
@@ -28,6 +27,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-011 | One-click updates | 2026-10-25 | [FC-011](specs/archive/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | [FC-012](specs/archive/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
@@ -37,7 +37,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-005 | Tidy, safe tool use | 2026-10-24 | [FC-005](specs/archive/FC-005-tidy-safe-tool-use.md) |
 | FC-004 | Plan goal and plan editing | 2026-10-24 | [FC-004](specs/archive/FC-004-plan-goal-and-plan-editing.md) |
 | FC-003 | A real, tested first slice | 2026-10-24 | [FC-003](specs/archive/FC-003-real-tested-first-slice.md) |
-| FC-002 | Fewer questions before building | 2026-10-24 | [FC-002](specs/archive/FC-002-fewer-questions-before-building.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -147,3 +146,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-014 slice 1 approved and ticked: review gives a verdict; spec stays in Next while FC-009 holds Now |
 | 2026-10-25 | FC-012 started |
 | 2026-10-25 | FC-012 done |
+| 2026-10-25 | FC-011 started |
+| 2026-10-25 | FC-011 done |
