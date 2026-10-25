@@ -86,5 +86,6 @@ publishing, which FC-011 covers from the update side.
   them.
 - 2026-10-24: The changelog is written from the spec's goal and slice labels, not commit subjects.
 - 2026-10-24: A project with no test command fails the gate rather than passing it.
+- 2026-10-25: Closed after slices 1 to 5. Slice 5 had no live run; its flow is covered by content tests only. The gate does not yet include the FC-014 review verdict.
 
 ## Shipped
