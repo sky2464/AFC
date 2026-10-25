@@ -102,7 +102,7 @@ enough.
       helpers and CONTRIBUTING use the new command; you'll check it by `tests/test_build_workflow.py`
       (a failing final suite starts exactly 1 fixer and 1 checker, for the right slice) and by no
       helper or CONTRIBUTING line still saying `unittest discover`.
-- [ ] 5. CI — `.github/workflows/tests.yml` runs `sh bin/afc test` on pushes to `dev` and pull
+- [x] 5. CI — `.github/workflows/tests.yml` runs `sh bin/afc test` on pushes to `dev` and pull
       requests to `main`, and `/afc` shows a failed last run with fixing it first; you'll check it
       by `tests/test_ci_status.py` (a failed run, a passed run, and no `gh` each give the right
       line) and by the workflow file naming both triggers.

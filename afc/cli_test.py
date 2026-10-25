@@ -6,7 +6,7 @@ from pathlib import Path
 from afc import testrun
 from afc.config import afc_root
 
-NAMES = ("test",)
+NAMES = ("test", "ci")
 
 
 def register(sub) -> None:
@@ -15,6 +15,8 @@ def register(sub) -> None:
     p.add_argument("--changed", metavar="REF", help="run only the tests for files changed since REF")
     p.add_argument("--list", action="store_true", help="with --changed, show the picked tests without running them")
     p.set_defaults(handler=cmd_test)
+    c = sub.add_parser("ci", help="show how the last test run on GitHub went")
+    c.set_defaults(handler=cmd_ci)
 
 
 def cmd_test(args: argparse.Namespace) -> dict:
@@ -37,3 +39,9 @@ def cmd_test(args: argparse.Namespace) -> dict:
         out = testrun.run_files(root, root / "tests")
     out["exit_code"] = 1 if out["failed"] else 0
     return out
+
+
+def cmd_ci(args: argparse.Namespace) -> dict:
+    from afc import ci_status
+
+    return ci_status.last_run(Path(afc_root()))
