@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-25 — FC-027 Add-ons off at start, quiet health check
+
+Add-ons that aren't on Flight Control's allowed list are really switched off in its sessions, without the user running anything. The health check, the welcome and the update summary speak up only about what needs the user, in a line or two.
+
+- Honest check wording
+- Switch off at session start
+- Short update summary
+- Live check
+
 ## 2026-10-25 — FC-026 Release check and v0.03a
 
 Releasing is a checked, repeatable step: Flight Control says whether `main` is ready to tag, the version it reports is never older than the newest release, and the one-click update is proven on a real copy before v0.03a goes out. Publishing stays the user's own step.

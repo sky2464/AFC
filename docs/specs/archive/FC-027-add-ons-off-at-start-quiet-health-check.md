@@ -1,6 +1,6 @@
 # FC-027 — Add-ons off at start, quiet health check
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Found on 2026-10-25 while testing the v0.03a one-click update on a scratch copy of the previous
 `main` (dd75b26 → v0.03a, 1034 tests passing). The update worked, but its summary said the health
@@ -89,3 +89,5 @@ switch-off, nothing more. Other problem kinds keep their meaning.
   which `enabledPlugins` doesn't reach.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 4.
