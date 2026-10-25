@@ -319,12 +319,13 @@ def cmd_done(args: argparse.Namespace) -> dict:
     if section != "Now":
         raise _error(f"{sid} isn't in progress.")
     spec_path, spec_text = _read_spec(space, sid, row)
+    from afc import cli_ship, ship
+
+    gate = cli_ship.run_gate(spec_text)
+    if not gate["ready"]:
+        lines = "\n".join(f"- {m}" for m in gate["missing"])
+        raise _error(f"{sid} is not ready to finish yet:\n{lines}\nNext: {gate['next']}")
     slices = plan.all_slices(spec_text)
-    open_ = plan.open_slices(spec_text)
-    if open_:
-        raise _error(f"{sid} still has {len(open_)} open slice(s), starting with: {open_[0]}")
-    if not slices:
-        raise _error(f"{sid} has no slices yet.")
     today = _cli()._today()
     name = spec_path.name
     archive = space.archive_dir
@@ -338,14 +339,22 @@ def cmd_done(args: argparse.Namespace) -> dict:
     new = plan.log(new, today, f"{sid} done")
     body = plan.set_header(spec_text, status="done", done=today)
     body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}.")
+    changelog = (space.base if space.prefix == "FC" else space.base.parent) / "changelog.md"
+    old_changelog = changelog.read_text(encoding="utf-8") if changelog.is_file() else None
+    entry = ship.changelog_entry(spec_text, sid, row[1], today)
     shutil.move(str(spec_path), str(target))
     try:
         target.write_text(body, encoding="utf-8")
         index_path.write_text(_archive_index(old_index or "", done_row + [name]), encoding="utf-8")
+        changelog.write_text(ship.add_to_changelog(old_changelog or "", entry), encoding="utf-8")
         path.write_text(new, encoding="utf-8")
         plan.compact(space)
     except BaseException:
         path.write_text(text, encoding="utf-8")
+        if old_changelog is None:
+            changelog.unlink(missing_ok=True)
+        else:
+            changelog.write_text(old_changelog, encoding="utf-8")
         if old_index is None:
             index_path.unlink(missing_ok=True)
         else:

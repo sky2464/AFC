@@ -1,6 +1,6 @@
 # FC-015 — Ship a finished spec
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-24. Reference design: the user's earlier AgToosa ship workflow (a readiness
 gate, a changelog, plan pruning and a suggested next story), cut down to the steps Flight Control is
@@ -65,17 +65,17 @@ publishing, which FC-011 covers from the update side.
 
 ## Slices
 
-- [ ] 1. The readiness gate — you'll check it by `sh bin/afc ship --check <id>` listing exactly what
+- [x] 1. The readiness gate — you'll check it by `sh bin/afc ship --check <id>` listing exactly what
       is missing on a project with an open slice, a failing suite and a dirty tree, then saying
       ready on a clean one (tests, one per check)
-- [ ] 2. `plan done` runs the gate first — you'll check it by `plan done` refusing with the gate's
+- [x] 2. `plan done` runs the gate first — you'll check it by `plan done` refusing with the gate's
       list while the spec, the plan and the archive stay exactly as they were (tests)
-- [ ] 3. The changelog entry — you'll check it by finishing a spec and reading `changelog.md` in the
+- [x] 3. The changelog entry — you'll check it by finishing a spec and reading `changelog.md` in the
       workspace: date, goal, slices, newest first (tests: one entry per spec, order, Flight
       Control's own plan included)
-- [ ] 4. `WIP` commits and an unpushed branch — you'll check it by a `WIP:` commit and an unpushed
+- [x] 4. `WIP` commits and an unpushed branch — you'll check it by a `WIP:` commit and an unpushed
       branch each failing the gate, each naming the user's own next step (tests)
-- [ ] 5. What shipped and what is next — you'll check it by finishing a spec in a live session and
+- [x] 5. What shipped and what is next — you'll check it by finishing a spec in a live session and
       being told in two plain lines, with the next spec as step 1 (content tests and one live run)
 
 ## Decisions
@@ -86,5 +86,8 @@ publishing, which FC-011 covers from the update side.
   them.
 - 2026-10-24: The changelog is written from the spec's goal and slice labels, not commit subjects.
 - 2026-10-24: A project with no test command fails the gate rather than passing it.
+- 2026-10-25: Closed after slices 1 to 5. Slice 5 had no live run; its flow is covered by content tests only. The gate does not yet include the FC-014 review verdict.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.

@@ -76,6 +76,132 @@ class ReviewVerdictTests(AfcTestCase):
         self.assertEqual((result["critical"], result["warning"]), (0, 1))
 
 
+SPEC = """# S-001 Login
+
+## You'll know it works when
+
+- When a user logs in with a wrong password, then an error message is shown.
+- When the session expires, then the user is sent back to the login page.
+
+## Slices
+"""
+
+
+def _planned(ws: Path) -> None:
+    (ws / "plan" / "specs").mkdir(parents=True)
+    (ws / "plan" / "specs" / "S-001-login.md").write_text(SPEC, encoding="utf-8")
+    (ws / "plan" / "master-plan.md").write_text(
+        "## Now\n\n| ID | Title | Size | Spec | Started |\n|---|---|---|---|---|\n"
+        "| S-001 | Login | S | [spec](specs/S-001-login.md) | 2026-10-25 |\n\n## Next\n",
+        encoding="utf-8")
+
+
+class ReviewOwnChecksTests(AfcTestCase):
+    def _review(self, files, planned=True):
+        repo = _git_repo(self.tmp / "app", files)
+        ws = self.tmp / "ws"
+        if planned:
+            _planned(ws)
+        with mock.patch("afc.scan.shutil.which", return_value=None):
+            result = review.run_review(repo, ws, "1 Login")
+        return result, Path(result["report"]).read_text(encoding="utf-8")
+
+    def test_501_line_file_blocks_and_is_named(self):
+        result, text = self._review({"big.py": "x = 1\n" * 501}, planned=False)
+        self.assertEqual((result["verdict"], result["critical"]), ("blocked", 1))
+        self.assertIn("big.py", text)
+
+    def test_500_line_file_is_fine(self):
+        result, _ = self._review({"big.py": "x = 1\n" * 500}, planned=False)
+        self.assertEqual(result["verdict"], "ok")
+
+    def test_untested_line_blocks_and_is_quoted_in_full(self):
+        tests = "def test_user_logs_in_wrong_password_error_message_shown(): pass\n"
+        result, text = self._review({"test_login.py": tests})
+        self.assertEqual((result["verdict"], result["critical"]), ("blocked", 1))
+        self.assertIn("When the session expires, then the user is sent back to the login page.", text)
+        self.assertNotIn("wrong password, then", text)
+
+    def test_every_line_tested_stays_ok(self):
+        tests = ("def test_user_logs_in_wrong_password_error_message_shown(): pass\n"
+                 "def test_expired_session_sends_the_user_back_to_the_login_page(): pass\n")
+        result, _ = self._review({"test_login.py": tests})
+        self.assertEqual((result["verdict"], result["critical"]), ("ok", 0))
+
+
+class ReviewRegressionTests(AfcTestCase):
+    def _review(self, label, files, extra=None):
+        repo = _git_repo(self.tmp / "app", {"app.py": "print(1)\n"})
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base"],
+                       cwd=repo, check=True)
+        for name, text in files.items():
+            (repo / name).parent.mkdir(parents=True, exist_ok=True)
+            (repo / name).write_text(text, encoding="utf-8")
+        with mock.patch("afc.scan.shutil.which", return_value=None):
+            result = review.run_review(repo, self.tmp / "ws", label)
+        return result, Path(result["report"]).read_text(encoding="utf-8")
+
+    def test_bug_fix_without_regression_test_is_blocked(self):
+        result, text = self._review("2 Fix login crash", {"app.py": "print(2)\n"})
+        self.assertEqual((result["verdict"], result["critical"]), ("blocked", 1))
+        self.assertIn("regression test", text)
+
+    def test_bug_fix_passes_once_the_regression_test_exists(self):
+        files = {"app.py": "print(2)\n",
+                 "tests/test_login.py": "def test_regression_login_crash(): pass\n"}
+        result, _ = self._review("2 Fix login crash", files)
+        self.assertEqual((result["verdict"], result["critical"]), ("ok", 0))
+
+    def test_a_test_that_is_not_named_regression_does_not_count(self):
+        files = {"app.py": "print(2)\n", "tests/test_login.py": "def test_login(): pass\n"}
+        result, _ = self._review("2 Fix login crash", files)
+        self.assertEqual(result["verdict"], "blocked")
+
+    def test_a_feature_slice_needs_no_regression_test(self):
+        result, _ = self._review("2 Add logout", {"app.py": "print(2)\n"})
+        self.assertEqual(result["verdict"], "ok")
+
+
+class ReviewNamingTests(AfcTestCase):
+    def _review(self, files, spec_words="Call them customer (not user).\n", decisions=""):
+        repo = _git_repo(self.tmp / "app", files)
+        ws = self.tmp / "ws"
+        _planned(ws)
+        spec = ws / "plan" / "specs" / "S-001-login.md"
+        spec.write_text(SPEC.replace("## Slices", spec_words + "\n## Slices"), encoding="utf-8")
+        if decisions:
+            (ws / "plan" / "decisions.md").write_text(decisions, encoding="utf-8")
+        tests = ("def test_user_logs_in_wrong_password_error_message_shown(): pass\n"
+                 "def test_expired_session_sends_the_user_back_to_the_login_page(): pass\n")
+        files = {**files, "test_login.py": tests}
+        for name, text in files.items():
+            (repo / name).write_text(text, encoding="utf-8")
+        with mock.patch("afc.scan.shutil.which", return_value=None):
+            result = review.run_review(repo, ws, "1 Login")
+        return result, Path(result["report"]).read_text(encoding="utf-8")
+
+    def test_other_word_in_code_is_a_warning_naming_both_words(self):
+        result, text = self._review({"app.py": "def load_user(user_id):\n    return user_id\n"})
+        self.assertEqual((result["verdict"], result["critical"], result["warning"]), ("ok", 0, 1))
+        self.assertIn("customer", text)
+        self.assertIn("user", text)
+        self.assertIn("app.py", text)
+
+    def test_camel_case_names_count_too(self):
+        result, _ = self._review({"app.js": "function loadUser() {}\n"})
+        self.assertEqual(result["warning"], 1)
+
+    def test_decisions_file_words_count(self):
+        result, text = self._review({"app.py": "def get_client(): pass\n"}, spec_words="",
+                                    decisions="- 2026-10-25: use account, not client.\n")
+        self.assertEqual(result["warning"], 1)
+        self.assertIn("account", text)
+
+    def test_the_agreed_word_and_longer_words_are_fine(self):
+        result, _ = self._review({"app.py": "def load_customer(): pass\nusers_url = 1\nuserland = 2\n"})
+        self.assertEqual(result["warning"], 0)
+
+
 class ReviewReportTests(AfcTestCase):
     def test_report_written_beside_scan_reports(self):
         repo = _git_repo(self.tmp / "app", {"ok.py": "print(1)\n"})

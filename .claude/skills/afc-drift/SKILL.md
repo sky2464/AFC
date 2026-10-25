@@ -72,6 +72,8 @@ When the profile should change:
 - Update `plan/intent.md` (goal, non-goals, assumptions, open questions) when the intent changed.
 - Record lasting decisions in `plan/decisions.md`.
 
+Change only the lines that change with the file edit tool; never rewrite a whole file.
+
 A new goal that fits the intent is only added to `master-plan.md` (via `plan add`), not to
 `intent.md`.
 

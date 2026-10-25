@@ -13,12 +13,7 @@
 - Write an ADR (architecture decision record) for big decisions: a new service, a new datastore, a framework, an auth approach, a public API shape.
   - ADR format: context, decision, options considered, consequences. One page.
   - Store ADRs in the project's docs folder.
-- Before coding each slice, fill a mini threat check. Use STRIDE categories (Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege). At most 5 rows, sized to the slice:
-
-| Threat | Category | Mitigation |
-|---|---|---|
-| Someone calls /orders as another user | Spoofing | Check the session and the order owner on the server |
-| A user floods the search endpoint | Denial of service | Rate limit per user |
+- Before coding each slice, fill a mini threat check with STRIDE categories: at most 5 rows, sized to the slice.
 
 ## Never
 - Never let a file grow past 500 lines.

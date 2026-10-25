@@ -2,6 +2,12 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | FC-020-trim-skill-text-and-plan-bookkeeping.md |
+| FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | FC-017-leaner-replies-plan-edits-and-skill-text.md |
+| FC-019 | Checks only when needed | 2026-10-25 | FC-019-checks-only-when-needed.md |
+| FC-015 | Ship a finished spec | 2026-10-25 | FC-015-ship-a-finished-spec.md |
+| FC-014 | Review before delivery | 2026-10-25 | FC-014-review-before-delivery.md |
+| FC-013 | Right-sized tests | 2026-10-25 | FC-013-right-sized-tests.md |
 | FC-011 | One-click updates | 2026-10-25 | FC-011-one-click-updates.md |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | FC-012-flight-control-keeps-its-own-copy-safe.md |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | FC-008-agent-instruction-files-in-apps.md |

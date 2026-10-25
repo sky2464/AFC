@@ -13,31 +13,26 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
-| FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
-| FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
+| FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
+| FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
+| FC-015 | Ship a finished spec | 2026-10-25 | [FC-015](specs/archive/FC-015-ship-a-finished-spec.md) |
+| FC-014 | Review before delivery | 2026-10-25 | [FC-014](specs/archive/FC-014-review-before-delivery.md) |
+| FC-013 | Right-sized tests | 2026-10-25 | [FC-013](specs/archive/FC-013-right-sized-tests.md) |
 | FC-018 | Leaner spec builds (helpers and tokens met, test runs missed; rest in FC-013) | 2026-10-25 | [FC-018](specs/archive/FC-018-leaner-spec-builds.md) |
 | FC-011 | One-click updates | 2026-10-25 | [FC-011](specs/archive/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | [FC-012](specs/archive/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
-| FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
-| FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
-| FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
-| FC-006 | Workspace notes in the right place | 2026-10-24 | [FC-006](specs/archive/FC-006-workspace-notes-in-the-right-place.md) |
-| FC-005 | Tidy, safe tool use | 2026-10-24 | [FC-005](specs/archive/FC-005-tidy-safe-tool-use.md) |
-| FC-004 | Plan goal and plan editing | 2026-10-24 | [FC-004](specs/archive/FC-004-plan-goal-and-plan-editing.md) |
-| FC-003 | A real, tested first slice | 2026-10-24 | [FC-003](specs/archive/FC-003-real-tested-first-slice.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -153,3 +148,16 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-018 started |
 | 2026-10-25 | FC-013 started, built with the FC-018 workflow to measure it (FC-018 slice 5) |
 | 2026-10-25 | FC-018 done: helpers 7.0→2.0 and tokens 7.5M→0.25M per slice, full-suite runs 8.7→5.0 (target 4.35 missed; FC-013 run-one-file rule covers it) |
+| 2026-10-25 | FC-013 done |
+| 2026-10-25 | FC-014 started |
+| 2026-10-25 | FC-014 done |
+| 2026-10-25 | FC-015 started |
+| 2026-10-25 | FC-019 Checks only when needed added and specced (6 slices) during the FC-015 build: parallel suite, tests for what changed, checker only for risky slices, one suite at the end, CI; queued first in Next |
+| 2026-10-25 | FC-015 done |
+| 2026-10-25 | FC-019 started |
+| 2026-10-25 | FC-019 done |
+| 2026-10-25 | FC-017 started |
+| 2026-10-25 | FC-017 done |
+| 2026-10-25 | FC-020 added |
+| 2026-10-25 | FC-020 started |
+| 2026-10-25 | FC-020 done |

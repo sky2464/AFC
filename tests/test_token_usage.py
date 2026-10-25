@@ -223,3 +223,74 @@ class WholeRunTests(AfcTestCase):
         path = _session(self.tmp, "s.jsonl", GROWTH, ran=())
         done = subprocess.run([sys.executable, str(SCRIPT), str(path)], capture_output=True, text=True)
         self.assertEqual((done.returncode, json.loads(done.stdout)["turns"]), (0, 4))
+
+
+def _turn(mid, context, tools=(), text=False):
+    """One assistant turn with a prompt of `context` tokens and the given tool calls (name, input)."""
+    content = [{"type": "text", "text": "ok"}] if text else []
+    content += [{"type": "tool_use", "name": n, "input": i} for n, i in tools]
+    usage = {"input_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": context,
+             "output_tokens": 1}
+    return json.dumps({"type": "assistant", "message": {"id": mid, "usage": usage, "content": content}})
+
+
+class BreakdownTests(AfcTestCase):
+    """Slice 1 of FC-017: growth by part, each jump credited to the turn before it."""
+
+    def parts(self, turns):
+        path = self.tmp / "b.jsonl"
+        path.write_text("\n".join(turns), encoding="utf-8")
+        return _load().breakdown(path)
+
+    def test_each_part_gets_the_jump_after_its_turn(self):
+        # The prompt of turn n holds what turn n-1 added, so the jump is credited to turn n-1.
+        r = self.parts([
+            _turn("m0", 1000, tools=[("Write", {"file_path": "/app/server.py"})]),         # code +10
+            _turn("m1", 1010, tools=[("Edit", {"file_path": "/app/tests/test_x.py"})]),    # code +20
+            _turn("m2", 1030, text=True),                                                   # replies +3
+            _turn("m3", 1033, tools=[("Skill", {"skill": "afc-slice"})]),                   # skill +10
+            _turn("m4", 1043, tools=[("Edit", {"file_path": "/h/docs/specs/FC-1-x.md"})]),  # plan +20
+            _turn("m5", 1063, tools=[("Write", {"file_path": "/h/.A-FC/projects/p/plan.md"})]),  # plan +1
+            _turn("m6", 1064, tools=[("Read", {"file_path": "/app/a.py"})]),                # read +5
+            _turn("m7", 1069, tools=[("Bash", {"command": "sh bin/afc status"})]),          # other +10
+            _turn("m8", 1079, text=True),
+        ])
+        self.assertEqual(r["code_and_tests"], 30)
+        self.assertEqual(r["replies"], 3)
+        self.assertEqual(r["skill_text"], 10)
+        self.assertEqual(r["plan_and_spec_edits"], 21)
+        self.assertEqual(r["files_read"], 5)
+        self.assertEqual(r["other"], 10)
+        self.assertEqual(r["growth"], 79)
+
+    def test_the_parts_add_up_to_growth_and_stop_at_the_peak(self):
+        r = self.parts([_turn("m0", 1000, text=True), _turn("m1", 1100, text=True),
+                        _turn("m2", 1050, text=True)])
+        self.assertEqual(r["growth"], 100)
+        self.assertEqual(sum(r[k] for k in _load().PARTS), 100)
+
+    def test_a_turn_split_over_lines_is_read_once_with_all_its_tools(self):
+        first = json.loads(_turn("m1", 1000, tools=[("Read", {"file_path": "/a"})]))
+        second = json.loads(_turn("m1", 1000, tools=[("Write", {"file_path": "/app/x.py"})]))
+        r = self.parts([_turn("m0", 1000, text=True), json.dumps(first), json.dumps(second),
+                        _turn("m2", 1010, text=True)])
+        self.assertEqual(r["replies"], 0)
+        self.assertEqual(r["code_and_tests"], 10)
+
+    def test_reading_a_skill_file_counts_as_skill_text(self):
+        r = self.parts([_turn("m0", 1000, tools=[("Read", {"file_path": "/A-FC/skills/afc-slice/SKILL.md"})]),
+                        _turn("m1", 1007)])
+        self.assertEqual(r["skill_text"], 7)
+
+    def test_an_empty_transcript_has_zero_parts(self):
+        r = self.parts([])
+        self.assertTrue(all(r[k] == 0 for k in _load().PARTS))
+
+    def test_the_command_line_prints_the_parts_with_the_breakdown_flag(self):
+        path = self.tmp / "c.jsonl"
+        path.write_text("\n".join([_turn("m0", 1000), _turn("m1", 1010, text=True), _turn("m2", 1010)]),
+                        encoding="utf-8")
+        done = subprocess.run([sys.executable, str(SCRIPT), "--parts", str(path)], capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0)
+        out = json.loads(done.stdout)
+        self.assertEqual((out["replies"], out["growth"]), (10, 10))

@@ -1,0 +1,23 @@
+afc-start	question. Anything else: answer briefly, then ask the update question. Never both in one message.
+afc-start	Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
+afc-start	`sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop back to `/afc`
+afc-setup	- **Folder** — `parent` is the recommended folder and is never iCloud-synced. If `parent` is
+afc-setup	- When the project needs a remote, it is created private (`afc-remote`). Never make it public.
+afc-interview	they named). Never assume versions or APIs from memory.
+afc-interview	- **One question per message.** Each one builds on the last answer. Never stack questions.
+afc-interview	into it: "type an address and see the PHP version it announces", never "Create the app".
+afc-interview	question: "Start with the first one?" Never ask the user to read or approve a spec file.
+afc-slice	one CLI command. Not a stub. The user approves the working slice, never a document.
+afc-slice	nothing, never create a branch in the app to make the request fit.
+afc-slice	to five for a small read-only piece. Never test prose.
+afc-slice	("Flight Control blocked …"), fix the cause or say so; never work around it.
+afc-slice	- **Files:** create and change them with the file tools (Write, Edit), never `cat > … <<EOF` or
+afc-slice	- **Rules and specs:** read them with the file-reading tool, never `cat`.
+afc-slice	(`sh <path>/bin/afc …`). Never `cd` into its folder.
+afc-slice	the workspace's `reports/` folder (never `/tmp`), and stop it with `kill <pid>`.
+afc-slice	ran and passed. Never show a slice with a failing test, or with none: write the test first. If
+afc-slice	It ticks the spec, logs the decision and notes the architecture. Never read or edit those files by hand for it.
+afc-slice	`sh bin/afc plan done <id>`. Not ready: give its list and next step, never deploy. Finished: say in
+afc-deliver	## Never ask, never do
+afc-deliver	- Never ask the user to approve routine commits or pushes of approved slices.
+afc-deliver	- These are always the user's own actions, never yours: making a repository public, force-push,

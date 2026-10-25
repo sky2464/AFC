@@ -2,6 +2,7 @@
 
 Usage: python3 docs/measurements/token_usage.py <transcript.jsonl>
        python3 docs/measurements/token_usage.py <control.jsonl> <rerun.jsonl>
+       python3 docs/measurements/token_usage.py --parts <transcript.jsonl>   (growth by part, FC-017)
 
 Numbers (each assistant message counted once, by message id):
 - peak_context: the biggest single prompt, input + cache creation + cache read (what "context" means)
@@ -78,6 +79,64 @@ def measure(path) -> dict:
             "added_fresh_tokens": fresh - first_input}
 
 
+PARTS = ("code_and_tests", "replies", "skill_text", "plan_and_spec_edits", "files_read", "other")
+PLAN_OR_SPEC = re.compile(r"(^|/)(docs/specs/|docs/master-plan|plan[^/]*\.md$|specs?/[^/]*\.md$)")
+SKILL_FILE = re.compile(r"(^|/)skills/")
+
+
+def _part_of(content) -> str:
+    """The part one turn's tool calls belong to. Plan and spec edits first, then skill text, then
+    code and tests; reading comes next, any other tool is "other", and a turn with no tool call is
+    the model's reply."""
+    found: set[str] = set()
+    for item in content if isinstance(content, list) else []:
+        if not isinstance(item, dict) or item.get("type") != "tool_use":
+            continue
+        name, args = item.get("name"), item.get("input") or {}
+        path = str(args.get("file_path") or args.get("path") or "")
+        if name in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+            found.add("plan_and_spec_edits" if PLAN_OR_SPEC.search(path) else "code_and_tests")
+        elif name == "Skill" or (name == "Read" and SKILL_FILE.search(path)):
+            found.add("skill_text")
+        elif name in ("Read", "Grep", "Glob"):
+            found.add("files_read")
+        else:
+            found.add("other")
+    for part in ("plan_and_spec_edits", "skill_text", "code_and_tests", "files_read", "other"):
+        if part in found:
+            return part
+    return "replies"
+
+
+def breakdown(path) -> dict:
+    """Growth by part. A turn's prompt holds what the turn before it added (its reply, its tool
+    call and the result), so each jump in the prompt is credited to the part of the turn before it.
+    Jumps are counted up to the first turn with the peak prompt, so the parts add up to `growth`."""
+    turns: dict[str, dict] = {}
+    for line in Path(path).read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        message = entry.get("message") or {}
+        if entry.get("type") != "assistant" or not message.get("id") or not isinstance(message.get("usage"), dict):
+            continue
+        turn = turns.setdefault(message["id"], {"content": []})
+        turn["usage"] = message["usage"]
+        if isinstance(message.get("content"), list):
+            turn["content"].extend(message["content"])
+    order = list(turns.values())
+    sizes = [sum(t["usage"].get(k, 0) for k in ("input_tokens", "cache_creation_input_tokens",
+                                                 "cache_read_input_tokens")) for t in order]
+    result = dict.fromkeys(PARTS, 0)
+    if sizes:
+        peak_at = sizes.index(max(sizes))
+        for n in range(1, peak_at + 1):
+            result[_part_of(order[n - 1]["content"])] += sizes[n] - sizes[n - 1]
+    result["growth"] = sum(result.values())
+    return result
+
+
 def steps_reached(path) -> list[str]:
     """Which of the new, scan and deliver steps the session ran, in start-to-finish order.
 
@@ -130,7 +189,10 @@ def compare(control, rerun) -> dict:
 
 if __name__ == "__main__":
     try:
-        result = compare(*sys.argv[1:3]) if len(sys.argv) > 2 else measure(sys.argv[1])
+        if sys.argv[1] == "--parts":
+            result = breakdown(sys.argv[2])
+        else:
+            result = compare(*sys.argv[1:3]) if len(sys.argv) > 2 else measure(sys.argv[1])
     except ValueError as error:
         print(json.dumps({"error": str(error)}))
         sys.exit(1)

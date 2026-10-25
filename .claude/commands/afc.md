@@ -16,8 +16,10 @@ Maintenance mode means working on Flight Control itself, with every project set 
 - **`/afc mm status`**: run `sh bin/afc maintain status` and say the mode in one line.
 - If the result has `scope` "global", say so plainly: it is on for every session until turned off.
 - For any other `/afc`, run `sh bin/afc maintain status` first. When `maintain` is true, say in one
-  line that maintenance mode is on and projects are set aside, offer these two steps, and stop (do
-  not run `sh bin/afc status` or show projects):
+  line that maintenance mode is on and projects are set aside, then run `sh bin/afc ci`. When it
+  returns `fix_first` true, say its `line` and offer "1. Fix the failed test run (recommended)
+  2. Keep working on Flight Control" instead of the two steps below; when its `line` is empty, say nothing about it. Offer these two
+  steps, and stop (do not run `sh bin/afc status` or show projects):
 
   1. Keep working on Flight Control (recommended)
   2. Go back to your projects (`/afc mm off`)

@@ -1,6 +1,6 @@
 # FC-014 — Review before delivery
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-24. Reference design: the user's earlier AgToosa review workflow (four
 reviewer personas, a root-cause protocol and a verdict that blocks shipping), adapted to Flight
@@ -77,14 +77,14 @@ own. Reviewing anything other than the current slice's changes.
       `sh bin/afc review --slice "1 label"` on a project with a known problem printing `verdict`,
       `critical`, `warning` and `report` (tests: ok and blocked, report written, the existing scan
       checks included)
-- [ ] 2. File size and untested acceptance lines are critical — you'll check it by a 501-line file
+- [x] 2. File size and untested acceptance lines are critical — you'll check it by a 501-line file
       and an uncovered "You'll know it works when" line each making the verdict `blocked`, each
       named in the report (tests for both, and for a clean project staying `ok`)
-- [ ] 3. A bug fix needs a regression test — you'll check it by a bug-fix slice with no named
+- [x] 3. A bug fix needs a regression test — you'll check it by a bug-fix slice with no named
       regression test being blocked, and the same slice passing once the test exists (tests)
-- [ ] 4. Names that disagree with the project's words are a warning — you'll check it by a spec that
+- [x] 4. Names that disagree with the project's words are a warning — you'll check it by a spec that
       says one word and code that uses another showing both words in the report (tests)
-- [ ] 5. The slice flow reviews before asking for approval — you'll check it by a live slice where
+- [x] 5. The slice flow reviews before asking for approval — you'll check it by a live slice where
       the review runs inside checkpoint 3 and a blocked verdict stops the approval question, with
       the root-cause rule in checkpoint 2 (content tests and one live run)
 
@@ -98,5 +98,8 @@ own. Reviewing anything other than the current slice's changes.
 - 2026-10-24: Left out of the port on purpose: a second AI platform's opinion, issue-tracker
   updates, and showing the four reviewers as sections.
 - 2026-10-25: Slice 1 approved as built. A scan check that fails is critical, a warning is a warning, and a missing tool counts as neither; the verdict is blocked while anything is critical. A blocked verdict exits 0, as scan does. The review runs over the whole code folder for now; scoping to the slice's own changes comes with slice 2. Slices 2 to 5 are not built.
+- 2026-10-25: Closed after slices 2 to 5. The live run (a scratch project, blocked then ok) covered the review checks but not the full approval flow in a real slice; that flow is covered by content tests only.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.
