@@ -13,6 +13,13 @@ from pathlib import Path
 
 from afc import update, version
 
+NOTE = "just_updated.json"  # one-time note in the workspace home for the welcome after a restart
+# What Claude Code reads only at session start: a change to any of these needs a restart.
+SESSION_START_FILES = ("CLAUDE.md", ".claude/settings.json", ".claude/skills/", ".claude/commands/", "afc/hooks/")
+RESTART_HOW = (
+    "The new version takes effect after a restart: type /exit, then run `claude --continue` in the "
+    "A-FC folder to come back to this same conversation."
+)
 FETCH_BUDGET = 60  # a release fetch may be bigger than the daily look
 MAX_CHANGES = 8
 
@@ -49,6 +56,36 @@ def run_upgrade(root: Path, old_version: str) -> dict | None:
         return out if isinstance(out, dict) else None
     except (OSError, ValueError, subprocess.TimeoutExpired):
         return None
+
+
+def needs_restart(changed: list[str]) -> bool:
+    """True when any changed file is one Claude only reads at session start."""
+    return any(path == f or (f.endswith("/") and path.startswith(f)) for path in changed for f in SESSION_START_FILES)
+
+
+def leave_note(home: Path, tag: str) -> bool:
+    """Leave the one-time 'just updated to vX' note for the next welcome; False when it can't be written."""
+    try:
+        home.mkdir(parents=True, exist_ok=True)
+        (home / NOTE).write_text(json.dumps({"version": tag}), encoding="utf-8")
+        return True
+    except OSError:
+        return False
+
+
+def take_note(home: Path) -> str | None:
+    """The version in the note, which is removed as it is read (shown once); None when there is none."""
+    path = home / NOTE
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        tag = data.get("version") if isinstance(data, dict) else None
+    except (OSError, ValueError):
+        tag = None
+    try:
+        path.unlink()
+    except OSError:
+        pass
+    return tag if isinstance(tag, str) else None
 
 
 def _title(root: Path, tag: str) -> str:
@@ -91,10 +128,16 @@ def apply(root: Path, home: Path) -> dict:
     if len(changes) > len(shown):
         shown.append(f"and {len(changes) - len(shown)} more")
     title = _title(root, tag)
+    changed = (_git(root, "diff", "--name-only", f"{before}..HEAD") or "").split("\n")
+    restart = needs_restart([c.strip() for c in changed if c.strip()])
+    leave_note(home, tag)
     result = {
         "updated": True, "from": current, "to": tag, "title": title, "changes": shown,
         "check": run_check(root),
+        "restart": restart,
     }
+    if restart:
+        result["restart_how"] = RESTART_HOW
     result["summary"] = f"Updated Flight Control from {current} to {tag}: {title}."
     result["workspace"] = run_upgrade(root, current)
     ws = result["workspace"]

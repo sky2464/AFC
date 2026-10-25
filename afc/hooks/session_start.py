@@ -19,7 +19,7 @@ import sys
 import time
 from pathlib import Path
 
-from afc import update
+from afc import update, update_apply, version
 from afc.config import afc_home, afc_root, maintain_enabled, valid_session
 from afc.registry import load_registry
 
@@ -111,6 +111,17 @@ def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | Non
         return None
 
 
+def _just_updated(home: Path) -> str:
+    """'You're on vX now.' once after an update, then the note is removed. Never raises."""
+    try:
+        tag = update_apply.take_note(home)
+        if tag and tag == version.installed(afc_root()):
+            return f"You're on {tag} now.\n"
+    except Exception:  # the welcome must never break
+        pass
+    return ""
+
+
 def _update_message(current: str, latest: str) -> str:
     return (f"{INTRO}\nFlight Control {latest} is out; you have {current}.\n"
             "1. Update now (recommended)  2. Not now")
@@ -121,7 +132,9 @@ def _update_question(current: str, latest: str, one: str, two: str) -> str:
     return (
         f"A newer Flight Control release is out: {latest} (installed {current}). The welcome asked "
         "the update question first: 1 = update now, 2 = not now. If the first message is 1, run "
-        "sh bin/afc update and tell the user in plain words what happened. If it is 2, run "
+        "sh bin/afc update and tell the user in plain words what happened; if the result says restart is "
+        "true, say the new version takes effect after a restart and give its restart_how (type /exit, "
+        "then run claude --continue in the A-FC folder). If it is 2, run "
         f"sh bin/afc update --skip {latest}, say you will stay quiet until a newer release, then "
         f"ask the project question (1 = {one}, 2 = {two}). For anything else, answer it briefly, "
         "then ask the update question. Never ask both questions in one message.")
@@ -176,12 +189,14 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
         reg = load_registry(home)
         one, two, line = _choices(reg)
         offer = _update_offer(home, now)
+        gone = _just_updated(home)
         if offer:
             message = _update_message(*offer)
             asked = _update_question(*offer, one, two)
         else:
             message = f"{INTRO}\n{line}"
             asked = f"The welcome asked: 1 = {one}, 2 = {two}."
+        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}", 1)
         context = (
             f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "
             "Follow CLAUDE.md and the afc-start skill for the first reply."
