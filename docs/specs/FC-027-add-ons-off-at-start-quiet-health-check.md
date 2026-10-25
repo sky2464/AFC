@@ -67,7 +67,7 @@ switch-off, nothing more. Other problem kinds keep their meaning.
       allowed and enabled → written to settings, one welcome line, count excludes them; second start
       → no line; user's own `false` entries and allowed add-ons untouched; a settings write error →
       settings unchanged and the welcome still shown
-- [ ] 3. Short update summary — you'll check it by `tests/test_update_apply.py` cases for a clean
+- [x] 3. Short update summary — you'll check it by `tests/test_update_apply.py` cases for a clean
       check, add-ons only (one counted phrase, no names) and one other problem plus add-ons ("and N
       more"), each three sentences or fewer
 - [ ] 4. Live check — you'll check it by starting two sessions on the real `A-FC` folder: the first
