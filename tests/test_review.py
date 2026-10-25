@@ -162,6 +162,46 @@ class ReviewRegressionTests(AfcTestCase):
         self.assertEqual(result["verdict"], "ok")
 
 
+class ReviewNamingTests(AfcTestCase):
+    def _review(self, files, spec_words="Call them customer (not user).\n", decisions=""):
+        repo = _git_repo(self.tmp / "app", files)
+        ws = self.tmp / "ws"
+        _planned(ws)
+        spec = ws / "plan" / "specs" / "S-001-login.md"
+        spec.write_text(SPEC.replace("## Slices", spec_words + "\n## Slices"), encoding="utf-8")
+        if decisions:
+            (ws / "plan" / "decisions.md").write_text(decisions, encoding="utf-8")
+        tests = ("def test_user_logs_in_wrong_password_error_message_shown(): pass\n"
+                 "def test_expired_session_sends_the_user_back_to_the_login_page(): pass\n")
+        files = {**files, "test_login.py": tests}
+        for name, text in files.items():
+            (repo / name).write_text(text, encoding="utf-8")
+        with mock.patch("afc.scan.shutil.which", return_value=None):
+            result = review.run_review(repo, ws, "1 Login")
+        return result, Path(result["report"]).read_text(encoding="utf-8")
+
+    def test_other_word_in_code_is_a_warning_naming_both_words(self):
+        result, text = self._review({"app.py": "def load_user(user_id):\n    return user_id\n"})
+        self.assertEqual((result["verdict"], result["critical"], result["warning"]), ("ok", 0, 1))
+        self.assertIn("customer", text)
+        self.assertIn("user", text)
+        self.assertIn("app.py", text)
+
+    def test_camel_case_names_count_too(self):
+        result, _ = self._review({"app.js": "function loadUser() {}\n"})
+        self.assertEqual(result["warning"], 1)
+
+    def test_decisions_file_words_count(self):
+        result, text = self._review({"app.py": "def get_client(): pass\n"}, spec_words="",
+                                    decisions="- 2026-10-25: use account, not client.\n")
+        self.assertEqual(result["warning"], 1)
+        self.assertIn("account", text)
+
+    def test_the_agreed_word_and_longer_words_are_fine(self):
+        result, _ = self._review({"app.py": "def load_customer(): pass\nusers_url = 1\nuserland = 2\n"})
+        self.assertEqual(result["warning"], 0)
+
+
 class ReviewReportTests(AfcTestCase):
     def test_report_written_beside_scan_reports(self):
         repo = _git_repo(self.tmp / "app", {"ok.py": "print(1)\n"})

@@ -82,7 +82,7 @@ own. Reviewing anything other than the current slice's changes.
       named in the report (tests for both, and for a clean project staying `ok`)
 - [x] 3. A bug fix needs a regression test — you'll check it by a bug-fix slice with no named
       regression test being blocked, and the same slice passing once the test exists (tests)
-- [ ] 4. Names that disagree with the project's words are a warning — you'll check it by a spec that
+- [x] 4. Names that disagree with the project's words are a warning — you'll check it by a spec that
       says one word and code that uses another showing both words in the report (tests)
 - [ ] 5. The slice flow reviews before asking for approval — you'll check it by a live slice where
       the review runs inside checkpoint 3 and a blocked verdict stops the approval question, with

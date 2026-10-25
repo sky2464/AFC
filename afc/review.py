@@ -8,6 +8,10 @@ a trail. Later slices of FC-014 add their own checks to the same list.
 Two checks are the review's own. A changed file over 500 lines is critical and named. A line of
 the active spec's "You'll know it works when" list that no test mentions is critical and quoted
 in full. A line is covered when one test file holds most of its words.
+
+A third check is a warning. The spec and plan/decisions.md may name a word to avoid, written as
+"customer (not user)" or "use customer, not user". A changed code file whose names (snake_case or
+camelCase, test files left out) contain the avoided word gets a warning naming both words.
 """
 
 import re
@@ -106,6 +110,40 @@ def regression_checks(code: Path, label: str) -> list[Check]:
     return [Check("regression test", "fail", f"bug fix '{label}' has no regression test named after the bug")]
 
 
+_AVOID = [re.compile(r"\b([a-z]{3,})\s*\(not\s+([a-z]{3,})\)", re.I),
+          re.compile(r"\buse\s+([a-z]{3,}),?\s+not\s+([a-z]{3,})\b", re.I)]
+
+
+def project_words(texts: list[str]) -> dict[str, str]:
+    """Avoided word -> agreed word, from 'agreed (not avoided)' and 'use agreed, not avoided'."""
+    pairs = {}
+    for text in texts:
+        for pattern in _AVOID:
+            for agreed, avoided in pattern.findall(text):
+                pairs[avoided.lower()] = agreed.lower()
+    return pairs
+
+
+def naming_checks(code: Path, pairs: dict[str, str]) -> list[Check]:
+    checks = []
+    for path in _changed_files(code):
+        rel = path.relative_to(code).as_posix()
+        if _TEST_FILE.search(rel):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        used = set()
+        for ident in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text):
+            spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", ident)
+            used.update(part.lower() for part in spaced.split("_"))
+        for avoided, agreed in pairs.items():
+            if avoided in used:
+                checks.append(Check("naming", "warn", f"{rel} says '{avoided}', the project says '{agreed}'"))
+    return checks
+
+
 def run_review(code_path: Path, workspace_path: Path, label: str) -> dict:
     """Run the checks on the code folder, write the report, and return the verdict and counts."""
     code = Path(code_path)
@@ -113,6 +151,9 @@ def run_review(code_path: Path, workspace_path: Path, label: str) -> dict:
     spec = active_spec(Path(workspace_path))
     if spec:
         checks += acceptance_checks(code, spec)
+    texts = [p.read_text(encoding="utf-8") for p in
+             (spec, Path(workspace_path) / "plan" / "decisions.md") if p and p.is_file()]
+    checks += naming_checks(code, project_words(texts))
     critical = sum(1 for c in checks if c.status == "fail")
     warning = sum(1 for c in checks if c.status == "warn")
     verdict = BLOCKED if critical else OK
