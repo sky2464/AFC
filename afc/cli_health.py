@@ -14,7 +14,9 @@ from pathlib import Path
 from afc import addons, tools
 from afc.config import afc_home
 from afc.registry import load_registry, save_registry
-from afc.session_dirs import GrantError, block_addons, blocked_addons, drop_dirs, grant_dirs, granted_now
+from afc.session_dirs import (GrantError, block_addons, blocked_addons, check_settings, drop_dirs, grant_dirs,
+                              granted_now, settings_path)
+from afc.undo import Undo
 from afc.workspace import create_workspace
 
 NAMES = ("check", "repair", "relocate")
@@ -108,25 +110,35 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             undo.rollback()
             raise
         repaired.append("Project tools now match the active project; this applies from the next start.")
-    found = [p for p in find_problems(home) if p["kind"] in ADDONS]
-    if found:
-        undo = cli._settings_undo()
-        undo.save_settings()
-        try:
-            keep = [i for i in blocked_addons(cli.afc_root()) if i not in
-                    {p["addon"] for p in found if p["kind"] == "addon_unblock"}]
-            now = [p["addon"] for p in found if p["kind"] == "addon_not_allowed"]
-            block_addons(cli.afc_root(), [*keep, *now])
-        except BaseException:
-            undo.rollback()
-            raise
-        if now:
-            n = len(now)
-            repaired.append(f"Switched off {n} add-on{'s' if n > 1 else ''} in Flight Control sessions; "
-                            "this applies from the next start.")
-        if len(found) > len(now):
-            repaired.append("Switched back on add-ons that are now allowed; this applies from the next start.")
+    off, on = switch_addons(cli.afc_root(), [p for p in find_problems(home) if p["kind"] in ADDONS])
+    if off:
+        repaired.append(f"Switched off {off} add-on{'s' if off > 1 else ''} in Flight Control sessions; "
+                        "this applies from the next start.")
+    if on:
+        repaired.append("Switched back on add-ons that are now allowed; this applies from the next start.")
     return {"repaired": repaired, "left": find_problems(home)}
+
+
+def switch_addons(root: Path, found: list[dict]) -> tuple[int, int]:
+    """Act on add-on problems: switch off the ones not allowed, back on the ones allowed again.
+    Returns (switched off, switched back on). On any error the settings file is put back as it was
+    and the error is raised."""
+    found = [p for p in found if p["kind"] in ADDONS]
+    if not found:
+        return 0, 0
+    check_settings(root)
+    undo = Undo(settings_path(root))
+    undo.save_settings()
+    try:
+        keep = [i for i in blocked_addons(root) if i not in
+                {p["addon"] for p in found if p["kind"] == "addon_unblock"}]
+        now = [p["addon"] for p in found if p["kind"] == "addon_not_allowed"]
+        block_addons(root, [*keep, *now])
+    except BaseException:
+        undo.rollback()
+        raise
+    return len(now), len(found) - len(now)
+
 
 
 def _upgrade_plan(plan_dir: Path) -> None:
@@ -176,8 +188,9 @@ def cmd_relocate(args: argparse.Namespace) -> dict:
     return {"relocated": project.name, "code_path": str(new)}
 
 
-def find_problems(home: Path) -> list[dict]:
-    """Every problem as {kind, project?, path, detail, fixable}. Reads only."""
+def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
+    """Every problem as {kind, project?, path, detail, fixable}. Reads only. with_addons=False leaves out
+    the add-on part, which the welcome handles itself."""
     cli = _cli()
     reg = load_registry(home)
     problems: list[dict] = root_problems(cli.afc_root())
@@ -214,7 +227,8 @@ def find_problems(home: Path) -> list[dict]:
     except GrantError as exc:
         problems.append(_problem("settings_unreadable", "", False, detail=str(exc)))
         return problems
-    problems += _addon_problems(cli.afc_root())
+    if with_addons:
+        problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
     wanted = _wanted(reg)
     for entry in current:
@@ -346,7 +360,8 @@ def _git(root: Path, *args: str) -> str | None:
     return done.stdout if done.returncode == 0 else None
 
 
-def _addon_problems(root: Path) -> list[dict]:
+def addon_problems(root: Path) -> list[dict]:
+    """The add-on part of the health check. Reads only."""
     try:
         ok = addons.allowed(root)
     except ValueError as exc:

@@ -32,6 +32,8 @@ def put_fake_claude(case, stdout, code=0):
 
 
 class AddonsModuleTest(AfcTestCase):
+    real_addons = True  # these run the real reporter against a fake claude
+
     def setUp(self):
         super().setUp()
         self.root = self.tmp / "root"

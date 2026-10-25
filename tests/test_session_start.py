@@ -169,6 +169,81 @@ class SessionStartTest(AfcTestCase):
         self.assertIn("Registry unreadable", json.loads(buf.getvalue())["hookSpecificOutput"]["additionalContext"])
 
 
+class AddonsAtStartTest(AfcTestCase):
+    """The welcome switches off add-ons that aren't on the allowed list, in both kinds of session."""
+
+    PLUGINS = [{"id": "superpowers@claude-plugins-official", "enabled": True},
+               {"id": "agent-recall@synced", "enabled": True},
+               {"id": "noisy@synced", "enabled": True}]
+
+    def setUp(self):
+        super().setUp()
+        git_patch = clean_afc_git()
+        git_patch.start()
+        self.addCleanup(git_patch.stop)
+        self.root = self.tmp / "A-FC"
+        (self.root / ".claude").mkdir(parents=True)
+        (self.root / "afc-addons.json").write_text(
+            json.dumps({"allowed": ["superpowers@claude-plugins-official"]}))
+        for target in ("afc.hooks.session_start.afc_root", "afc.cli.afc_root"):
+            patcher = mock.patch(target, return_value=self.root)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def settings(self):
+        path = self.root / ".claude" / "settings.local.json"
+        return json.loads(path.read_text()) if path.exists() else {}
+
+    def start(self, plugins=None, maintenance=False):
+        with mock.patch("afc.addons.reported", return_value=(plugins or self.PLUGINS, None)), \
+                mock.patch("afc.hooks.session_start.maintain_enabled", return_value=maintenance):
+            return build_output(self.home)
+
+    def test_not_allowed_add_ons_are_switched_off_with_one_line(self):
+        out = self.start()
+        self.assertEqual(self.settings()["enabledPlugins"],
+                         {"agent-recall@synced": False, "noisy@synced": False})
+        self.assertEqual(self.settings()["afcBlockedAddons"], ["agent-recall@synced", "noisy@synced"])
+        lines = [l for l in out["systemMessage"].splitlines() if "add-on" in l]
+        self.assertEqual(len(lines), 1)
+        self.assertIn("2 add-ons", lines[0])
+        self.assertIn("from the next start", lines[0])
+        self.assertNotIn("agent-recall", out["systemMessage"])
+        self.assertNotIn("Health check", out["hookSpecificOutput"]["additionalContext"])
+
+    def test_the_next_start_says_nothing_about_add_ons(self):
+        self.start()
+        now_off = [dict(p, enabled=p["id"].startswith("superpowers")) for p in self.PLUGINS]
+        out = self.start(plugins=now_off)
+        self.assertNotIn("add-on", out["systemMessage"])
+
+    def test_maintenance_sessions_switch_them_off_too(self):
+        out = self.start(maintenance=True)
+        self.assertIn("Maintenance", out["systemMessage"])
+        self.assertIn("2 add-ons", out["systemMessage"])
+        self.assertEqual(self.settings()["afcBlockedAddons"], ["agent-recall@synced", "noisy@synced"])
+
+    def test_the_users_own_entries_and_allowed_add_ons_are_untouched(self):
+        path = self.root / ".claude" / "settings.local.json"
+        path.write_text(json.dumps({"enabledPlugins": {"mine@x": False}, "other": 1}))
+        self.start()
+        plugins = self.settings()["enabledPlugins"]
+        self.assertFalse(plugins["mine@x"])
+        self.assertNotIn("superpowers@claude-plugins-official", plugins)
+        self.assertEqual(self.settings()["other"], 1)
+        self.assertNotIn("mine@x", self.settings()["afcBlockedAddons"])
+
+    def test_a_settings_write_error_changes_nothing_and_still_welcomes(self):
+        path = self.root / ".claude" / "settings.local.json"
+        path.write_text(json.dumps({"enabledPlugins": {"mine@x": False}}))
+        before = path.read_text()
+        with mock.patch("afc.cli_health.block_addons", side_effect=OSError("disk full")):
+            out = self.start()
+        self.assertEqual(path.read_text(), before)
+        self.assertTrue(out["systemMessage"].startswith(INTRO))
+        self.assertNotIn("add-on", out["systemMessage"])
+
+
 class TestHomeLineTest(AfcTestCase):
     """Claude is told about a workspace folder that isn't ~/.A-FC; the welcome stays clean."""
 

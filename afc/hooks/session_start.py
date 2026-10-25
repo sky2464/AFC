@@ -90,7 +90,7 @@ def _health_line(home: Path) -> str:
     try:
         from afc.cli_health import find_problems
 
-        count = len(find_problems(home))
+        count = len(find_problems(home, with_addons=False))  # the welcome handles add-ons itself
     except Exception:  # the welcome must never break over a health check
         return ""
     if not count:
@@ -98,6 +98,23 @@ def _health_line(home: Path) -> str:
     noun = "problem" if count == 1 else "problems"
     return (f" Health check: {count} {noun} (sh bin/afc check). After answering the first message, "
             "mention it in one line and offer to look.")
+
+
+def _addons_line(root: Path) -> str:
+    """Switch off the add-ons that aren't on the allowed list, and say so in one line. Empty when
+    there was nothing to do or anything failed: the settings are then as they were."""
+    try:
+        from afc.cli_health import addon_problems, switch_addons
+
+        off, _ = switch_addons(root, addon_problems(root))
+    except Exception:  # the welcome must never break over add-ons
+        return ""
+    if not off:
+        return ""
+    one = off == 1
+    return (f"🔌 {off} add-on{'' if one else 's'} {'isn' if one else 'aren'}'t on Flight Control's list, "
+            f"so {'it is' if one else 'they are'} off in its sessions from the next start. "
+            f"{'It still works' if one else 'They still work'} everywhere else.\n")
 
 
 def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | None:
@@ -163,7 +180,7 @@ def _maintenance_output() -> dict:
     root = afc_root()
     branch = _branch(root)
     message = (
-        f"{INTRO}\n🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
+        f"{INTRO}\n{_addons_line(root)}🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
         "Projects are set aside. Type /afc mm off to go back to them."
     )
     context = (
@@ -206,7 +223,7 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
                 "question again. If they said hi or asked something else, answer briefly, then ask "
                 f"one question: 1 = {one} (recommended) or 2 = {two}."
             )
-        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}", 1)
+        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}", 1)
         context = (
             f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "
             "Follow CLAUDE.md and the afc-start skill for the first reply."

@@ -63,7 +63,7 @@ switch-off, nothing more. Other problem kinds keep their meaning.
 - [x] 1. Honest check wording — you'll check it by `tests/test_cli_health.py`: a not-yet-switched
       add-on's detail says it will be switched off at the next start; one already in
       `afcBlockedAddons` and reported disabled gives no problem
-- [ ] 2. Switch off at session start — you'll check it by `tests/test_session_start.py` cases: not
+- [x] 2. Switch off at session start — you'll check it by `tests/test_session_start.py` cases: not
       allowed and enabled → written to settings, one welcome line, count excludes them; second start
       → no line; user's own `false` entries and allowed add-ons untouched; a settings write error →
       settings unchanged and the welcome still shown
