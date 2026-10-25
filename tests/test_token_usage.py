@@ -183,6 +183,19 @@ class WholeRunTests(AfcTestCase):
                              "cd /tmp && sh /Users/x/A-FC-test/bin/afc deliver --message m"))
         self.assertEqual(_load().steps_reached(path), ["new", "scan", "deliver"])
 
+    def test_a_command_run_through_a_variable_set_to_the_afc_path_counts(self):
+        # A session working in the project's folder keeps Flight Control's path in a variable.
+        path = _session(self.tmp, "s.jsonl", GROWTH,
+                        ran=("sh bin/afc new --name d", "A=/Users/x/A-FC-test/bin/afc\nsh $A scan --slice 1",
+                             'SH=~/A-FC/bin/afc; sh "${SH}" deliver --message m'))
+        self.assertEqual(_load().steps_reached(path), ["new", "scan", "deliver"])
+
+    def test_a_variable_that_is_not_the_afc_path_does_not_count(self):
+        path = _session(self.tmp, "s.jsonl", GROWTH,
+                        ran=("X=/usr/bin/other sh $X deliver --message m", "sh $Y new --name d",
+                             "A=/x/bin/afc\nsh $B scan", "A=/x/bin/afc"))
+        self.assertEqual(_load().steps_reached(path), [])
+
     def test_the_command_line_prints_a_plain_error_and_exits_1(self):
         before = _session(self.tmp, "a.jsonl", GROWTH)
         after = _session(self.tmp, "b.jsonl", GROWTH, ran=())

@@ -79,5 +79,11 @@ Changing models or effort settings; removing safety rules.
   target is a third less growth than the baseline's 36,736, so 24,490 or less. Judging growth also
   keeps the comparison fair when the re-run's floor differs, for example because more or fewer
   plugins are loaded; the floors are shown beside the result.
+- 2026-10-24: Slice 4's re-run was measured (headless, `dev` at `973da0c`, Sonnet 5.5): growth 46,010
+  against a target of 24,490, so the target is not met and slice 4 stays open. The baseline's first
+  slice was a skeleton and FC-003 made it a real tested slice, so the two runs don't build the same
+  thing; two whole runs from before slices 2 and 3 grew 44,274 and 46,689, so those slices moved the
+  number by less than the spread between runs. The numbers, where the growth went and a fix to the
+  whole-run check are in `docs/measurements/fc-009-baseline.md`.
 
 ## Shipped

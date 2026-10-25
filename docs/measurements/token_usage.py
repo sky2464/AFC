@@ -32,6 +32,17 @@ STEPS = (
     ("deliver", "commit the slice"),
 )
 COMMAND = re.compile(r"\bbin/afc\s+(new|scan|deliver)\b")
+# NAME=<path>/bin/afc: a session working in the project's folder keeps Flight Control's path in a variable.
+AFC_VARIABLE = re.compile(r"\b(\w+)=\S*bin/afc(?=[\s;&|\"']|$)")
+
+
+def _steps_in(command: str) -> set[str]:
+    """The new, scan and deliver steps one command runs: `bin/afc <step>`, or `$NAME <step>` when the
+    same command sets NAME to a path ending in bin/afc. Any other variable does not count."""
+    found = set(COMMAND.findall(command))
+    for name in AFC_VARIABLE.findall(command):
+        found.update(re.findall(rf"\$(?:{name}|\{{{name}\}})\"?\s+(new|scan|deliver)\b", command))
+    return found
 
 
 def measure(path) -> dict:
@@ -79,7 +90,7 @@ def steps_reached(path) -> list[str]:
             if isinstance(item, dict) and item.get("type") == "tool_use" and item.get("name") == "Bash":
                 command = (item.get("input") or {}).get("command")
                 if isinstance(command, str):
-                    found.update(COMMAND.findall(command))
+                    found.update(_steps_in(command))
     return [step for step, _ in STEPS if step in found]
 
 
