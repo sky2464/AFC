@@ -75,7 +75,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
       seeing the one-line notice with 1. Update now 2. Not now; picking Not now and restarting shows
       nothing until a newer tag (tests in `tests/test_session_start.py` and
       `tests/test_session_start_update.py`)
-- [ ] 4. One-click update — you'll check it by picking Update now in an older test copy and landing
+- [x] 4. One-click update — you'll check it by picking Update now in an older test copy and landing
       on the newest tag with a plain "what changed" summary; a copy with local edits or on another
       branch is left untouched with a one-sentence reason (tests: fast-forward only, no force, clean
       `git status` required, `sh bin/afc check` runs after)

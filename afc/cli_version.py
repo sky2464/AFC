@@ -3,7 +3,7 @@
 import argparse
 import time
 
-from afc import update, version
+from afc import update, update_apply, version
 from afc.config import afc_home, afc_root
 
 NAMES = ("version", "update")
@@ -12,7 +12,7 @@ NAMES = ("version", "update")
 def register(sub) -> None:
     p = sub.add_parser("version", help="show the installed Flight Control version")
     p.set_defaults(handler=cmd_version)
-    u = sub.add_parser("update", help="check for a newer Flight Control release")
+    u = sub.add_parser("update", help="update Flight Control to the newest release")
     u.add_argument("--check", action="store_true", help="only look for a newer release; nothing is updated")
     u.add_argument("--skip", metavar="VERSION", help="stay quiet about this release")
     u.set_defaults(handler=cmd_update)
@@ -30,7 +30,7 @@ def cmd_update(args: argparse.Namespace) -> dict:
             update.skip(afc_home(), args.skip)
             return {"skipped": args.skip}
         if not args.check:
-            _fail("Updating itself is not ready yet; use update --check.")
+            return update_apply.apply(afc_root(), afc_home())
         return update.check(afc_root(), afc_home(), now=time.time())
     except version.VersionError as exc:
         _fail(exc)
