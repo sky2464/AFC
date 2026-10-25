@@ -49,6 +49,10 @@ class SkillSafetyLinesTest(unittest.TestCase):
         texts[name] = "\n".join(kept)
         self.assertEqual(missing(texts), [(name, line)])
 
+    def test_five_skills_total_at_most_14000_bytes(self):
+        total = sum(len((ROOT / ".claude" / "skills" / n / "SKILL.md").read_bytes()) for n in SKILLS)
+        self.assertLessEqual(total, 14000, f"five skills total {total} bytes")
+
 
 if __name__ == "__main__":
     unittest.main()
