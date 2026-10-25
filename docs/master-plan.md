@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-025 | Token usage cost by model | S | [spec](specs/FC-025-token-usage-by-model.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-025 | Token usage cost by model | S | [spec](specs/FC-025-token-usage-by-model.md) |
 
 ## Done
 
@@ -170,3 +170,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-023 done |
 | 2026-10-25 | FC-024 started |
 | 2026-10-25 | FC-024 done |
+| 2026-10-25 | FC-025 started |

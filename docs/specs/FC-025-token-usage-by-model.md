@@ -1,6 +1,6 @@
 # FC-025 — Token usage cost by model
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-25 · Done: -
 
 ## Goal
 
