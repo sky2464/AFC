@@ -195,7 +195,7 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
             asked = _update_question(*offer, one, two)
         else:
             message = f"{INTRO}\n{line}"
-            asked = f"The welcome asked: 1 = {one}, 2 = {two}."
+            asked = f"The welcome asked: 1 = {one}, 2 = {two}. It is still on screen: never list them again."
         message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}", 1)
         context = (
             f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "

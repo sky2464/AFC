@@ -88,6 +88,12 @@ class MaintainCommandTest(CliTestCase):
         self.assertIn("every session", out["note"])
         self.assertEqual(self.maintain("status", A)[1]["scope"], "global")
 
+    def test_no_state_names_on_off_and_status(self):
+        rc, out = run_cli(["maintain"])
+        self.assertNotEqual(rc, 0)
+        for word in ("on", "off", "status"):
+            self.assertIn(word, out["error"])
+
 
 class MaintainGuardTest(AfcTestCase):
     def test_load_context_uses_the_event_session(self):

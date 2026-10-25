@@ -11,8 +11,7 @@ Read the session context line first. Short messages, one question each, at most 
 ## First reply
 
 The welcome already asked the first question; if the first message is 1 or 2, go straight into
-that path (the context line says what they mean). Otherwise answer briefly, then ask the question
-for the situation.
+that path (the context line says what they mean). Otherwise answer briefly; the choices are still on screen, so never list them again.
 
 - **A newer release is out** (context says so): ask first: 1. Update now (recommended):
   `sh bin/afc update`. 2. Not now: `sh bin/afc update --skip <new>`, then the project

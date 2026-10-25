@@ -398,6 +398,8 @@ def _plain_usage(message: str) -> str:
         names = [n.strip() for n in missing.group(1).split(",")]
         if names == ["command"]:
             return f"Missing command. Use one of: {', '.join(COMMAND_NAMES)}."
+        if names == ["state"]:
+            return "Missing state. Use one of: on, off, status."
         return f"Missing {_join_and(names)}."
     needs = re.search(r"argument (\S+): expected one argument", message)
     if needs:

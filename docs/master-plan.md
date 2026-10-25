@@ -13,6 +13,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-026 | Tidy the maintenance switch and the first question | S | [spec](specs/FC-026-tidy-the-maintenance-switch-and-the.md) | 2026-10-25 |
 
 ## Next
 
@@ -161,3 +162,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-020 added |
 | 2026-10-25 | FC-020 started |
 | 2026-10-25 | FC-020 done |
+| 2026-10-25 | FC-026 added |
+| 2026-10-25 | FC-026 started |
