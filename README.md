@@ -61,7 +61,13 @@ Spec-driven from day one: locks onto your goal, keeps every step on course, deli
 Type 1 to start a new project, 2 to bring in one already on this computer, or just say hi.
 ```
 
-That's it. To get the latest version later, run `git pull` inside the `A-FC` folder.
+That's it. You never update by hand. When a newer release is out, the welcome says so in one line
+and offers **1. Update now** or **2. Not now**. Update now brings you to the latest release and tells you
+what changed. Not now stays quiet until an even newer release comes out. If the update changes
+something Flight Control only reads when a session starts, it asks you to type `/exit` and reopen
+with `claude --continue` in the `A-FC` folder, which picks up the same conversation. If the update
+can't be applied safely (you edited files in the folder, or it's on another branch), nothing is
+changed and Flight Control tells you why.
 
 ## How a session goes
 

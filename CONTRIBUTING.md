@@ -86,6 +86,19 @@ Flight Control work and real use stay apart by living in different places.
   there) and only then use the new behavior. An older folder can't see a newer session flag, so it
   treats maintenance mode as off.
 
+## Releasing
+
+Users only ever see published releases: `v*` tags on `main`. Publishing stays your own step.
+
+1. Merge `dev` into `main` (your own action).
+2. Bump the `VERSION` file to the new version (e.g. `v0.03a`) in the release commit.
+3. If the release changes the layout of the workspace (`~/.A-FC/`), ship a numbered upgrade step:
+   `afc/upgrade_NNN.py` with `run(home)`, where step N takes the workspace from layout N-1 to N.
+   Update tests for it. The update backs up `~/.A-FC/`, runs missing steps in order and restores
+   the backup if one fails.
+4. Run the full test suite, then tag the release on `main` with the same version as `VERSION`
+   and push the tag.
+
 ## Tests
 
 ```bash

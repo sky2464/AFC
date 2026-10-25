@@ -86,7 +86,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
 - [ ] 6. Restart and come back — you'll check it by an update that changes `CLAUDE.md`: Claude asks
       to `/exit` and reopen with `claude --continue`, and the welcome then says `You're on vX now.`
       once (tests: restart only when session-start files changed; one-time note shown then removed)
-- [ ] 7. README and CONTRIBUTING — you'll check it by the README describing the update offer instead
+- [x] 7. README and CONTRIBUTING — you'll check it by the README describing the update offer instead
       of `git pull`, and CONTRIBUTING's release steps including the `VERSION` bump and any workspace
       upgrade step (content tests)
 
