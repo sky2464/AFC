@@ -38,6 +38,19 @@ def run_check(root: Path) -> dict | None:
         return None
 
 
+def run_upgrade(root: Path, old_version: str) -> dict | None:
+    """Run the new code's workspace upgrade (`sh bin/afc upgrade`); None when it can't be run or read."""
+    try:
+        done = subprocess.run(
+            ["sh", "bin/afc", "upgrade", "--from-version", old_version], cwd=root, capture_output=True,
+            text=True, timeout=FETCH_BUDGET, stdin=subprocess.DEVNULL, env=dict(os.environ),
+        )
+        out = json.loads(done.stdout)
+        return out if isinstance(out, dict) else None
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return None
+
+
 def _title(root: Path, tag: str) -> str:
     out = _git(root, "tag", "-l", "--format=%(contents:subject)", tag)
     title = (out or "").strip()
@@ -83,6 +96,10 @@ def apply(root: Path, home: Path) -> dict:
         "check": run_check(root),
     }
     result["summary"] = f"Updated Flight Control from {current} to {tag}: {title}."
+    result["workspace"] = run_upgrade(root, current)
+    ws = result["workspace"]
+    if isinstance(ws, dict) and ws.get("summary"):
+        result["summary"] += " " + ws["summary"]
     check = result["check"]
     if isinstance(check, dict) and (check.get("ok") is False or check.get("problems")):
         problems = check.get("problems") or []

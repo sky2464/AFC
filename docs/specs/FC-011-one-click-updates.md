@@ -79,7 +79,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
       on the newest tag with a plain "what changed" summary; a copy with local edits or on another
       branch is left untouched with a one-sentence reason (tests: fast-forward only, no force, clean
       `git status` required, `sh bin/afc check` runs after)
-- [ ] 5. Workspace data upgrades safely — you'll check it by updating a test copy whose `~/.A-FC/`
+- [x] 5. Workspace data upgrades safely — you'll check it by updating a test copy whose `~/.A-FC/`
       is in the old layout and seeing projects still work, with a backup in `~/.A-FC/backups/`
       (tests: numbered upgrade steps run once each in order; a failed step restores the backup and
       says so)

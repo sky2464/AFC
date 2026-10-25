@@ -3,10 +3,10 @@
 import argparse
 import time
 
-from afc import update, update_apply, version
+from afc import update, update_apply, version, workspace_upgrade
 from afc.config import afc_home, afc_root
 
-NAMES = ("version", "update")
+NAMES = ("version", "update", "upgrade")
 
 
 def register(sub) -> None:
@@ -16,6 +16,9 @@ def register(sub) -> None:
     u.add_argument("--check", action="store_true", help="only look for a newer release; nothing is updated")
     u.add_argument("--skip", metavar="VERSION", help="stay quiet about this release")
     u.set_defaults(handler=cmd_update)
+    g = sub.add_parser("upgrade", help="upgrade the workspace to the layout this release expects")
+    g.add_argument("--from-version", default="unknown", help="the version being left, for the backup name")
+    g.set_defaults(handler=cmd_upgrade)
 
 
 def _fail(exc):
@@ -43,3 +46,7 @@ def cmd_version(args: argparse.Namespace) -> dict:
         from afc import cli  # late import: afc.cli imports this module
 
         raise cli.CliError(str(exc)) from None
+
+
+def cmd_upgrade(args: argparse.Namespace) -> dict:
+    return workspace_upgrade.upgrade(afc_home(), args.from_version)
