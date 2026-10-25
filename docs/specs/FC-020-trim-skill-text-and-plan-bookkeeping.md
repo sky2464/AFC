@@ -55,7 +55,7 @@ this spec still misses. Changing the ceiling or the measuring method.
       disappears (tests: passes on today's skills; a fixture with one line removed fails)
 - [x] 2. Trim the five skills to at most 14,000 bytes in total — you'll check it by the same test
       still passing and a size test on the five files (14,000 bytes, down from 20,796)
-- [ ] 3. `sh bin/afc slice record` — you'll check it by `tests/test_slice_record.py`: one call ticks
+- [x] 3. `sh bin/afc slice record` — you'll check it by `tests/test_slice_record.py`: one call ticks
       the slice in the spec, appends a dated line to `decisions.md` and updates `architecture.md`,
       refuses when the spec has no such slice, and leaves the three files byte-identical on
       refusal (tests)
