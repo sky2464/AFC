@@ -102,7 +102,7 @@ settings.
       with a fake `caffeinate` and `pmset` on the path: on starts it once, a second on does not
       start another, off stops it, the four-hour limit is passed, and other systems get
       `not macOS` (tests)
-- [ ] 5. Measure it on a real spec — you'll check it by building the next queued spec with the new
+- [x] 5. Measure it on a real spec — you'll check it by building the next queued spec with the new
       workflow and comparing helpers, tokens and full-suite runs per slice with FC-011 slices 3 to
       5; each at most half, written in Decisions (no test code; numbers from the workflow panel)
 
@@ -118,5 +118,19 @@ settings.
   start tokens = input + cache read + cache write): default 75,031 tokens (527 tools), `afc-checker`
   17,657 (24%). An in-session general-purpose helper started at 79,640. Target was at most half: met.
   New helper files load only when a session starts, so the next build session picks them up.
+- 2026-10-25: Slice 5 built FC-013 slices 1 and 2 with the workflow (Sonnet builder, Haiku checker),
+  both passing first time with no fix round, and compared them with FC-011 slices 3 to 5, counted
+  the same way from each run's helper logs (tokens = input, cache and output summed over every turn;
+  a test run = one call of the full suite):
+
+  | Per slice | FC-011 slices 3-5 | FC-013 slices 1-2 | Target (half) | |
+  |---|---|---|---|---|
+  | Helpers | 7.0 | 2.0 | 3.5 | met |
+  | Tokens | 7,532,905 | 252,451 | 3,766,453 | met |
+  | Full-suite runs | 8.7 | 5.0 | 4.35 | missed |
+
+  Test runs missed because the slice 1 builder ran the whole suite six times while fitting a skill
+  edit, instead of one test file; slice 2 ran it three times. FC-013's run-one-file rule, now in
+  `afc-slice` and CONTRIBUTING, is the fix for that, so it is not re-specced here.
 
 ## Shipped

@@ -68,7 +68,7 @@ they will see.
 - Code goes only into the active project's code path. If a guard blocks you
   ("Flight Control blocked …"), fix the cause or say so; never work around it.
   A guard that should have fired is a full stop.
-- Check versions of anything you add against current docs.
+- Check versions of anything you add against current docs, never from memory.
 
 How to work, quietly and safely:
 
