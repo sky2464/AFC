@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) | 2026-10-25 |
 
 ## Next
 
@@ -24,6 +23,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 | FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
 | FC-015 | Ship a finished spec | 2026-10-25 | [FC-015](specs/archive/FC-015-ship-a-finished-spec.md) |
 | FC-014 | Review before delivery | 2026-10-25 | [FC-014](specs/archive/FC-014-review-before-delivery.md) |
@@ -33,7 +33,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | [FC-012](specs/archive/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
-| FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -158,3 +157,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-019 started |
 | 2026-10-25 | FC-019 done |
 | 2026-10-25 | FC-017 started |
+| 2026-10-25 | FC-017 done |

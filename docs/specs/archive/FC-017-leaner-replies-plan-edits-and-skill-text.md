@@ -1,6 +1,6 @@
 # FC-017 — Leaner replies, plan edits and skill text
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-25, after FC-009 was closed with its target missed. The re-run that missed
 (dev `973da0c`) grew 46,010 against a target of 24,490. Its growth is in `fc-009-baseline.md`: code
@@ -58,3 +58,7 @@ first real tested slice that FC-003 added.
 - 2026-10-25: The ceiling is the baseline's growth, 36,736. The same-kind FC-009 runs spread between
   44,274 and 46,689, so a tighter number would be judged on noise. Change it if a different number
   is wanted.
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 4.

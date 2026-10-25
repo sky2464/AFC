@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-25 — FC-017 Leaner replies, plan edits and skill text
+
+A slice adds less context in the parts Flight Control can change: replies during a build, plan and spec edits, and skill text. The code and tests a slice writes are left as they are.
+
+- Measure the parts — the token script prints growth by part from the transcript, with a
+- Plan and spec edits — the rules and skills say to edit changed lines only; you'll check it
+- Shorter replies and skill text — the short rule modules and `afc-slice` say each step once
+- Measured live re-run — same method as FC-009 slice 4 (a whole start plus first slice on a
+
 ## 2026-10-25 — FC-019 Checks only when needed
 
 A spec builds in about half the time, and the full suite and the checker helper run when they can find something: risky code, a failing test, a failed CI run, or when the user asks. Safety checks on risky code stay exactly as strict as today.
