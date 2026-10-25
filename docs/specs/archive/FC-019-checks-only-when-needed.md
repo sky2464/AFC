@@ -121,3 +121,5 @@ enough.
 ## Shipped
 
 Shipped 2026-10-25. Slices: 6.
+
+Slice 6 was measured on the FC-017 build; the numbers are in `docs/measurements/fc-017-rerun.md`.

@@ -49,7 +49,7 @@ first real tested slice that FC-003 added.
 - [x] 3. Shorter replies and skill text — the short rule modules and `afc-slice` say each step once
       and keep build replies to a status line and one question; you'll check it by content tests
       and by the reply and skill-text shares falling on a re-run.
-- [ ] 4. Measured live re-run — same method as FC-009 slice 4 (a whole start plus first slice on a
+- [x] 4. Measured live re-run — same method as FC-009 slice 4 (a whole start plus first slice on a
       copy of `dev` with its own home); growth at most 36,736 and each part a third below the
       FC-009 re-run; the result goes into `docs/measurements/`.
 
