@@ -7,6 +7,8 @@ at its code folder after the user moved it. Nothing is ever deleted.
 
 import argparse
 import shutil
+import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 from afc import addons, tools
@@ -18,6 +20,8 @@ from afc.workspace import create_workspace
 NAMES = ("check", "repair", "relocate")
 ACCESS = ("stale_access", "gone_access", "missing_access")
 ADDONS = ("addon_not_allowed", "addon_unblock")
+ROOT_BRANCHES = ("main", "dev")
+GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
 
 def register(sub) -> None:
@@ -169,7 +173,7 @@ def find_problems(home: Path) -> list[dict]:
     """Every problem as {kind, project?, path, detail, fixable}. Reads only."""
     cli = _cli()
     reg = load_registry(home)
-    problems: list[dict] = []
+    problems: list[dict] = root_problems(cli.afc_root())
     owned: set[Path] = set()
     for p in reg.projects.values():
         owned.add(Path(p.workspace_path).resolve())
@@ -262,6 +266,58 @@ def _problem(kind: str, path: str, fixable: bool, detail: str, project: str = ""
     if project:
         found["project"] = project
     return found
+
+
+def root_problems(root: Path, git: Callable[..., str | None] | None = None) -> list[dict]:
+    """Git problems in Flight Control's own folder: a detached HEAD, uncommitted changes, a branch
+    that is neither main nor dev, and no origin remote. Reads only. When git can't run or can't
+    answer there are no git problems: nothing is guessed. `git` is the runner; None means _git."""
+    run = git if git is not None else _git
+    status = run(root, "status", "--porcelain=v2", "--branch")
+    if status is None:
+        return []
+    found: list[dict] = []
+    head = _head_branch(status)
+    if head == "(detached)":
+        found.append(_problem(
+            "root_detached", str(root), False,
+            detail="Flight Control's own copy is on a detached HEAD, not on a branch, so it can't "
+                   "update itself. Switch it back onto main or dev."))
+    elif head is not None and head not in ROOT_BRANCHES:
+        found.append(_problem(
+            "root_branch", str(root), False,
+            detail=f"Flight Control's own copy is on the branch {head}, which is neither main nor dev. "
+                   "Switch it back onto main or dev."))
+    if any(not line.startswith("#") for line in status.splitlines()):
+        found.append(_problem(
+            "root_dirty", str(root), False,
+            detail="Flight Control's own copy has uncommitted changes, so it can't be updated safely. "
+                   "Look at them yourself; Flight Control leaves them alone."))
+    remotes = run(root, "remote")
+    if remotes is not None and "origin" not in remotes.split():
+        found.append(_problem(
+            "root_no_origin", str(root), False,
+            detail="Flight Control's own copy has no origin remote, so it has nowhere to fetch "
+                   "updates from."))
+    return found
+
+
+def _head_branch(status: str) -> str | None:
+    """The branch named by `git status --branch`, or "(detached)" when HEAD is detached."""
+    for line in status.splitlines():
+        if line.startswith("# branch.head "):
+            return line.removeprefix("# branch.head ")
+    return None
+
+
+def _git(root: Path, *args: str) -> str | None:
+    """git's output in the folder, or None when git can't run or answers with an error. Never raises."""
+    try:
+        done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=GIT_TIMEOUT)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return done.stdout if done.returncode == 0 else None
 
 
 def _addon_problems(root: Path) -> list[dict]:
