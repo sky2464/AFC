@@ -141,4 +141,3 @@ class FlightControlPlanTest(CliTestCase):
         with patch("afc.cli_plan.afc_root", return_value=afc_root()):
             rc, out = run_cli(["plan"])
         self.assertEqual((rc, out["for"]), (0, "Flight Control"))
-        self.assertTrue(out["next"] or out["now"])

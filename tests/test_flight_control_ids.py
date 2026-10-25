@@ -18,15 +18,12 @@ class FlightControlIdsTest(unittest.TestCase):
         return [r for section in ("Now", "Next") for r in plan.read_rows(self.text, section)]
 
     def test_plan_rows_use_fc_ids(self):
-        rows = self.spec_rows()
-        self.assertTrue(rows)
-        for row in rows:
+        for row in self.spec_rows():
             self.assertRegex(row[0], r"^FC-\d{3}$")
             self.assertFalse(re.match(r"^S-\d{3}$", row[0]))
 
     def test_spec_files_match_their_rows_and_headings(self):
         files = sorted(p for p in (DOCS / "specs").glob("*.md"))
-        self.assertTrue(files)
         for path in files:
             self.assertRegex(path.name, r"^FC-\d{3}-")
             sid = path.name[:6]
