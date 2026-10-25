@@ -5,7 +5,8 @@ one key. The context line tells Claude what 1 and 2 mean.
 
 When a newer Flight Control release is out (FC-011), the first question is the update one: a notice
 line and "1. Update now (recommended)  2. Not now". The project question follows once it is answered.
-The look for a release runs once a day under a short time budget, so it never holds the welcome up.
+The welcome never waits for the network: it uses the answer saved by the daily look for a release,
+which runs in the background (afc.update) and is there from the next start.
 
 Never fails: any problem reading the registry becomes a context line, a problem with the update
 check leaves it out, and main returns 0.
@@ -31,8 +32,6 @@ INTRO = (
 BANNER = f"{INTRO}\nSay hi to start — /afc is the only command you need."
 OR_HI = "or just say hi."
 SLICE_CHARS = 40
-# Seconds the look for a newer release may take; past that the welcome goes ahead without it.
-WELCOME_BUDGET = 3.0
 
 
 def _short(text: str) -> str:
@@ -97,11 +96,11 @@ def _health_line(home: Path) -> str:
 
 
 def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | None:
-    """(installed, newest) when a newer release is on offer, else None. Never raises: whatever goes
-    wrong with the check, the welcome simply says nothing about updates."""
+    """(installed, newest) when a newer release is on offer, else None. Never waits for the network
+    and never raises: whatever goes wrong with the check, the welcome simply says nothing about
+    updates."""
     try:
-        found = update.check(afc_root(), home, now=time.time() if now is None else now,
-                             budget=WELCOME_BUDGET)
+        found = update.offer(afc_root(), home, now=time.time() if now is None else now)
         if found.get("update") != "available":
             return None
         current, latest = found["current"], found["latest"]

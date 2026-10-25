@@ -19,16 +19,23 @@ class AfcTestCase(unittest.TestCase):
 
     Looking for a newer Flight Control release finds nothing by default, so no test reaches the
     real remote; a test that needs the real lookup against a test remote sets offline_updates
-    to False (see RemoteCase).
+    to False (see RemoteCase). The welcome starts that look as a background process, which no
+    test starts unless it asks for the real one (real_start_refresh).
     """
 
     offline_updates = True
 
     def setUp(self):
+        from afc import update
+
         self._saved_home_env = os.environ.get("AFC_HOME")
         self.home = Path(tempfile.mkdtemp(prefix="afc-home-"))
         self.tmp = Path(tempfile.mkdtemp(prefix="afc-tmp-"))
         os.environ["AFC_HOME"] = str(self.home)
+        self.real_start_refresh = update.start_refresh
+        patcher = mock.patch("afc.update.start_refresh", return_value=None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         if self.offline_updates:
             patcher = mock.patch("afc.update.remote_newest", return_value=None)
             patcher.start()

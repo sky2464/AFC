@@ -42,10 +42,12 @@ Publishing releases (still the user's own step); updating projects' code; updati
   Work on `dev` or untagged commits on `main` never reach users. (Decided 2026-10-24.)
 - **Knowing its own version.** A `VERSION` file at the root, bumped as part of each release;
   compared with the newest remote tag by version order, not by date.
-- **The check.** Runs inside the existing SessionStart hook (`afc/hooks/session_start.py`) via
-  `git ls-remote --tags origin`, with a short timeout so a slow network never delays the welcome;
-  at most once a day (time stored in the workspace home, `~/.A-FC/`), result cached for the rest.
-  A skipped release is stored there too, so "Not now" holds until a newer tag appears.
+- **The check.** Driven by the existing SessionStart hook (`afc/hooks/session_start.py`) via
+  `git ls-remote --tags origin`, but the welcome never waits for the network: it answers from the
+  saved result, and when the day's look is due it starts the look as a background process that
+  saves its result for the next start. The look has one short time budget in all (every git call
+  shares it); at most once a day (time stored in the workspace home, `~/.A-FC/`), result cached for
+  the rest. A skipped release is stored there too, so "Not now" holds until a newer tag appears.
 - **The update.** Fetch, then fast-forward the daily folder to the release tag (no merge, no
   history rewrite, no force). Before: refuse if `git status` isn't clean or the folder isn't on
   `main`. After: run `sh bin/afc check` and report.
@@ -71,7 +73,8 @@ Publishing releases (still the user's own step); updating projects' code; updati
       offers)
 - [x] 3. The welcome offers the update — you'll check it by starting a session on an older copy and
       seeing the one-line notice with 1. Update now 2. Not now; picking Not now and restarting shows
-      nothing until a newer tag (tests in `tests/test_session_start.py`)
+      nothing until a newer tag (tests in `tests/test_session_start.py` and
+      `tests/test_session_start_update.py`)
 - [ ] 4. One-click update — you'll check it by picking Update now in an older test copy and landing
       on the newest tag with a plain "what changed" summary; a copy with local edits or on another
       branch is left untouched with a one-sentence reason (tests: fast-forward only, no force, clean
@@ -99,5 +102,9 @@ Publishing releases (still the user's own step); updating projects' code; updati
   v0.02a to a copy that already has it. The welcome example above describes an older copy, so it is
   unchanged.
 - 2026-10-25: Slice 1 approved as built. `sh bin/afc version` prints {"version": "v0.02a"}. Versions order by number, then letter, with a bare version before its letters, so 0.01a < 0.02a < 0.10a and 0.01a < 0.01b. Slices 2 to 7 are not built.
+- 2026-10-25: The welcome never waits for the network (slice 3 review). A budget per git call let a
+  silent origin hold it for 3 s, and a hung local git on top made it 6 s. The daily look now runs in
+  the background and the offer shows from the next start; the branch is read from `.git/HEAD`, not
+  by running git. Every git call of the look shares one budget.
 
 ## Shipped
