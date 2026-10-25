@@ -19,6 +19,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-019 | Checks only when needed | M | [spec](specs/FC-019-checks-only-when-needed.md) |
 | FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Done
@@ -154,3 +155,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-014 started |
 | 2026-10-25 | FC-014 done |
 | 2026-10-25 | FC-015 started |
+| 2026-10-25 | FC-019 Checks only when needed added and specced (6 slices) during the FC-015 build: parallel suite, tests for what changed, checker only for risky slices, one suite at the end, CI; queued first in Next |
