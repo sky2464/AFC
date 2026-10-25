@@ -1,6 +1,6 @@
 # FC-020 — Trim skill text and plan bookkeeping
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25, after FC-017 closed with its ceiling missed (growth 41,916 against 36,736).
 Replies met their third; skill text (9,483 against 7,581) and plan and spec edits (4,573 against
