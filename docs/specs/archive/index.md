@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-021 | Role agents and model routing | 2026-10-25 | FC-021-role-agents-and-model-routing.md |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | FC-020-trim-skill-text-and-plan-bookkeeping.md |
 | FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | FC-017-leaner-replies-plan-edits-and-skill-text.md |
 | FC-019 | Checks only when needed | 2026-10-25 | FC-019-checks-only-when-needed.md |

@@ -1,6 +1,6 @@
 # FC-021 — Role agents and model routing
 
-Size: M · Status: now · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Research on Haiku, plan on Opus, build on Sonnet, check on Haiku (Sonnet optional). Explicit `model:` per agent file; per-project overrides in workspace `agents/routing.json`. Main session stays off Haiku. Bedrock/Vertex need full model IDs; Haiku 5.5 needs Claude Code >= v2.1.293.
 
@@ -29,3 +29,7 @@ The per-project install path (FC-022). Token cost estimates (FC-025). Jev calls 
 ## Decisions
 
 - 2026-10-25: Research FC-019..FC-024 IDs collide with shipped FC-019/FC-020; this work uses FC-021+.
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 3.

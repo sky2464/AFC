@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-021 | Role agents and model routing | M | [spec](specs/FC-021-role-agents-and-model-routing.md) | 2026-10-25 |
 
 ## Next
 
@@ -28,6 +27,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
 | FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 | FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
@@ -37,7 +37,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-018 | Leaner spec builds (helpers and tokens met, test runs missed; rest in FC-013) | 2026-10-25 | [FC-018](specs/archive/FC-018-leaner-spec-builds.md) |
 | FC-011 | One-click updates | 2026-10-25 | [FC-011](specs/archive/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | [FC-012](specs/archive/FC-012-flight-control-keeps-its-own-copy-safe.md) |
-| FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -167,3 +166,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-020 started |
 | 2026-10-25 | FC-020 done |
 | 2026-10-25 | FC-021–FC-025 added (role agents, project workflow, flow fixes, Jev stub, token cost) |
+| 2026-10-25 | FC-021 done |

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-25 — FC-021 Role agents and model routing
+
+Dedicated role agents (research, plan, build, check) with predictable model routing so spec and slice work can use cheaper or stronger models where it helps, without changing safety guards.
+
+- Role resolution and defaults
+- Maintenance agents name models
+- `sh bin/afc agents` show
+
 ## 2026-10-25 — FC-020 Trim skill text and plan bookkeeping
 
 A whole start plus first slice adds less context in the two parts FC-017 left short: skill text and plan and spec edits. The code and tests a slice writes, and the review that runs before approval, are left as they are.
