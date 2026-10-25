@@ -33,6 +33,13 @@ class OrderingTest(unittest.TestCase):
         self.assertLess(version.key("v0.09a"), version.key("v0.10a"))
         self.assertLess(version.key("v0.99a"), version.key("v1.00a"))
 
+    def test_unpadded_numbers_are_not_compared_as_text(self):
+        # as text "v0.10a" < "v0.9a" and "v10.0a" < "v9.0a"
+        self.assertLess(version.key("v0.9a"), version.key("v0.10a"))
+        self.assertLess(version.key("v9.0a"), version.key("v10.0a"))
+        self.assertLess(version.key("v1.2.9a"), version.key("v1.2.10a"))
+        self.assertLess(version.key("v0.9z"), version.key("v0.10a"))
+
     def test_letter_breaks_ties(self):
         self.assertLess(version.key("v0.01a"), version.key("v0.01b"))
 
@@ -40,12 +47,29 @@ class OrderingTest(unittest.TestCase):
         self.assertEqual(version.newest(["v0.10a", "v0.02a", "junk", "v0.09a"]), "v0.10a")
         self.assertIsNone(version.newest(["junk"]))
 
+    def test_newest_is_numeric_not_text(self):
+        self.assertEqual(version.newest(["v0.9a", "v0.10a", "v9.0a", "v10.0a"]), "v10.0a")
+        self.assertEqual(version.newest(["v0.9a", "v0.10a"]), "v0.10a")
+
     def test_is_newer(self):
         self.assertTrue(version.is_newer("v0.10a", "v0.02a"))
         self.assertFalse(version.is_newer("v0.02a", "v0.02a"))
 
+    def test_is_newer_is_numeric_not_text(self):
+        self.assertTrue(version.is_newer("v0.10a", "v0.9a"))
+        self.assertFalse(version.is_newer("v0.9a", "v0.10a"))
+        self.assertTrue(version.is_newer("v10.0a", "v9.0a"))
+        self.assertFalse(version.is_newer("v9.0a", "v10.0a"))
+
     def test_rejects_non_versions(self):
         for bad in ("0.01a", "v1", "va.b", "", "v0.01a-dev"):
+            self.assertFalse(version.is_version(bad), bad)
+            with self.assertRaises(version.VersionError):
+                version.key(bad)
+
+
+    def test_things_that_are_not_text_are_not_versions(self):
+        for bad in (5, 1.5, True, None, ["v0.01a"], {"a": 1}, b"v0.01a"):
             self.assertFalse(version.is_version(bad), bad)
             with self.assertRaises(version.VersionError):
                 version.key(bad)

@@ -14,12 +14,17 @@ class VersionError(ValueError):
     pass
 
 
+def _match(text):
+    # anything that is not text (a stored 5 or ["x"], say) is simply not a version
+    return PATTERN.match(text) if isinstance(text, str) else None
+
+
 def is_version(text: str) -> bool:
-    return bool(PATTERN.match(text or ""))
+    return bool(_match(text))
 
 
 def key(text: str) -> tuple:
-    match = PATTERN.match(text or "")
+    match = _match(text)
     if not match:
         raise VersionError(f"{text!r} is not a Flight Control version like v0.01a.")
     return tuple(int(n) for n in match.group(1).split(".")), match.group(2)

@@ -120,6 +120,10 @@ def check(root: Path, home: Path, now: float) -> dict:
         data["checked_at"] = now
         if found:
             data["latest"] = found
+        else:
+            # offline, timed out, failed, or nothing released any more: an older answer is not
+            # offered again, the welcome says nothing
+            data.pop("latest", None)
         _save(home, data)
     latest = data.get("latest")
     skipped = data.get("skipped")
