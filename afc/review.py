@@ -92,10 +92,24 @@ def acceptance_checks(code: Path, spec: Path) -> list[Check]:
     return checks
 
 
+def regression_checks(code: Path, label: str) -> list[Check]:
+    """A bug-fix slice (its label says fix or bug) needs a changed test file that names a regression."""
+    if not re.search(r"\b(fix|fixes|fixed|bug|bugs|bugfix|hotfix)\b", label.lower()):
+        return []
+    for path in _changed_files(code):
+        if _TEST_FILE.search(path.relative_to(code).as_posix()):
+            try:
+                if re.search(r"regression", path.read_text(encoding="utf-8"), re.I):
+                    return []
+            except (OSError, UnicodeDecodeError):
+                pass
+    return [Check("regression test", "fail", f"bug fix '{label}' has no regression test named after the bug")]
+
+
 def run_review(code_path: Path, workspace_path: Path, label: str) -> dict:
     """Run the checks on the code folder, write the report, and return the verdict and counts."""
     code = Path(code_path)
-    checks = scan.run_checks(code) + file_size_checks(code)
+    checks = scan.run_checks(code) + file_size_checks(code) + regression_checks(code, label)
     spec = active_spec(Path(workspace_path))
     if spec:
         checks += acceptance_checks(code, spec)

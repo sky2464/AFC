@@ -80,7 +80,7 @@ own. Reviewing anything other than the current slice's changes.
 - [x] 2. File size and untested acceptance lines are critical — you'll check it by a 501-line file
       and an uncovered "You'll know it works when" line each making the verdict `blocked`, each
       named in the report (tests for both, and for a clean project staying `ok`)
-- [ ] 3. A bug fix needs a regression test — you'll check it by a bug-fix slice with no named
+- [x] 3. A bug fix needs a regression test — you'll check it by a bug-fix slice with no named
       regression test being blocked, and the same slice passing once the test exists (tests)
 - [ ] 4. Names that disagree with the project's words are a warning — you'll check it by a spec that
       says one word and code that uses another showing both words in the report (tests)

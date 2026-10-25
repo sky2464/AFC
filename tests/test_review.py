@@ -129,6 +129,39 @@ class ReviewOwnChecksTests(AfcTestCase):
         self.assertEqual((result["verdict"], result["critical"]), ("ok", 0))
 
 
+class ReviewRegressionTests(AfcTestCase):
+    def _review(self, label, files, extra=None):
+        repo = _git_repo(self.tmp / "app", {"app.py": "print(1)\n"})
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base"],
+                       cwd=repo, check=True)
+        for name, text in files.items():
+            (repo / name).parent.mkdir(parents=True, exist_ok=True)
+            (repo / name).write_text(text, encoding="utf-8")
+        with mock.patch("afc.scan.shutil.which", return_value=None):
+            result = review.run_review(repo, self.tmp / "ws", label)
+        return result, Path(result["report"]).read_text(encoding="utf-8")
+
+    def test_bug_fix_without_regression_test_is_blocked(self):
+        result, text = self._review("2 Fix login crash", {"app.py": "print(2)\n"})
+        self.assertEqual((result["verdict"], result["critical"]), ("blocked", 1))
+        self.assertIn("regression test", text)
+
+    def test_bug_fix_passes_once_the_regression_test_exists(self):
+        files = {"app.py": "print(2)\n",
+                 "tests/test_login.py": "def test_regression_login_crash(): pass\n"}
+        result, _ = self._review("2 Fix login crash", files)
+        self.assertEqual((result["verdict"], result["critical"]), ("ok", 0))
+
+    def test_a_test_that_is_not_named_regression_does_not_count(self):
+        files = {"app.py": "print(2)\n", "tests/test_login.py": "def test_login(): pass\n"}
+        result, _ = self._review("2 Fix login crash", files)
+        self.assertEqual(result["verdict"], "blocked")
+
+    def test_a_feature_slice_needs_no_regression_test(self):
+        result, _ = self._review("2 Add logout", {"app.py": "print(2)\n"})
+        self.assertEqual(result["verdict"], "ok")
+
+
 class ReviewReportTests(AfcTestCase):
     def test_report_written_beside_scan_reports(self):
         repo = _git_repo(self.tmp / "app", {"ok.py": "print(1)\n"})
