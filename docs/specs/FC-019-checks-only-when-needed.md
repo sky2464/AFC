@@ -106,7 +106,7 @@ enough.
       requests to `main`, and `/afc` shows a failed last run with fixing it first; you'll check it
       by `tests/test_ci_status.py` (a failed run, a passed run, and no `gh` each give the right
       line) and by the workflow file naming both triggers.
-- [ ] 6. Measure the next build — build the next spec of at least three slices this way and compare
+- [x] 6. Measure the next build — build the next spec of at least three slices this way and compare
       with FC-015 slices 1 to 3 from its workflow log; time per non-risky slice at most half, and
       at most 2 full-suite runs for the whole spec; the result goes into `docs/measurements/`.
 
