@@ -83,7 +83,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
       is in the old layout and seeing projects still work, with a backup in `~/.A-FC/backups/`
       (tests: numbered upgrade steps run once each in order; a failed step restores the backup and
       says so)
-- [ ] 6. Restart and come back — you'll check it by an update that changes `CLAUDE.md`: Claude asks
+- [x] 6. Restart and come back — you'll check it by an update that changes `CLAUDE.md`: Claude asks
       to `/exit` and reopen with `claude --continue`, and the welcome then says `You're on vX now.`
       once (tests: restart only when session-start files changed; one-time note shown then removed)
 - [x] 7. README and CONTRIBUTING — you'll check it by the README describing the update offer instead
