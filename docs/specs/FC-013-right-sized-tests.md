@@ -1,6 +1,6 @@
 # FC-013 — Right-sized tests
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-24, after FC-002 slice 3 added 18 tests (about 120 lines) to check about 20
 lines of skill wording, and two of them failed on exact phrasing and had to be rewritten.
@@ -62,7 +62,7 @@ are. A coverage tool, a faster test runner, or running tests in parallel.
       then run-all-once (one structural test each: the Tests section names the one-file command; the
       skill keeps its three checkpoints)
 - [ ] 2. Trim the wording-only tests — you'll check it by the full suite passing with fewer tests and
-      fewer lines than the 610 tests and 5,591 lines of today, and a commit message listing every
+      fewer lines than the 943 tests and 8,792 lines in `tests/test_*.py` on 2026-10-25, and a commit message listing every
       deleted test (tests: the suite itself; the structural checks stay)
 - [ ] 3. Try it on the next slice — you'll check it by FC-002 slice 4 or the next one adding tests
       under the new rule and the count staying in proportion to the change (no test code; compare

@@ -14,12 +14,12 @@ safe slices, with as few questions and as little noise as possible.
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
 | FC-018 | Leaner spec builds | M | [spec](specs/FC-018-leaner-spec-builds.md) | 2026-10-25 |
+| FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
 | FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
 | FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
 | FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
@@ -151,3 +151,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-011 done |
 | 2026-10-25 | FC-018 Leaner spec builds added and specced (5 slices) after the FC-011 build: one checker per slice, lean helpers, sharper checks, keep awake; queued last in Next |
 | 2026-10-25 | FC-018 started |
+| 2026-10-25 | FC-013 started, built with the FC-018 workflow to measure it (FC-018 slice 5) |
