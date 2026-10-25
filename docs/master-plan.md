@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-018 | Leaner spec builds | M | [spec](specs/FC-018-leaner-spec-builds.md) | 2026-10-25 |
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) | 2026-10-25 |
 
 ## Next
@@ -28,6 +27,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-018 | Leaner spec builds (helpers and tokens met, test runs missed; rest in FC-013) | 2026-10-25 | [FC-018](specs/archive/FC-018-leaner-spec-builds.md) |
 | FC-011 | One-click updates | 2026-10-25 | [FC-011](specs/archive/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | [FC-012](specs/archive/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
@@ -152,3 +152,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-018 Leaner spec builds added and specced (5 slices) after the FC-011 build: one checker per slice, lean helpers, sharper checks, keep awake; queued last in Next |
 | 2026-10-25 | FC-018 started |
 | 2026-10-25 | FC-013 started, built with the FC-018 workflow to measure it (FC-018 slice 5) |
+| 2026-10-25 | FC-018 done: helpers 7.0→2.0 and tokens 7.5M→0.25M per slice, full-suite runs 8.7→5.0 (target 4.35 missed; FC-013 run-one-file rule covers it) |

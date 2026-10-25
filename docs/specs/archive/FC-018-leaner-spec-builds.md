@@ -1,6 +1,6 @@
 # FC-018 — Leaner spec builds
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-25, after the FC-011 build with Sonnet builders and Sonnet/Haiku checkers
 used 21 helpers and 2.6M tokens for five slices and showed one 3h36m step.
@@ -134,3 +134,7 @@ settings.
   `afc-slice` and CONTRIBUTING, is the fix for that, so it is not re-specced here.
 
 ## Shipped
+
+One build workflow (`.claude/workflows/afc-build-spec.js`), lean helpers (`afc-builder`, `afc-checker`),
+checks that quote the spec, `afc awake`. Measured on FC-013: helpers and tokens per slice met, test
+runs per slice missed (5.0 vs 4.35), left to FC-013.
