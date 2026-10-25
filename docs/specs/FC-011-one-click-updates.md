@@ -69,7 +69,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
       remote with a newer tag, then with none, then offline (tests: `v*` tags only, short timeout,
       once a day, skipped release stays quiet, developer copy on `dev` or maintenance mode never
       offers)
-- [ ] 3. The welcome offers the update — you'll check it by starting a session on an older copy and
+- [x] 3. The welcome offers the update — you'll check it by starting a session on an older copy and
       seeing the one-line notice with 1. Update now 2. Not now; picking Not now and restarting shows
       nothing until a newer tag (tests in `tests/test_session_start.py`)
 - [ ] 4. One-click update — you'll check it by picking Update now in an older test copy and landing

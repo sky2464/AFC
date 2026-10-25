@@ -16,6 +16,10 @@ The welcome line already asked the first question, and the context line says wha
 straight into that path without asking again or greeting at length. For anything else (hi, a
 question, a request), answer it briefly, then ask the question below for the situation.
 
+- **A newer release is out** (the context says "A newer Flight Control release is out"): the update
+  question comes first, the project question after it. 1. Update now (recommended): run
+  `sh bin/afc update`. 2. Not now: run `sh bin/afc update --skip <new>`, then ask the project
+  question. Anything else: answer briefly, then ask the update question. Never both in one message.
 - **Maintenance mode** (the context says `Mode: maintenance`): this session is for working on
   Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
   maintenance mode is on and projects are set aside, then ask what to work on:

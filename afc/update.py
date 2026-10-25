@@ -5,7 +5,8 @@ the tags, then main is fetched and each tag is kept only if its commit is part o
 so a tag that exists only on dev is never offered. The check runs at most once a day; the time and
 the newest tag found are kept in the workspace home, with any release the user skipped.
 A developer copy (on dev, or in maintenance mode) never offers. Any failure says nothing, and git
-never prompts for a credential or a host key (no terminal, no stdin).
+never prompts for a credential or a host key (no terminal, no stdin). Every call may be given a
+shorter budget (in seconds) than TIMEOUT, which is how the welcome keeps the check from delaying it.
 """
 
 import json
@@ -73,10 +74,11 @@ def _release_commits(listing: str) -> dict:
     return {name: peeled.get(name, sha) for name, sha in direct.items() if version.is_version(name)}
 
 
-def remote_newest(root: Path) -> str | None:
+def remote_newest(root: Path, budget: float = TIMEOUT) -> str | None:
     """The newest v* tag on origin whose commit is part of main's history, or None."""
-    deadline = time.monotonic() + TIMEOUT
-    listing = _git(root, "ls-remote", "--tags", "origin", "v*", timeout=TIMEOUT)
+    budget = min(budget, TIMEOUT)
+    deadline = time.monotonic() + budget
+    listing = _git(root, "ls-remote", "--tags", "origin", "v*", timeout=budget)
     if listing is None:
         return None
     releases = _release_commits(listing)
@@ -88,15 +90,15 @@ def remote_newest(root: Path) -> str | None:
     for name in sorted(releases, key=version.key, reverse=True):
         # exit 0 only when the tag's commit is in main; a commit that is not even present here
         # (it was never part of main) fails the same way
-        if _git(root, "merge-base", "--is-ancestor", releases[name], "FETCH_HEAD") is not None:
+        if _git(root, "merge-base", "--is-ancestor", releases[name], "FETCH_HEAD", timeout=budget) is not None:
             return name
     return None
 
 
-def developer_copy(root: Path, home: Path) -> bool:
+def developer_copy(root: Path, home: Path, budget: float = TIMEOUT) -> bool:
     if maintain_enabled(home, current_session()):
         return True
-    branch = (_git(root, "rev-parse", "--abbrev-ref", "HEAD") or "").strip()
+    branch = (_git(root, "rev-parse", "--abbrev-ref", "HEAD", timeout=budget) or "").strip()
     return branch == "dev"
 
 
@@ -108,15 +110,15 @@ def skip(home: Path, tag: str) -> None:
     _save(home, data)
 
 
-def check(root: Path, home: Path, now: float) -> dict:
+def check(root: Path, home: Path, now: float, budget: float = TIMEOUT) -> dict:
     current = version.installed(root)
     quiet = {"update": "none", "current": current}
-    if developer_copy(root, home):
+    if developer_copy(root, home, budget):
         return quiet
     data = _load(home)
     checked = data.get("checked_at")
     if not isinstance(checked, (int, float)) or not 0 <= now - checked < DAY:
-        found = remote_newest(root)
+        found = remote_newest(root, budget)
         data["checked_at"] = now
         if found:
             data["latest"] = found

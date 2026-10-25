@@ -10,51 +10,9 @@ from unittest import mock
 
 from afc import update
 from afc.config import set_maintain
-from tests.helpers import AfcTestCase, run_cli
+from tests.helpers import RemoteCase, git, run_cli
 
 DAY = 86400
-
-
-def git(cwd, *args, **extra_env):
-    env = dict(os.environ, GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull, **extra_env)
-    subprocess.run(
-        ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "init.defaultBranch=main", *args],
-        cwd=cwd, check=True, capture_output=True, env=env,
-    )
-
-
-class RemoteCase(AfcTestCase):
-    """A test remote on main with one release (v0.01a), and a clone of it as the Flight Control copy."""
-
-    def setUp(self):
-        super().setUp()
-        self.remote = self.tmp / "remote"
-        self.remote.mkdir()
-        git(self.remote, "init", "-q")
-        (self.remote / "VERSION").write_text("v0.01a\n")
-        git(self.remote, "add", "VERSION")
-        git(self.remote, "commit", "-qm", "one")
-        git(self.remote, "tag", "v0.01a")
-        self.copy = self.tmp / "copy"
-        git(self.tmp, "clone", "-q", str(self.remote), str(self.copy))
-
-    def tag(self, *names):
-        for name in names:
-            git(self.remote, "tag", name)
-
-    def commit(self, text, date=None):
-        (self.remote / "VERSION").write_text(text + "\n")
-        when = {"GIT_AUTHOR_DATE": date, "GIT_COMMITTER_DATE": date} if date else {}
-        git(self.remote, "commit", "-qam", text, **when)
-
-    def write_state(self, **data):
-        (self.home / update.STATE).write_text(json.dumps(data), encoding="utf-8")
-
-    def go_offline(self):
-        git(self.copy, "remote", "set-url", "origin", str(self.tmp / "gone"))
-
-    def check(self, now=1_000_000.0):
-        return update.check(self.copy, self.home, now=now)
 
 
 class UpdateCheckTest(RemoteCase):

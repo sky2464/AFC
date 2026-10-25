@@ -3,15 +3,22 @@
 The welcome line already asks the first question with options 1 and 2, so the user can answer with
 one key. The context line tells Claude what 1 and 2 mean.
 
-Never fails: any problem reading the registry becomes a context line, and main returns 0.
+When a newer Flight Control release is out (FC-011), the first question is the update one: a notice
+line and "1. Update now (recommended)  2. Not now". The project question follows once it is answered.
+The look for a release runs once a day under a short time budget, so it never holds the welcome up.
+
+Never fails: any problem reading the registry becomes a context line, a problem with the update
+check leaves it out, and main returns 0.
 """
 
 import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
+from afc import update
 from afc.config import afc_home, afc_root, maintain_enabled, valid_session
 from afc.registry import load_registry
 
@@ -24,6 +31,8 @@ INTRO = (
 BANNER = f"{INTRO}\nSay hi to start — /afc is the only command you need."
 OR_HI = "or just say hi."
 SLICE_CHARS = 40
+# Seconds the look for a newer release may take; past that the welcome goes ahead without it.
+WELCOME_BUDGET = 3.0
 
 
 def _short(text: str) -> str:
@@ -87,6 +96,38 @@ def _health_line(home: Path) -> str:
             "mention it in one line and offer to look.")
 
 
+def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | None:
+    """(installed, newest) when a newer release is on offer, else None. Never raises: whatever goes
+    wrong with the check, the welcome simply says nothing about updates."""
+    try:
+        found = update.check(afc_root(), home, now=time.time() if now is None else now,
+                             budget=WELCOME_BUDGET)
+        if found.get("update") != "available":
+            return None
+        current, latest = found["current"], found["latest"]
+        if not (isinstance(current, str) and isinstance(latest, str)):
+            return None
+        return current, latest
+    except Exception:  # the welcome must never break over an update check
+        return None
+
+
+def _update_message(current: str, latest: str) -> str:
+    return (f"{INTRO}\nFlight Control {latest} is out; you have {current}.\n"
+            "1. Update now (recommended)  2. Not now")
+
+
+def _update_question(current: str, latest: str, one: str, two: str) -> str:
+    """What Claude is told when the welcome asked the update question instead of the project one."""
+    return (
+        f"A newer Flight Control release is out: {latest} (installed {current}). The welcome asked "
+        "the update question first: 1 = update now, 2 = not now. If the first message is 1, run "
+        "sh bin/afc update and tell the user in plain words what happened. If it is 2, run "
+        f"sh bin/afc update --skip {latest}, say you will stay quiet until a newer release, then "
+        f"ask the project question (1 = {one}, 2 = {two}). For anything else, answer it briefly, "
+        "then ask the update question. Never ask both questions in one message.")
+
+
 def _branch(root: Path) -> str:
     """The Flight Control folder's git branch, or 'unknown'. Never raises."""
     try:
@@ -126,7 +167,7 @@ def _wrap(message: str, context: str) -> dict:
     }
 
 
-def build_output(home: Path, session: str | None = None) -> dict:
+def build_output(home: Path, session: str | None = None, now: float | None = None) -> dict:
     if maintain_enabled(home, session):
         try:
             return _maintenance_output()
@@ -135,11 +176,16 @@ def build_output(home: Path, session: str | None = None) -> dict:
     try:
         reg = load_registry(home)
         one, two, line = _choices(reg)
-        message = f"{INTRO}\n{line}"
+        offer = _update_offer(home, now)
+        if offer:
+            message = _update_message(*offer)
+            asked = _update_question(*offer, one, two)
+        else:
+            message = f"{INTRO}\n{line}"
+            asked = f"The welcome asked: 1 = {one}, 2 = {two}."
         context = (
-            f"Flight Control session. {_project_line(reg)} The welcome asked: 1 = {one}, "
-            f"2 = {two}.{_health_line(home)} Follow CLAUDE.md and the afc-start skill for the "
-            "first reply."
+            f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "
+            "Follow CLAUDE.md and the afc-start skill for the first reply."
         )
     except Exception as exc:  # a RegistryError or anything else: the welcome must never break
         message = BANNER
