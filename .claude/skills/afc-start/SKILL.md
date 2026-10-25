@@ -11,10 +11,9 @@ end with at most two numbered next steps, the recommended one first.
 
 ## First reply
 
-The welcome line already asked the first question, and the context line says what 1 and 2 mean
-("The welcome asked: 1 = …, 2 = …"). If the first message is 1 or 2, that is the answer: go
-straight into that path without asking again or greeting at length. For anything else (hi, a
-question, a request), answer it briefly, then ask the question below for the situation.
+The welcome already asked the first question; the context line says what 1 and 2 mean. If the first
+message is 1 or 2, go straight into that path — do not ask the welcome question again. Otherwise
+answer briefly, then one question with those same 1 and 2 options (never two welcome questions).
 
 - **A newer release is out** (the context says "A newer Flight Control release is out"): the update
   question comes first, the project question after it. 1. Update now (recommended): run

@@ -111,6 +111,21 @@ and forms but never sends them.
 **Good to know.** Commands are checked as text, so an unusual spelling can slip through. The checks
 catch accidents by a cooperative AI; they are not a defense against a hostile one.
 
+## Role agents and models (optional tuning)
+
+New projects get four helpers in the app's `.claude/agents/` folder — research, plan, build and
+check — with default models aimed at **faster, cheaper research and checks** and **stronger planning
+and building**. The main chat session is not put on Haiku.
+
+Overrides live in the private workspace at `agents/routing.json` (never in the app repo). Run
+`sh bin/afc agents` to see resolved models; `sh bin/afc agents sync` after you edit routing.
+`resources/afc-brief.md` is a short project memory refreshed on setup and after each deliver — read
+it once per slice instead of reloading every plan file.
+
+TypeSafe Jev is **off by default** and not wired into reviews yet; see `docs/specs/FC-024-optional-jev.md`
+if you want the stub adapter. Measuring cost from a Claude Code transcript:
+`python3 docs/measurements/token_usage.py <transcript.jsonl>` now includes a rough `estimated_cost_usd`.
+
 ## Questions
 
 **Do I need to know how to code?**

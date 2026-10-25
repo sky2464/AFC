@@ -25,6 +25,9 @@ the plan or the checkpoints; the pinned task list already shows them.
 
 ## Pick the slice
 
+Read `resources/afc-brief.md` once (path in session context) before `plan/intent.md` unless the slice
+needs more.
+
 Run `sh bin/afc plan`. The next open slice of the active spec (`next_slice`) is the one to build.
 With no active spec, take the top `Next` spec: say a one-line summary of it, then run
 `sh bin/afc plan start <id>`. If there are no specs at all, use `afc-interview`.

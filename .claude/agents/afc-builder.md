@@ -1,6 +1,7 @@
 ---
 name: afc-builder
 description: Builds or fixes one slice of a Flight Control spec, test first, and commits it. Used by the afc-build-spec workflow.
+model: sonnet
 tools: Read, Edit, Write, Glob, Grep, Bash
 ---
 

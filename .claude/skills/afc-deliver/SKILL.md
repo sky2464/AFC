@@ -41,7 +41,8 @@ Add `--default-deploys` when pushing the default branch triggers a deploy (CI de
 `--protected` when the default branch is protected. Solo projects in those cases go to a long-lived
 working branch; tell the user once.
 
-- `{"pushed": false}` — no remote; committed locally. Say so in one line.
+- `{"pushed": false}` — no remote; committed locally. Say so in one line. A successful deliver also
+  refreshes `resources/afc-brief.md`.
 - `{"pushed": true, "pr_needed": false}` — solo: done, no pull request pause.
 - `{"pushed": true, "pr_needed": true, "branch": ...}` — team: use `afc-remote` to open a pull
   request from that branch.
