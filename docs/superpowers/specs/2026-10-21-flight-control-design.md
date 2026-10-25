@@ -1,6 +1,6 @@
 # Flight Control (A-FC) — Design
 
-*Date: 2026-10-21 · Status: draft for approval · Owner: chicademy*
+*Date: 2026-10-21 · Status: draft for approval · Owner: sky2464*
 
 ## 1. Intent and the why
 
@@ -160,7 +160,7 @@ to remember. On the user's first message, Flight Control:
 
 ### 7.2 New project
 
-1. Ask for the parent folder (Mac or Windows style), e.g. `/Users/chicademy/Documents/Code/`.
+1. Ask for the parent folder (Mac or Windows style), e.g. `~/path/to/projects/`.
 2. "What would you like to build?" — e.g. *"An API gateway to learn how Kong works and prepare for an
    interview."*
 3. Name: use theirs, or offer a few suggestions.
