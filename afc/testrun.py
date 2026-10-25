@@ -14,7 +14,7 @@ _BAD = re.compile(r"^(?:FAIL|ERROR): (.+)$", re.M)
 
 
 SHARED = ("tests/helpers.py", "tests/__init__.py", "bin/afc", ".claude/settings.json")
-SHARED_DIRS = ("afc/hooks/",)
+SHARED_DIRS = ("afc/hooks/", ".claude/workflows/")
 
 
 def _imports(path: Path) -> set[str]:

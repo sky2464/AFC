@@ -75,7 +75,10 @@ class PickTestsTest(unittest.TestCase):
             self.assertEqual(self.pick(shared), everything, shared)
 
     def test_workflow_change_picks_spec_checks(self):
-        self.assertIn("test_spec_checks.py", self.pick(".claude/workflows/afc-build-spec.js"))
+        everything = sorted(p.name for p in (ROOT / "tests").glob("test_*.py"))
+        picked = self.pick(".claude/workflows/afc-build-spec.js")
+        self.assertIn("test_spec_checks.py", picked)
+        self.assertEqual(picked, everything)
 
     def test_changed_test_file_picks_itself(self):
         self.assertEqual(self.pick("tests/test_scan.py"), ["test_scan.py"])
