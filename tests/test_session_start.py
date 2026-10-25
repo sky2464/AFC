@@ -13,12 +13,18 @@ from afc.config import set_maintain
 from afc.hooks import session_start
 from afc.hooks.session_start import BANNER, INTRO, build_output, main
 from afc.registry import Project, Registry, save_registry
-from tests.helpers import AfcTestCase, RemoteCase, git, run_cli
+from tests.helpers import AfcTestCase, RemoteCase, clean_afc_git, git, run_cli
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 class SessionStartTest(AfcTestCase):
+    def setUp(self):
+        super().setUp()
+        git_patch = clean_afc_git()
+        git_patch.start()
+        self.addCleanup(git_patch.stop)
+
     def _ctx(self, out):
         return out["hookSpecificOutput"]["additionalContext"]
 
@@ -148,6 +154,12 @@ class SessionStartTest(AfcTestCase):
 
 class TestHomeLineTest(AfcTestCase):
     """Claude is told about a workspace folder that isn't ~/.A-FC; the welcome stays clean."""
+
+    def setUp(self):
+        super().setUp()
+        git_patch = clean_afc_git()
+        git_patch.start()
+        self.addCleanup(git_patch.stop)
 
     def welcome(self, env):
         buf = io.StringIO()

@@ -145,3 +145,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-009 started |
 | 2026-10-25 | FC-009 closed: slice 4 measured at 46,010 growth against 24,490, target not met; spec archived |
 | 2026-10-25 | FC-017 added and specced (4 slices); queued last in Next |
+| 2026-10-25 | FC-012 slice 3 approved and ticked: the health check sees the A-FC folder; spec stays in Next while FC-009 holds Now |
+| 2026-10-25 | FC-014 slice 1 approved and ticked: review gives a verdict; spec stays in Next while FC-009 holds Now |

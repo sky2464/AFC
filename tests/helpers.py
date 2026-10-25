@@ -119,6 +119,17 @@ def fixture(name: str) -> str:
     return (FIXTURES_DIR / name).read_text(encoding="utf-8")
 
 
+def clean_afc_git():
+    """Patch the health check's git so Flight Control's own folder reads as a clean copy on main with
+    an origin remote. The welcome tests build the health check in-process, and the real checkout can
+    sit on any branch, so they must not read it. Returns the patcher: start it, stop it in cleanup."""
+    from unittest.mock import patch
+
+    answers = {("status", "--porcelain=v2", "--branch"): "# branch.oid 0\n# branch.head main\n",
+               ("remote",): "origin\n"}
+    return patch("afc.cli_health._git", side_effect=lambda root, *args: answers.get(args))
+
+
 def run_cli(argv: list[str]) -> tuple[int, dict]:
     """Run afc.cli.main(argv) and return (exit code, parsed JSON stdout).
 
