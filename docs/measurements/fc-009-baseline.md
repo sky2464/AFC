@@ -88,3 +88,22 @@ Decisions of `docs/specs/FC-009-leaner-context-per-slice.md`. Against the two co
 limit is 39,846 (control 44,274) or 42,020 (control 46,689); the re-run's 46,010 fails both, so slice 4
 stays open. A control only counts when it is made the same day as the re-run, on `dev` before the
 change; the two so far are from earlier on 2026-10-24 and give the scale, not a verdict.
+
+## Growth by part (FC-017 slice 1)
+
+`python3 docs/measurements/token_usage.py --parts <transcript.jsonl>` credits each jump in the prompt
+to the part of the turn before it (a turn with no tool call is the model's reply). Parts add up to
+growth. Run on the two FC-009 transcripts:
+
+| Part | First live run (36,736) | Re-run, dev `973da0c` (46,010) |
+|---|---|---|
+| Code and tests | 1,303 | 7,122 |
+| Replies | 4,393 | 9,552 |
+| Skill text | 7,239 | 11,371 |
+| Plan and spec edits | 7,383 | 6,004 |
+| Files read | 0 | 5,481 |
+| Other (commands and the rest) | 16,418 | 6,480 |
+
+The re-run's replies, skill text and plan and spec edits are the figures FC-017 slice 4 must bring a
+third down. Skill text is higher than the hand estimate (5.7k) because loading a skill also counts
+the turn that follows it.
