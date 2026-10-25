@@ -1,6 +1,6 @@
 # FC-009 — Leaner context per slice
 
-Size: M · Status: in progress · Started: 2026-10-24 · Done: -
+Size: M · Status: closed, target not met · Started: 2026-10-24 · Done: 2026-10-25
 
 Finding: 14.
 
@@ -44,7 +44,8 @@ Changing models or effort settings; removing safety rules.
       tests still passing
 - [ ] 4. Measured live re-run — you'll check it by `python3 docs/measurements/token_usage.py
       <baseline> <rerun>` showing growth above the floor at or below 24,490 (a third under the
-      baseline's 36,736), with each run's floor beside it (tests in `tests/test_token_usage.py`)
+      baseline's 36,736), with each run's floor beside it (tests in `tests/test_token_usage.py`).
+      Measured 2026-10-24: 46,010, not met. Closed 2026-10-25; the rest goes to FC-017.
 
 ## Decisions
 
@@ -87,3 +88,9 @@ Changing models or effort settings; removing safety rules.
   whole-run check are in `docs/measurements/fc-009-baseline.md`.
 
 ## Shipped
+
+## Shipped
+
+Closed 2026-10-25 without meeting its target. Slices 1 to 3 shipped; slice 4 was measured on
+2026-10-24 and missed (growth 46,010 against 24,490). The result and the breakdown are in
+`docs/measurements/fc-009-baseline.md`. The parts not yet done are specced in FC-017.

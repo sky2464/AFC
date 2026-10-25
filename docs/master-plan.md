@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) | 2026-10-24 |
 
 ## Next
 
@@ -24,11 +23,13 @@ safe slices, with as few questions and as little noise as possible.
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
 | FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
 | FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
+| FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
 | FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
 | FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
@@ -142,3 +143,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-008 started |
 | 2026-10-24 | FC-008 done |
 | 2026-10-24 | FC-009 started |
+| 2026-10-25 | FC-009 closed: slice 4 measured at 46,010 growth against 24,490, target not met; spec archived |
+| 2026-10-25 | FC-017 added and specced (4 slices); queued last in Next |

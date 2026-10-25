@@ -3,6 +3,7 @@
 | ID | Title | Done | Spec |
 |---|---|---|---|
 | FC-008 | Agent instruction files in apps | 2026-10-24 | FC-008-agent-instruction-files-in-apps.md |
+| FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | FC-009-leaner-context-per-slice.md |
 | FC-016 | Nothing drops out of the plan | 2026-10-24 | FC-016-nothing-drops-out-of-the-plan.md |
 | FC-007 | Package checks fit the stack | 2026-10-24 | FC-007-package-checks-fit-the-stack.md |
 | FC-006 | Workspace notes in the right place | 2026-10-24 | FC-006-workspace-notes-in-the-right-place.md |
