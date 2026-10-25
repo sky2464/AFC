@@ -84,7 +84,7 @@ own. Reviewing anything other than the current slice's changes.
       regression test being blocked, and the same slice passing once the test exists (tests)
 - [x] 4. Names that disagree with the project's words are a warning — you'll check it by a spec that
       says one word and code that uses another showing both words in the report (tests)
-- [ ] 5. The slice flow reviews before asking for approval — you'll check it by a live slice where
+- [x] 5. The slice flow reviews before asking for approval — you'll check it by a live slice where
       the review runs inside checkpoint 3 and a blocked verdict stops the approval question, with
       the root-cause rule in checkpoint 2 (content tests and one live run)
 
