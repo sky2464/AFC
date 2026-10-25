@@ -2,7 +2,7 @@
 
 Measured 2026-10-24 with `python3 docs/measurements/token_usage.py` on the session transcript of the
 first live run (project start plus the first slice, php-vuln-checker, 2026-10-23 22:48 to 22:57):
-`~/.claude/projects/-Users-chicademy-Documents-Code-A-FC-test/96aa029b-9a1b-4b46-928d-2d9613abb61b.jsonl`.
+`~/.claude/projects/-Users-you-Documents-Code-A-FC-test/<session-id>.jsonl`.
 
 | Number | Value |
 |---|---|
