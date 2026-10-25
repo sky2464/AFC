@@ -4,9 +4,11 @@ and Flight Control's own folder only changes while maintenance mode is on.
 In maintenance mode, writes into any registered project's code or workspace folder, and git
 commands that run in or point at those folders, are blocked. Reading stays allowed. Outside
 maintenance mode `check_maintenance` does nothing; `check_own_copy` blocks git that changes the
-A-FC folder itself (reading git is always fine).
+A-FC folder itself (reading git is always fine). In that folder, whatever the mode, merges must
+fast-forward and checkout/switch must land on a local branch (never a detached HEAD).
 """
 
+import subprocess
 from pathlib import Path
 
 from afc.hooks.common import (
@@ -17,6 +19,17 @@ from afc.hooks.common import (
     target_path,
 )
 from afc.hooks.rules_git import parse_git, simple_commands
+
+MERGE_REASON = ("this merge in the A-FC folder wouldn't fast-forward "
+                "— run it yourself if you mean it")
+MERGE_UNKNOWN_REASON = ("Flight Control couldn't confirm this merge in the A-FC folder fast-forwards "
+                        "— run it yourself if you mean it")
+DETACH_REASON = ("this would leave the A-FC folder on a detached HEAD "
+                 "— switch to the branch main (or dev) instead")
+_MERGE_VALUE_OPTS = {"-m", "-F", "-s", "-X", "--into-name", "--message", "--file", "--strategy",
+                     "--strategy-option"}
+_NEW_BRANCH_OPTS = {"-b", "-B", "-c", "-C", "--orphan", "--create", "--force-create"}
+_GIT_TIMEOUT = 5
 
 _LOCATION_OPTS = {"-C", "--git-dir", "--work-tree"}
 _VALUE_OPTS = {*_LOCATION_OPTS, "-c", "--namespace", "--config-env"}
@@ -155,9 +168,71 @@ def changes_git(sub: str, args: list[str]) -> bool:
     return True
 
 
+def _ask_git(location: list[str], base: Path, *args: str) -> int | None:
+    """Exit code of a short git query in base; None when git can't answer."""
+    if not base.is_dir():
+        return None
+    try:
+        return subprocess.run(["git", *location, *args], cwd=base, capture_output=True,
+                              timeout=_GIT_TIMEOUT).returncode
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def _merge_reason(location: list[str], base: Path, args: list[str]) -> str | None:
+    """Block reason for a merge that could make a merge commit; None when it fast-forwards."""
+    longs = {a.split("=", 1)[0] for a in args if a.startswith("--")}
+    if longs & {"--abort", "--continue", "--quit", "--ff-only"} and not longs & {"--no-ff", "--squash"}:
+        return None
+    if longs & {"--no-ff", "--squash"}:
+        return MERGE_REASON
+    targets, skip = [], False
+    for arg in args:
+        if skip:
+            skip = False
+        elif arg in _MERGE_VALUE_OPTS:
+            skip = True
+        elif not arg.startswith("-"):
+            targets.append(arg)
+    if len(targets) != 1:
+        return MERGE_REASON
+    code = _ask_git(location, base, "merge-base", "--is-ancestor", "HEAD", targets[0])
+    if code == 0:
+        return None
+    return MERGE_REASON if code == 1 else MERGE_UNKNOWN_REASON
+
+
+def _switch_reason(sub: str, location: list[str], base: Path, args: list[str]) -> str | None:
+    """Block reason for a checkout/switch that would not land on a local branch."""
+    if "--detach" in args or (sub == "switch" and "-d" in args):
+        return DETACH_REASON
+    if "--" in args:
+        return None  # restoring files, HEAD stays where it is
+    if any(a.split("=", 1)[0] in _NEW_BRANCH_OPTS or a.startswith(("-b", "-B")) and not a.startswith("--")
+           for a in args):
+        return None  # a new branch, not a detached HEAD
+    positional = [a for a in args if not a.startswith("-") or a == "-"]
+    if not positional:
+        return None
+    target = positional[0]
+    code = _ask_git(location, base, "rev-parse", "--verify", "--quiet", f"refs/heads/{target}")
+    if code == 0:
+        return None
+    if sub == "checkout" and code == 1:
+        # not a branch: a tag, commit or remote branch would detach, a file path would not
+        code = _ask_git(location, base, "rev-parse", "--verify", "--quiet", f"{target}^{{commit}}")
+        if code == 1:
+            return None
+    return DETACH_REASON
+
+
 def check_own_copy(event: dict, ctx: Context) -> str | None:
-    """Return a block reason when git would change the A-FC folder without maintenance mode."""
-    if ctx.maintain or event.get("tool_name") != "Bash":
+    """Return a block reason when git would damage the A-FC folder, else None.
+
+    Changing git needs maintenance mode; merges that aren't fast-forwards and checkouts that
+    leave a detached HEAD are blocked in either mode.
+    """
+    if event.get("tool_name") != "Bash":
         return None
     tool_input = event.get("tool_input")
     command = tool_input.get("command") if isinstance(tool_input, dict) else None
@@ -166,10 +241,21 @@ def check_own_copy(event: dict, ctx: Context) -> str | None:
     root = ctx.root.resolve()
     for words, base in simple_commands(command, event.get("cwd") or "/") or []:
         git = parse_git(words)
-        if git is None or not changes_git(git[1], git[2]):
+        if git is None:
             continue
+        location, sub, args = git
         places = _git_locations(words, base)
-        for where in places[1:] or places:  # an explicit location replaces the working folder
-            if where == root or where.is_relative_to(root):
-                return f"{where} is inside the A-FC repo and needs maintenance mode"
+        here = next((w for w in places[1:] or places if w == root or w.is_relative_to(root)), None)
+        if here is None:
+            continue
+        if not ctx.maintain and changes_git(sub, args):
+            return f"{here} is inside the A-FC repo and needs maintenance mode"
+        if sub == "merge":
+            reason = _merge_reason(location, base, args)
+        elif sub in ("checkout", "switch"):
+            reason = _switch_reason(sub, location, base, args)
+        else:
+            continue
+        if reason:
+            return reason
     return None
