@@ -66,6 +66,9 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             dest.mkdir(parents=True)
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
+        elif p["kind"] == "root_detached" and p["fixable"]:
+            if _git(cli.afc_root(), "switch", "main") is not None:
+                repaired.append("Put Flight Control's own copy back on main.")
         elif p["kind"] == "old_plan_format":
             _upgrade_plan(Path(p["path"]))
             repaired.append(f"Upgraded {p['project']} to a master plan.")
@@ -278,17 +281,26 @@ def root_problems(root: Path, git: Callable[..., str | None] | None = None) -> l
         return []
     found: list[dict] = []
     head = _head_branch(status)
+    dirty = any(not line.startswith("#") for line in status.splitlines())
     if head == "(detached)":
+        on_main = run(root, "merge-base", "--is-ancestor", "HEAD", "main") is not None
+        if dirty:
+            how, fixable = "It has uncommitted changes, so repair leaves it alone.", False
+        elif not on_main:
+            how, fixable = ("Its commit is not on main, so repair leaves it alone rather than risk "
+                            "losing it.", False)
+        else:
+            how, fixable = "Its commit is already on main, so repair puts it back on main.", True
         found.append(_problem(
-            "root_detached", str(root), False,
+            "root_detached", str(root), fixable,
             detail="Flight Control's own copy is on a detached HEAD, not on a branch, so it can't "
-                   "update itself. Switch it back onto main or dev."))
+                   "update itself. " + how))
     elif head is not None and head not in ROOT_BRANCHES:
         found.append(_problem(
             "root_branch", str(root), False,
             detail=f"Flight Control's own copy is on the branch {head}, which is neither main nor dev. "
                    "Switch it back onto main or dev."))
-    if any(not line.startswith("#") for line in status.splitlines()):
+    if dirty:
         found.append(_problem(
             "root_dirty", str(root), False,
             detail="Flight Control's own copy has uncommitted changes, so it can't be updated safely. "

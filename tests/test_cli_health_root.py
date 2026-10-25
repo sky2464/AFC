@@ -45,11 +45,12 @@ class RootGitTest(AfcTestCase):
     def test_a_detached_head_is_reported_in_plain_words(self):
         folder = make_repo(self.tmp / "afc")
         git(folder, "checkout", "-q", "--detach")
+        git(folder, "commit", "-q", "--allow-empty", "-m", "stray")
         found = self.only(folder, "root_detached")
         self.assertFalse(found["fixable"])
         self.assertEqual(found["path"], str(folder))
         self.assertIn("detached HEAD", found["detail"])
-        self.assertIn("main or dev", found["detail"])
+        self.assertIn("not on main", found["detail"])
 
     def test_an_untracked_file_is_uncommitted_change(self):
         folder = make_repo(self.tmp / "afc")
@@ -140,3 +141,82 @@ class RootCheckTest(CliTestCase):
 
     def test_check_says_nothing_about_git_on_a_clean_main(self):
         self.assertEqual(self.check(make_repo(self.tmp / "afc")), {"ok": True, "problems": []})
+
+
+class RootRepairTest(CliTestCase):
+    """sh bin/afc repair puts a clean detached copy whose commit is on main back onto main."""
+
+    def repair(self, folder: Path) -> dict:
+        with patch("afc.cli.afc_root", return_value=folder):
+            rc, out = run_cli(["repair"])
+        self.assertEqual(rc, 0, out)
+        return out
+
+    def kinds(self, out: dict) -> list[str]:
+        return [p["kind"] for p in out["left"]]
+
+    def head(self, folder: Path) -> str:
+        return git(folder, "rev-parse", "--abbrev-ref", "HEAD").strip()
+
+    def test_a_clean_detached_copy_on_main_is_switched_back(self):
+        folder = make_repo(self.tmp / "afc")
+        git(folder, "checkout", "-q", "--detach")
+        self.assertTrue(next(p for p in root_problems(folder) if p["kind"] == "root_detached")["fixable"])
+        out = self.repair(folder)
+        self.assertEqual(self.head(folder), "main")
+        self.assertIn("Put Flight Control's own copy back on main.", out["repaired"])
+        self.assertEqual(out["left"], [])
+
+    def test_an_older_commit_on_main_is_switched_back(self):
+        folder = make_repo(self.tmp / "afc")
+        git(folder, "commit", "-q", "--allow-empty", "-m", "second")
+        git(folder, "checkout", "-q", "--detach", "HEAD~1")
+        self.repair(folder)
+        self.assertEqual(self.head(folder), "main")
+
+    def test_a_dirty_detached_copy_is_left_untouched_with_a_reason(self):
+        folder = make_repo(self.tmp / "afc")
+        git(folder, "checkout", "-q", "--detach")
+        (folder / "notes.txt").write_text("draft\n", encoding="utf-8")
+        out = self.repair(folder)
+        self.assertEqual(self.head(folder), "HEAD")
+        self.assertEqual((folder / "notes.txt").read_text(encoding="utf-8"), "draft\n")
+        self.assertEqual(out["repaired"], [])
+        detached = next(p for p in out["left"] if p["kind"] == "root_detached")
+        self.assertFalse(detached["fixable"])
+        self.assertIn("uncommitted changes", detached["detail"])
+
+    def test_a_commit_not_on_main_is_left_untouched_with_a_reason(self):
+        folder = make_repo(self.tmp / "afc")
+        git(folder, "checkout", "-q", "--detach")
+        git(folder, "commit", "-q", "--allow-empty", "-m", "stray")
+        stray = git(folder, "rev-parse", "HEAD").strip()
+        out = self.repair(folder)
+        self.assertEqual(git(folder, "rev-parse", "HEAD").strip(), stray)
+        self.assertEqual(self.head(folder), "HEAD")
+        detached = next(p for p in out["left"] if p["kind"] == "root_detached")
+        self.assertFalse(detached["fixable"])
+        self.assertIn("not on main", detached["detail"])
+
+    def test_a_commit_only_on_dev_is_left_alone(self):
+        folder = make_repo(self.tmp / "afc")
+        git(folder, "checkout", "-q", "-b", "dev")
+        git(folder, "commit", "-q", "--allow-empty", "-m", "dev work")
+        git(folder, "checkout", "-q", "--detach")
+        self.repair(folder)
+        self.assertEqual(self.head(folder), "HEAD")
+
+    def test_a_copy_with_no_main_branch_is_left_alone(self):
+        folder = make_repo(self.tmp / "afc", branch="dev")
+        git(folder, "checkout", "-q", "--detach")
+        out = self.repair(folder)
+        self.assertEqual(self.head(folder), "HEAD")
+        self.assertIn("root_detached", self.kinds(out))
+
+    def test_git_that_cannot_run_changes_nothing(self):
+        folder = make_repo(self.tmp / "afc")
+        git(folder, "checkout", "-q", "--detach")
+        with patch("afc.cli_health.subprocess.run", side_effect=FileNotFoundError("git")):
+            out = self.repair(folder)
+        self.assertEqual(out, {"repaired": [], "left": []})
+        self.assertEqual(self.head(folder), "HEAD")
