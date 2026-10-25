@@ -1,6 +1,6 @@
 # FC-015 — Ship a finished spec
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-24. Reference design: the user's earlier AgToosa ship workflow (a readiness
 gate, a changelog, plan pruning and a suggested next story), cut down to the steps Flight Control is
@@ -89,3 +89,5 @@ publishing, which FC-011 covers from the update side.
 - 2026-10-25: Closed after slices 1 to 5. Slice 5 had no live run; its flow is covered by content tests only. The gate does not yet include the FC-014 review verdict.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.

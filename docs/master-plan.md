@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) | 2026-10-25 |
 
 ## Next
 
@@ -26,6 +25,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-015 | Ship a finished spec | 2026-10-25 | [FC-015](specs/archive/FC-015-ship-a-finished-spec.md) |
 | FC-014 | Review before delivery | 2026-10-25 | [FC-014](specs/archive/FC-014-review-before-delivery.md) |
 | FC-013 | Right-sized tests | 2026-10-25 | [FC-013](specs/archive/FC-013-right-sized-tests.md) |
 | FC-018 | Leaner spec builds (helpers and tokens met, test runs missed; rest in FC-013) | 2026-10-25 | [FC-018](specs/archive/FC-018-leaner-spec-builds.md) |
@@ -35,7 +35,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
 | FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
 | FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
-| FC-006 | Workspace notes in the right place | 2026-10-24 | [FC-006](specs/archive/FC-006-workspace-notes-in-the-right-place.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -156,3 +155,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-014 done |
 | 2026-10-25 | FC-015 started |
 | 2026-10-25 | FC-019 Checks only when needed added and specced (6 slices) during the FC-015 build: parallel suite, tests for what changed, checker only for risky slices, one suite at the end, CI; queued first in Next |
+| 2026-10-25 | FC-015 done |
