@@ -65,7 +65,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
 
 - [x] 1. Flight Control knows its version — you'll check it by `sh bin/afc version` printing
       `v0.01a` (tests: `VERSION` file read, version ordering such as `v0.01a` < `v0.02a` < `v0.10a`)
-- [ ] 2. Check for a newer release — you'll check it by `sh bin/afc update --check` against a test
+- [x] 2. Check for a newer release — you'll check it by `sh bin/afc update --check` against a test
       remote with a newer tag, then with none, then offline (tests: `v*` tags only, short timeout,
       once a day, skipped release stays quiet, developer copy on `dev` or maintenance mode never
       offers)
