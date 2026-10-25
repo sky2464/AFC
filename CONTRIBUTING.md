@@ -99,6 +99,17 @@ Users only ever see published releases: `v*` tags on `main`. Publishing stays yo
 4. Run the full test suite, then tag the release on `main` with the same version as `VERSION`
    and push the tag.
 
+## Writing specs
+
+Each slice of an FC spec ends with "you'll check it by" and names the test or command that checks
+it. Where the outcome is a time, size or count, give the number: "the welcome prints within 0.5
+seconds with the remote unreachable", not "never delays the welcome". A builder and a checker must
+read the same line the same way. Existing specs are not rewritten, but a spec whose next slice has
+no number where one is needed gets one before it is built.
+
+When a spec is built with the `afc-build-spec` workflow, a check fails only on a problem that quotes
+the spec line or safety rule it breaks; anything else is reported as a note.
+
 ## Tests
 
 ```bash

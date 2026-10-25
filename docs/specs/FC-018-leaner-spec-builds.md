@@ -94,7 +94,7 @@ settings.
 - [x] 2. Lean helpers — you'll check it by a do-nothing helper's starting tokens measured before and
       after, the after at most half the before, both numbers written in Decisions (one structural
       test that both helper files name their tools; the measure is live)
-- [ ] 3. Checks that quote the spec — you'll check it by the checker's result keeping `problems` and
+- [x] 3. Checks that quote the spec — you'll check it by the checker's result keeping `problems` and
       `notes` apart, with a problem that quotes no spec line or rule landing in `notes`, and by
       CONTRIBUTING's rule asking for a number where an outcome is a time, size or count (one
       structural test each)
