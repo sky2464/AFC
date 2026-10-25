@@ -103,3 +103,9 @@ or two plain sentences what was stopped and why, then offer the user-side action
 
 For secrets: remove the secret from the content and use an environment variable instead.
 For risky git: tell the user the exact step they can take themselves, if they still want it.
+
+## A guard that should have fired
+
+If Flight Control said an action needs maintenance mode, but it succeeded with maintenance mode off,
+that is a full stop. Say so in one sentence, change nothing else, and offer the health check
+(`/afc` → Health check). Do not carry on or call it a minor line in a summary.

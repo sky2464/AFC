@@ -255,6 +255,25 @@ class BrainTest(unittest.TestCase):
                     self.assertLessEqual(len(p.read_text().splitlines()), 500, p)
 
 
+class GuardFullStopTest(unittest.TestCase):
+    """FC-012 slice 5: a guard that should have fired but did not is a full stop."""
+
+    def test_claude_md_has_full_stop_rule(self):
+        t = (ROOT / "CLAUDE.md").read_text()
+        self.assertIn("## A guard that should have fired", t)
+        for term in ["full stop", "maintenance mode", "one sentence", "change nothing else",
+                     "Health check"]:
+            self.assertIn(term, t)
+        self.assertLessEqual(len(t.splitlines()), 150)
+
+    def test_guard_acting_skills_point_to_the_rule(self):
+        for s in ["afc-slice", "afc-enterprise"]:
+            t = (ROOT / ".claude/skills" / s / "SKILL.md").read_text()
+            self.assertIn("Flight Control blocked", t, s)
+            self.assertIn("full stop", t, s)
+            self.assertIn("A guard that should have fired", t, s)
+
+
 if __name__ == "__main__":
     unittest.main()
 

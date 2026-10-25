@@ -34,7 +34,8 @@ summaries into `plan/decisions.md`.
 
 Resources never go into a repo: not copied, not pasted, not quoted in code or docs. The guard blocks
 this ("Flight Control blocked ..."); if it fires, stop and tell the user in plain words. Paraphrases
-can slip past a guard, so keep summaries in the workspace only.
+can slip past a guard, so keep summaries in the workspace only. A guard that should have fired but
+did not is a full stop (CLAUDE.md, "A guard that should have fired").
 
 ## When a lookup comes back empty
 
