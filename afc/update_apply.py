@@ -22,7 +22,7 @@ def _refuse(current: str, reason: str) -> dict:
 
 
 def _git(root: Path, *args) -> str | None:
-    return update._git(root, *args, timeout=FETCH_BUDGET)
+    return update._git(root, *args, timeout=FETCH_BUDGET, cap=FETCH_BUDGET)
 
 
 def run_check(root: Path) -> dict | None:
@@ -65,10 +65,13 @@ def apply(root: Path, home: Path) -> dict:
     if not version.is_newer(tag, current):
         return {"updated": False, "current": current, "reason": f"You already have the newest release, {current}."}
     before = (_git(root, "rev-parse", "HEAD") or "").strip()
-    if not before or _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}:refs/tags/{tag}") is None:
+    # fetched without a local tag (it lands in FETCH_HEAD only), so a refused update leaves no trace
+    if not before or _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}") is None:
         return _refuse(current, f"The release {tag} could not be fetched, so nothing was changed.")
-    if _git(root, "merge", "--ff-only", "--quiet", f"{tag}^{{commit}}") is None:
+    if _git(root, "merge", "--ff-only", "--quiet", "FETCH_HEAD^{commit}") is None:
         return _refuse(current, f"{tag} does not continue from your copy, so nothing was changed.")
+    # the update is in: now keep the tag too (its objects are already here)
+    _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
     log = _git(root, "log", "--format=%s", f"{before}..HEAD") or ""
     changes = [line.strip() for line in log.splitlines() if line.strip()]
     shown = changes[:MAX_CHANGES]
@@ -80,4 +83,12 @@ def apply(root: Path, home: Path) -> dict:
         "check": run_check(root),
     }
     result["summary"] = f"Updated Flight Control from {current} to {tag}: {title}."
+    check = result["check"]
+    if isinstance(check, dict) and (check.get("ok") is False or check.get("problems")):
+        problems = check.get("problems") or []
+        details = [str(p.get("detail") or p.get("kind")) for p in problems if isinstance(p, dict)]
+        result["summary"] += (
+            f" The health check after the update found {len(problems)} problem(s) to look at: "
+            + "; ".join(details[:MAX_CHANGES])
+        )
     return result

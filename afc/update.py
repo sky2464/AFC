@@ -61,14 +61,14 @@ def _quiet_env() -> dict:
     return env
 
 
-def _git(root: Path, *args, timeout: float = TIMEOUT) -> str | None:
+def _git(root: Path, *args, timeout: float = TIMEOUT, cap: float = TIMEOUT) -> str | None:
     # No stdin, no controlling terminal and no askpass: a private or SSH origin fails quietly
     # instead of printing a credential or host-key prompt. No time left means no call at all.
     if timeout <= 0:
         return None
     try:
         done = subprocess.run(
-            ["git", *args], cwd=root, capture_output=True, text=True, timeout=min(timeout, TIMEOUT),
+            ["git", *args], cwd=root, capture_output=True, text=True, timeout=min(timeout, cap),
             stdin=subprocess.DEVNULL, env=_quiet_env(), start_new_session=True,
         )
     except (OSError, subprocess.TimeoutExpired):
@@ -94,12 +94,12 @@ def _release_commits(listing: str) -> dict:
 def remote_newest(root: Path, budget: float = TIMEOUT) -> str | None:
     """The newest v* tag on origin whose commit is part of main's history, or None.
 
-    The git calls share one budget (at most TIMEOUT seconds in all): each gets the time that is
-    left, and none starts once it has run out."""
-    deadline = time.monotonic() + min(budget, TIMEOUT)
+    The git calls share one budget (the daily look uses TIMEOUT seconds, an update asks for more):
+    each gets the time that is left, and none starts once it has run out."""
+    deadline = time.monotonic() + budget
 
     def run(*args):
-        return _git(root, *args, timeout=deadline - time.monotonic())
+        return _git(root, *args, timeout=deadline - time.monotonic(), cap=budget)
 
     listing = run("ls-remote", "--tags", "origin", "v*")
     if listing is None:

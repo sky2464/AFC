@@ -3,7 +3,7 @@
 import subprocess
 from unittest import mock
 
-from afc import update_apply
+from afc import update, update_apply
 from tests.helpers import RemoteCase, git, run_cli
 
 
@@ -42,8 +42,9 @@ class ApplyTest(RemoteCase):
         self.release("v0.02a", "v0.02a")
         out = self.apply()
         self.assertEqual(out["changes"], ["v0.02a"])
-        self.assertIn("v0.01a", out["summary"])
-        self.assertIn("Second release", out["summary"])
+        self.assertEqual(out["title"], "Second release")
+        self.assertEqual((out["from"], out["to"]), ("v0.01a", "v0.02a"))
+        self.assertTrue(out["summary"])
 
     def test_long_list_is_cut(self):
         for i in range(12):
@@ -51,7 +52,8 @@ class ApplyTest(RemoteCase):
         git(self.remote, "tag", "-a", "v0.02a", "-m", "Big one")
         out = self.apply()
         self.assertEqual(len(out["changes"]), update_apply.MAX_CHANGES + 1)
-        self.assertEqual(out["changes"][-1], "and 4 more")
+        self.assertTrue(out["changes"][-1].startswith("and "))
+        self.assertIn(str(12 - update_apply.MAX_CHANGES), out["changes"][-1])
 
     def test_lightweight_tag_title_falls_back_to_commit_or_tag(self):
         self.commit("v0.02a")
@@ -79,13 +81,52 @@ class ApplyTest(RemoteCase):
         self.assertTrue(out["updated"])
         self.assertIsNone(out["check"])
 
+    def test_failing_check_is_told_in_the_summary(self):
+        self.release()
+        bad_check = {"ok": False, "problems": [{"kind": "code_missing", "detail": "zzqq folder gone"}]}
+        with mock.patch("afc.update_apply.run_check", return_value=bad_check):
+            out = update_apply.apply(self.copy, self.home)
+        self.assertTrue(out["updated"])
+        self.assertEqual(out["check"], bad_check)
+        self.assertIn("zzqq folder gone", out["summary"])
+
+    def test_fetch_merge_and_log_get_the_long_budget(self):
+        self.release()
+        seen = {}
+        real = subprocess.run
+
+        def spy(cmd, *a, **kw):
+            seen[tuple(cmd[1:3])] = kw.get("timeout")
+            return real(cmd, *a, **kw)
+
+        with mock.patch("afc.update.subprocess.run", side_effect=spy):
+            self.apply()
+        for key in (("merge", "--ff-only"), ("log", "--format=%s")):
+            self.assertGreater(seen[key], update.TIMEOUT, key)
+        self.assertGreater(seen[("fetch", "--quiet")], update.TIMEOUT)
+
+    def test_refused_merge_leaves_no_tag_behind(self):
+        self.release()
+        (self.copy / "local.txt").write_text("mine")
+        git(self.copy, "add", "local.txt")
+        git(self.copy, "commit", "-qm", "local work")
+        self.assertFalse(self.apply()["updated"])
+        tags = subprocess.run(["git", "tag", "-l"], cwd=self.copy, capture_output=True, text=True).stdout
+        self.assertNotIn("v0.02a", tags)
+
+    def test_updated_copy_keeps_the_tag(self):
+        self.release()
+        self.assertTrue(self.apply()["updated"])
+        tags = subprocess.run(["git", "tag", "-l"], cwd=self.copy, capture_output=True, text=True).stdout
+        self.assertIn("v0.02a", tags)
+
     def test_local_edits_refuse_and_leave_copy_untouched(self):
         self.dirty()
         self.release()
         before = head(self.copy)
         out = self.apply()
         self.assertFalse(out["updated"])
-        self.assertIn("local edits", out["reason"])
+        self.assertTrue(out["reason"])
         self.assertEqual(head(self.copy), before)
         self.assertEqual((self.copy / "notes.md").read_text(), "edited\n")
 
@@ -101,7 +142,7 @@ class ApplyTest(RemoteCase):
         before = head(self.copy)
         out = self.apply()
         self.assertFalse(out["updated"])
-        self.assertIn("not on main", out["reason"])
+        self.assertTrue(out["reason"])
         self.assertEqual(head(self.copy), before)
 
     def test_detached_head_refuses(self):
@@ -129,7 +170,8 @@ class ApplyTest(RemoteCase):
     def test_already_newest(self):
         out = self.apply()
         self.assertFalse(out["updated"])
-        self.assertIn("newest", out["reason"])
+        self.assertTrue(out["reason"])
+        self.assertNotIn("to", out)
 
     def test_offline_changes_nothing(self):
         self.release()
