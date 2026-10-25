@@ -285,14 +285,26 @@ class ModulesTest(CliTestCase):
         self.assertEqual(out["profile"], "personal")
         self.assertEqual(out["modules"], ["secrets", "identity", "input", "ai-safety"])
 
-    def test_modules_gives_the_absolute_path_of_each_rule_file(self):
+    def test_modules_gives_the_absolute_path_of_each_short_rule_file(self):
         self.new("kong-gateway-lab")
         run_cli(["set", "profile", "personal"])
         rc, out = run_cli(["modules", "--touches", "auth"])
+        self.assertEqual(out["form"], "short")
         self.assertEqual(list(out["paths"]), out["modules"])
         for name, path in out["paths"].items():
             self.assertTrue(Path(path).is_absolute(), path)
+            self.assertTrue(path.endswith(f"rules/short/{name}.md"), path)
+
+    def test_modules_full_gives_the_long_rule_files(self):
+        self.new("kong-gateway-lab")
+        run_cli(["set", "profile", "personal"])
+        rc, out = run_cli(["modules", "--touches", "auth", "--full"])
+        self.assertEqual((rc, out["form"]), (0, "full"))
+        self.assertEqual(out["modules"], ["secrets", "identity", "input", "ai-safety"])
+        for name, path in out["paths"].items():
+            self.assertTrue(Path(path).is_absolute(), path)
             self.assertTrue(path.endswith(f"rules/{name}.md"), path)
+            self.assertNotIn("/short/", path)
 
     def test_modules_without_active_project_asks_for_interview(self):
         rc, out = run_cli(["modules", "--touches", "auth"])

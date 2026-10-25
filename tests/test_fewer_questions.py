@@ -1,4 +1,8 @@
-"""The start and interview skills reach a plan in four questions or fewer (FC-002 slice 3)."""
+"""The setup and interview skills reach a plan in four questions or fewer (FC-002 slice 3).
+
+The new-project flow lives in `afc-setup` and the profile questions in `afc-profile`, split out of
+`afc-start` and `afc-interview` by FC-009 slice 3; the assertions are unchanged.
+"""
 
 import re
 import unittest
@@ -17,8 +21,8 @@ def flat(text: str) -> str:
 
 class NewProjectStartTest(unittest.TestCase):
     def setUp(self):
-        start = skill("afc-start")
-        self.section = start.split("## New project")[1].split("\n## ")[0]
+        setup = skill("afc-setup")
+        self.section = setup.split("## New project")[1].split("\n## ")[0]
         self.text = flat(self.section)
 
     def test_what_to_build_comes_before_the_folder(self):
@@ -66,10 +70,12 @@ class InterviewTest(unittest.TestCase):
     def setUp(self):
         self.text = skill("afc-interview")
         self.profile = self.text.split("## Profile")[1].split("\n## ")[0]
+        self.questions = skill("afc-profile")
 
     def test_one_combined_who_and_what_for_question_comes_first(self):
         self.assertIn("Who is it for, and what for", self.profile)
-        self.assertLess(self.profile.index("Who is it for, and what for"), self.profile.index("**Purpose**"))
+        self.assertLess(self.profile.index("Who is it for, and what for"), self.profile.index("`afc-profile`"))
+        self.assertNotIn("**Purpose**", self.profile)
 
     def test_just_me_means_personal_without_more_questions(self):
         flat_profile = flat(self.profile)
@@ -80,13 +86,13 @@ class InterviewTest(unittest.TestCase):
     def test_other_people_or_a_company_keep_the_full_questions(self):
         for term in ("**Purpose**", "**Users**", "**Inside or outside**", "**Company**",
                      "**Sensitive data**", "**Wiki**"):
-            self.assertIn(term, self.profile)
-        self.assertIn("a quick prototype", self.profile)
-        self.assertIn("an MVP", self.profile)
+            self.assertIn(term, self.questions)
+        self.assertIn("a quick prototype", self.questions)
+        self.assertIn("an MVP", self.questions)
 
     def test_profile_table_is_unchanged(self):
         for row in ("`enterprise`", "`work`", "`mvp`", "`prototype`", "`personal`"):
-            self.assertIn(row, self.profile)
+            self.assertIn(row, self.questions)
 
     def test_the_plan_question_is_the_last_of_the_four(self):
         self.assertIn("Start with the first one?", self.text)
@@ -101,7 +107,7 @@ class QuestionBudgetTest(unittest.TestCase):
     """Count the questions a personal 'just me' start asks, as the two skills write it."""
 
     def test_a_personal_start_asks_four_or_fewer(self):
-        start = flat(skill("afc-start").split("## New project")[1].split("\n## ")[0])
+        start = flat(skill("afc-setup").split("## New project")[1].split("\n## ")[0])
         interview = skill("afc-interview")
         asked = [
             "What would you like to build?",       # 1: the start of the intent

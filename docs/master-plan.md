@@ -13,14 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-007 | Package checks fit the stack | S | [spec](specs/FC-007-package-checks-fit-the-stack.md) |
-| FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
-| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
 | FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
@@ -31,6 +29,9 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
+| FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
+| FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
 | FC-006 | Workspace notes in the right place | 2026-10-24 | [FC-006](specs/archive/FC-006-workspace-notes-in-the-right-place.md) |
 | FC-005 | Tidy, safe tool use | 2026-10-24 | [FC-005](specs/archive/FC-005-tidy-safe-tool-use.md) |
 | FC-004 | Plan goal and plan editing | 2026-10-24 | [FC-004](specs/archive/FC-004-plan-goal-and-plan-editing.md) |
@@ -38,9 +39,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-002 | Fewer questions before building | 2026-10-24 | [FC-002](specs/archive/FC-002-fewer-questions-before-building.md) |
 | FC-001 | Test copies use their own home | 2026-10-24 | [FC-001](specs/archive/FC-001-test-copies-use-their-own-home.md) |
 | FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
-| TL | Toolkit layers (allowed add-ons, project tools, recipes) | 2026-10-24 | [stories](superpowers/plans/2026-10-23-toolkit-layers.md) |
-| MP | Master plan, specs and archive | 2026-10-23 | [stories](superpowers/plans/2026-10-23-master-plan.md) |
-| PC | Project controls: remove, pause/resume, health check | 2026-10-23 | — |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -135,3 +133,12 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-005 done |
 | 2026-10-24 | FC-006 started |
 | 2026-10-24 | FC-006 done |
+| 2026-10-24 | FC-007 started |
+| 2026-10-24 | FC-007 done |
+| 2026-10-24 | FC-016 added |
+| 2026-10-24 | FC-016 specced and sliced (3 slices): compaction drops Done rows instead of archiving them, which lost the PC and v0.01a rows; FC-015 depends on it |
+| 2026-10-24 | FC-016 started |
+| 2026-10-24 | FC-016 done |
+| 2026-10-24 | FC-008 started |
+| 2026-10-24 | FC-008 done |
+| 2026-10-24 | FC-009 started |

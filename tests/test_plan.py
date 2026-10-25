@@ -205,6 +205,105 @@ class CompactTests(PlanTestCase):
         self.assertEqual(kept[0][0], "S-012")
         self.assertEqual(kept[-1][0], "S-003")
 
+    def _set_done(self, done):
+        text = plan.write_rows(self.master(), "Done", done)
+        (self.ws / "plan" / plan.MASTER).write_text(text, encoding="utf-8")
+
+    def _twelve(self, date="2026-01-01"):
+        return [[f"S-{i:03d}", "t", date, "l"] for i in range(12, 0, -1)]
+
+    def test_done_overflow_goes_to_archive(self):
+        self._set_done(self._twelve())
+        plan.compact(self.ws)
+        arc = (self.ws / "plan/archive/done-2026.md").read_text(encoding="utf-8")
+        self.assertTrue(arc.startswith("# Done 2026\n"))
+        self.assertIn("| ID | Title | Done | Spec |\n|---|---|---|---|\n", arc)
+        self.assertLess(arc.index("| S-002 |"), arc.index("| S-001 |"))
+        self.assertNotIn("S-003", arc)
+
+    def test_done_archive_appends_never_overwrites(self):
+        (self.ws / "plan/archive").mkdir()
+        path = self.ws / "plan/archive/done-2026.md"
+        path.write_text("# Done 2026\n\n| ID | Title | Done | Spec |\n|---|---|---|---|\n| S-000 | earlier | 2026-01-01 | l |\n")
+        self._set_done(self._twelve())
+        plan.compact(self.ws)
+        arc = path.read_text(encoding="utf-8")
+        self.assertIn("| S-000 | earlier |", arc)
+        self.assertIn("| S-001 | t |", arc)
+        self.assertEqual(arc.count("# Done"), 1)
+
+    def test_done_row_without_year_goes_to_unknown(self):
+        done = self._twelve()
+        done[-1][2] = "-"
+        self._set_done(done)
+        plan.compact(self.ws)
+        arc = (self.ws / "plan/archive/done-unknown.md").read_text(encoding="utf-8")
+        self.assertTrue(arc.startswith("# Done unknown\n"))
+        self.assertIn("| S-001 |", arc)
+
+    def test_done_without_overflow_touches_nothing(self):
+        self._set_done(self._twelve()[:10])
+        plan.compact(self.ws)
+        self.assertFalse((self.ws / "plan/archive").exists())
+
+    def test_compacting_twice_adds_no_duplicates(self):
+        self._set_done(self._twelve())
+        plan.compact(self.ws)
+        path = self.ws / "plan/archive/done-2026.md"
+        first = path.read_text(encoding="utf-8")
+        plan.compact(self.ws)
+        self.assertEqual(path.read_text(encoding="utf-8"), first)
+        self.assertEqual(first.count("| S-001 |"), 1)
+
+    def test_failed_archive_leaves_plan_whole(self):
+        self._set_done(self._twelve())
+        before = self.master()
+        (self.ws / "plan/archive").write_text("not a folder")
+        with self.assertRaises(OSError):
+            plan.compact(self.ws)
+        self.assertEqual(self.master(), before)
+        self.assertEqual(len(plan.read_rows(self.master(), "Done")), 12)
+
+    def test_unwritable_archive_folder_leaves_plan_whole(self):
+        import os
+        self._set_done(self._twelve())
+        before = self.master()
+        archive = self.ws / "plan/archive"
+        archive.mkdir()
+        archive.chmod(0o500)
+        try:
+            if os.access(archive, os.W_OK):
+                self.skipTest("folder permissions are not enforced here")
+            with self.assertRaises(OSError):
+                plan.compact(self.ws)
+            self.assertEqual(self.master(), before)
+        finally:
+            archive.chmod(0o700)
+
+    def test_later_failure_puts_earlier_archive_files_back(self):
+        done = self._twelve("2026-01-01")
+        done[-1][2] = "2025-01-01"  # S-001 -> done-2025, S-002 -> done-2026
+        self._set_done(done)
+        before = self.master()
+        archive = self.ws / "plan/archive"
+        archive.mkdir()
+        (archive / "done-2025.md").mkdir()  # the second year cannot be written
+        with self.assertRaises(OSError):
+            plan.compact(self.ws)
+        self.assertEqual(self.master(), before)
+        self.assertFalse((archive / "done-2026.md").exists())
+
+    def test_retry_after_failure_adds_no_duplicates(self):
+        self._set_done(self._twelve())
+        blocker = self.ws / "plan/archive"
+        blocker.write_text("not a folder")
+        with self.assertRaises(OSError):
+            plan.compact(self.ws)
+        blocker.unlink()
+        plan.compact(self.ws)
+        arc = (self.ws / "plan/archive/done-2026.md").read_text(encoding="utf-8")
+        self.assertEqual(arc.count("| S-001 |"), 1)
+
     def test_update_log_overflow_goes_to_archive(self):
         rows = [["2025-12-31", "old1"], ["2025-12-31", "old2"]]
         rows += [["2026-01-01", f"e{i}"] for i in range(100)]

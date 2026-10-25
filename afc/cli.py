@@ -232,8 +232,9 @@ def cmd_modules(args: argparse.Namespace) -> dict:
     touches = {t.strip() for t in args.touches.split(",") if t.strip()}
     names = modules_for(project.profile, touches)
     rules = afc_root() / "rules"
-    return {"profile": project.profile, "modules": names,
-            "paths": {name: str(rules / f"{name}.md") for name in names}}
+    folder = rules if args.full else rules / "short"
+    return {"profile": project.profile, "modules": names, "form": "full" if args.full else "short",
+            "paths": {name: str(folder / f"{name}.md") for name in names}}
 
 
 def cmd_set(args: argparse.Namespace) -> dict:
@@ -455,6 +456,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("modules", help="rule modules for the active project")
     p.add_argument("--touches", default="")
+    p.add_argument("--full", action="store_true", help="the long rule files, for review")
     p.set_defaults(handler=cmd_modules)
 
     p = sub.add_parser("set", help="change one setting of the active project")
