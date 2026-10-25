@@ -24,7 +24,7 @@ safe slices, with as few questions and as little noise as possible.
 | ID | Title | Done | Spec |
 |---|---|---|---|
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
-| FC-024 | Optional TypeSafe Jev (stub) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
+| FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
 | FC-023 | Smoother flow and welcome fixes | 2026-10-25 | [FC-023](specs/archive/FC-023-smoother-flow-and-fixes.md) |
 | FC-022 | Project role agents, workflow and init | 2026-10-25 | [FC-022](specs/archive/FC-022-project-role-agents-and-workflow.md) |
 | FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
