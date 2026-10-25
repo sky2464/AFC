@@ -77,7 +77,7 @@ own. Reviewing anything other than the current slice's changes.
       `sh bin/afc review --slice "1 label"` on a project with a known problem printing `verdict`,
       `critical`, `warning` and `report` (tests: ok and blocked, report written, the existing scan
       checks included)
-- [ ] 2. File size and untested acceptance lines are critical — you'll check it by a 501-line file
+- [x] 2. File size and untested acceptance lines are critical — you'll check it by a 501-line file
       and an uncovered "You'll know it works when" line each making the verdict `blocked`, each
       named in the report (tests for both, and for a clean project staying `ok`)
 - [ ] 3. A bug fix needs a regression test — you'll check it by a bug-fix slice with no named

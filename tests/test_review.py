@@ -76,6 +76,59 @@ class ReviewVerdictTests(AfcTestCase):
         self.assertEqual((result["critical"], result["warning"]), (0, 1))
 
 
+SPEC = """# S-001 Login
+
+## You'll know it works when
+
+- When a user logs in with a wrong password, then an error message is shown.
+- When the session expires, then the user is sent back to the login page.
+
+## Slices
+"""
+
+
+def _planned(ws: Path) -> None:
+    (ws / "plan" / "specs").mkdir(parents=True)
+    (ws / "plan" / "specs" / "S-001-login.md").write_text(SPEC, encoding="utf-8")
+    (ws / "plan" / "master-plan.md").write_text(
+        "## Now\n\n| ID | Title | Size | Spec | Started |\n|---|---|---|---|---|\n"
+        "| S-001 | Login | S | [spec](specs/S-001-login.md) | 2026-10-25 |\n\n## Next\n",
+        encoding="utf-8")
+
+
+class ReviewOwnChecksTests(AfcTestCase):
+    def _review(self, files, planned=True):
+        repo = _git_repo(self.tmp / "app", files)
+        ws = self.tmp / "ws"
+        if planned:
+            _planned(ws)
+        with mock.patch("afc.scan.shutil.which", return_value=None):
+            result = review.run_review(repo, ws, "1 Login")
+        return result, Path(result["report"]).read_text(encoding="utf-8")
+
+    def test_501_line_file_blocks_and_is_named(self):
+        result, text = self._review({"big.py": "x = 1\n" * 501}, planned=False)
+        self.assertEqual((result["verdict"], result["critical"]), ("blocked", 1))
+        self.assertIn("big.py", text)
+
+    def test_500_line_file_is_fine(self):
+        result, _ = self._review({"big.py": "x = 1\n" * 500}, planned=False)
+        self.assertEqual(result["verdict"], "ok")
+
+    def test_untested_line_blocks_and_is_quoted_in_full(self):
+        tests = "def test_user_logs_in_wrong_password_error_message_shown(): pass\n"
+        result, text = self._review({"test_login.py": tests})
+        self.assertEqual((result["verdict"], result["critical"]), ("blocked", 1))
+        self.assertIn("When the session expires, then the user is sent back to the login page.", text)
+        self.assertNotIn("wrong password, then", text)
+
+    def test_every_line_tested_stays_ok(self):
+        tests = ("def test_user_logs_in_wrong_password_error_message_shown(): pass\n"
+                 "def test_expired_session_sends_the_user_back_to_the_login_page(): pass\n")
+        result, _ = self._review({"test_login.py": tests})
+        self.assertEqual((result["verdict"], result["critical"]), ("ok", 0))
+
+
 class ReviewReportTests(AfcTestCase):
     def test_report_written_beside_scan_reports(self):
         repo = _git_repo(self.tmp / "app", {"ok.py": "print(1)\n"})
