@@ -1,6 +1,6 @@
 # FC-012 — Flight Control keeps its own copy safe
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-24, after an update session changed Flight Control's own code with a hand
 `git merge` while maintenance mode was off, and left that copy on a detached HEAD.
@@ -117,3 +117,5 @@ from the same review — argparse errors that don't name their allowed values (`
   `git switch main` during repair isn't explained, and `rebase` is allowed with maintenance on.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.

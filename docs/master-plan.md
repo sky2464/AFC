@@ -19,7 +19,6 @@ safe slices, with as few questions and as little noise as possible.
 | ID | Title | Size | Spec |
 |---|---|---|---|
 | FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
-| FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
 | FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
 | FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
@@ -29,6 +28,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | [FC-012](specs/archive/FC-012-flight-control-keeps-its-own-copy-safe.md) |
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
 | FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
@@ -38,8 +38,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-004 | Plan goal and plan editing | 2026-10-24 | [FC-004](specs/archive/FC-004-plan-goal-and-plan-editing.md) |
 | FC-003 | A real, tested first slice | 2026-10-24 | [FC-003](specs/archive/FC-003-real-tested-first-slice.md) |
 | FC-002 | Fewer questions before building | 2026-10-24 | [FC-002](specs/archive/FC-002-fewer-questions-before-building.md) |
-| FC-001 | Test copies use their own home | 2026-10-24 | [FC-001](specs/archive/FC-001-test-copies-use-their-own-home.md) |
-| FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -147,3 +145,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-017 added and specced (4 slices); queued last in Next |
 | 2026-10-25 | FC-012 slice 3 approved and ticked: the health check sees the A-FC folder; spec stays in Next while FC-009 holds Now |
 | 2026-10-25 | FC-014 slice 1 approved and ticked: review gives a verdict; spec stays in Next while FC-009 holds Now |
+| 2026-10-25 | FC-012 started |
+| 2026-10-25 | FC-012 done |
