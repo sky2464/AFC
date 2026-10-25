@@ -6,47 +6,31 @@ user-invocable: false
 
 # Start
 
-Read the session context line first. Keep every message short, ask one question per message, and
-end with at most two numbered next steps, the recommended one first.
+Read the session context line first. Short messages, one question each, at most two numbered next steps.
 
 ## First reply
 
-The welcome already asked the first question; the context line says what 1 and 2 mean. If the first
-message is 1 or 2, go straight into that path — do not ask the welcome question again. Otherwise
-answer briefly, then one question with those same 1 and 2 options (never two welcome questions).
+The welcome already asked the first question; if the first message is 1 or 2, go straight into
+that path (the context line says what they mean). Otherwise answer briefly, then ask the question
+for the situation.
 
-- **A newer release is out** (the context says "A newer Flight Control release is out"): the update
-  question comes first, the project question after it. 1. Update now (recommended): run
-  `sh bin/afc update`. 2. Not now: run `sh bin/afc update --skip <new>`, then ask the project
-  question. Anything else: answer briefly, then ask the update question. Never both in one message.
-- **Maintenance mode** (the context says `Mode: maintenance`): this session is for working on
+- **A newer release is out** (context says so): ask first: 1. Update now (recommended):
+  `sh bin/afc update`. 2. Not now: `sh bin/afc update --skip <new>`, then the project
+question. Anything else: answer briefly, then ask the update question. Never both in one message.
+- **Maintenance mode** (`Mode: maintenance`): this session is for working on
   Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
   maintenance mode is on and projects are set aside, then ask what to work on:
   1. Keep working on Flight Control (recommended) 2. Go back to your projects (`/afc mm off`)
-  If asked to build or change a project, say it needs `/afc mm off` first.
-- **Projects but none active** (`sh bin/afc status` returns `"active": null` and a `projects`
-  list): 1 = pick a project, 2 = start a new one (`afc-setup`). To pick: "Which project do
-  you want to work on?" and offer up to two of them as numbered steps (more via
+  A project request needs `/afc mm off` first.
+- **Projects but none active** (`status` shows `"active": null` and a `projects` list): 1 = pick
+  one, 2 = start a new one (`afc-setup`). Ask "Which project do you want to work on?", offer up to
+  two as numbered steps (more via
   `sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop back to `/afc`
   for this.
-- **Only paused projects** (`status` returns `"active": null`, an empty `projects` list and a
-  `paused` list): 1 = resume one, 2 = start a new one (`afc-setup`). To resume: "Which one do
-  you want to pick up again?" and offer up to two of the paused projects as numbered steps, then
-  `sh bin/afc resume <name>`.
-- **Returning** (an active project exists): 1 = continue *<project>*, 2 = something else.
-  Asked again it is: "Welcome back — continue *<project>* (last: <last slice>, or the active spec from the context line "Active spec: …"), or something else?"
-  1. Continue *<project>* (recommended) 2. Something else
-  If they continue, run `sh bin/afc status`, then hand off to `afc-interview` (or `afc-slice` if
-  the intent is already agreed). For something else, ask what they want: a new project or another
-  of their projects.
-- **First run** (no projects; `status` returns `"active": null`, an empty `projects` list and no
-  `paused` list):
-  1 = a new project (`afc-setup`), 2 = one already on this computer (`afc-setup`).
-  Asked again it is: "Are you starting a new project, or working on one that already exists on
-  this machine?"
-  1. A new project 2. One that already exists
-
-## New or existing project
-
-Use `afc-setup` to start a new project (what to build, name, folder, git identity) or to bring in
-one that already exists. It hands off to `afc-interview` when it is done.
+- **Only paused projects**: 1 = resume one (`sh bin/afc resume <name>`), 2 = start a new one.
+- **Returning** (an active project): "Welcome back — continue *<project>* (last: <last slice>), or
+  something else?" 1. Continue (recommended) 2. Something else. On continue,
+  run `sh bin/afc status`, then `afc-interview` (or `afc-slice` if the intent is agreed). On
+  something else, ask whether it is a new project or another of theirs.
+- **First run** (no projects): "Are you starting a new project, or working on one that already
+  exists on this machine?" 1. A new project 2. One that already exists (both `afc-setup`).

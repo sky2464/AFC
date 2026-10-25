@@ -18,6 +18,7 @@ from afc import (
     cli_projects,
     cli_review,
     cli_ship,
+    cli_slice,
     cli_test,
     cli_tools,
     cli_version,
@@ -117,6 +118,7 @@ def build_parser() -> argparse.ArgumentParser:
     cli_defaults.register(sub)
     cli_review.register(sub)
     cli_ship.register(sub)
+    cli_slice.register(sub)
     cli_test.register(sub)
     cli_awake.register(sub)
     return parser

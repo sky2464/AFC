@@ -1,6 +1,6 @@
 # FC-020 — Trim skill text and plan bookkeeping
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25, after FC-017 closed with its ceiling missed (growth 41,916 against 36,736).
 Replies met their third; skill text (9,483 against 7,581) and plan and spec edits (4,573 against
@@ -50,19 +50,19 @@ this spec still misses. Changing the ceiling or the measuring method.
 
 ## Slices
 
-- [ ] 1. Pin the safety lines — you'll check it by `tests/test_skill_safety_lines.py` listing every
+- [x] 1. Pin the safety lines — you'll check it by `tests/test_skill_safety_lines.py` listing every
       line with "never", "must not" or "always ask" in the five skills and failing when one
       disappears (tests: passes on today's skills; a fixture with one line removed fails)
-- [ ] 2. Trim the five skills to at most 14,000 bytes in total — you'll check it by the same test
+- [x] 2. Trim the five skills to at most 14,000 bytes in total — you'll check it by the same test
       still passing and a size test on the five files (14,000 bytes, down from 20,796)
-- [ ] 3. `sh bin/afc slice record` — you'll check it by `tests/test_slice_record.py`: one call ticks
+- [x] 3. `sh bin/afc slice record` — you'll check it by `tests/test_slice_record.py`: one call ticks
       the slice in the spec, appends a dated line to `decisions.md` and updates `architecture.md`,
       refuses when the spec has no such slice, and leaves the three files byte-identical on
       refusal (tests)
-- [ ] 4. `afc-slice` and `afc-deliver` use it — you'll check it by content tests that neither skill
+- [x] 4. `afc-slice` and `afc-deliver` use it — you'll check it by content tests that neither skill
       tells the session to read or edit `decisions.md`, `architecture.md` or the spec by hand for
       bookkeeping, and that both name `slice record`
-- [ ] 5. Measured live re-run — same method as FC-017 slice 4 (a whole start plus first slice on a
+- [x] 5. Measured live re-run — same method as FC-017 slice 4 (a whole start plus first slice on a
       copy of `dev` with its own home), plus a control the same day on `dev` at `71e6517`; skill
       text at most 7,581, plan and spec edits at most 4,003, growth at most 36,736; the result goes
       into `docs/measurements/`
@@ -72,5 +72,6 @@ this spec still misses. Changing the ceiling or the measuring method.
 - 2026-10-25: Specced after FC-017 missed. The two byte and token numbers come from FC-017's own
   re-run: the skill total is 20,796 bytes today, and 14,000 is a third under it. The re-run
   numbers are the third-below figures FC-017 slice 4 asked for and did not reach.
+- 2026-10-25: Slice 5 measured on `dev` at `4087be3` and met its numbers: growth 31,793 (ceiling 36,736), skill text 6,394 (7,581), plan and spec edits 0 (4,003). The 0 is because `slice record` is a Bash command counted under Other; the two together fell 10%. The control was the FC-017 re-run made earlier the same day, and this run built a smaller first slice (6 tests against 19), so part of the drop is not FC-020's. Closed as met. The numbers are in `docs/measurements/fc-020-rerun.md`.
 
 ## Shipped
