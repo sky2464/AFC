@@ -59,7 +59,7 @@ this spec still misses. Changing the ceiling or the measuring method.
       the slice in the spec, appends a dated line to `decisions.md` and updates `architecture.md`,
       refuses when the spec has no such slice, and leaves the three files byte-identical on
       refusal (tests)
-- [ ] 4. `afc-slice` and `afc-deliver` use it — you'll check it by content tests that neither skill
+- [x] 4. `afc-slice` and `afc-deliver` use it — you'll check it by content tests that neither skill
       tells the session to read or edit `decisions.md`, `architecture.md` or the spec by hand for
       bookkeeping, and that both name `slice record`
 - [ ] 5. Measured live re-run — same method as FC-017 slice 4 (a whole start plus first slice on a

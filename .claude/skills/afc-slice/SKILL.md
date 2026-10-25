@@ -77,16 +77,9 @@ ran and passed. Never show a slice with a failing test, or with none: write the 
 
 ## On yes
 
-Update the workspace docs, unasked:
-
-- The active spec file: tick the slice (`- [x]`) and note any decision under it.
-- `plan/decisions.md`: a dated entry for anything decided and why, at the end under
-`## Log`. Never under Standing Corrections, which hold only the user's always/never rules.
-- `plan/architecture.md`: after the first approved slice, while it is still the template, fill
-  section 1 (goal), 4 (main parts) and 6 (stack, versions, how it runs) briefly. After that, only
-  if structure changed.
-
-Use Edit, never a shell script. Change only the lines that change; never rewrite a whole file.
+Record it, unasked, in one call:
+`sh bin/afc slice record <id> <n> --decision "<decided and why>" --architecture "<what changed>"`
+It ticks the spec, logs the decision and notes the architecture. Never read or edit those files by hand for it.
 Then `sh bin/afc set last_slice "<n> <label>"`, `sh bin/afc index refresh`, `sh bin/afc index rebuild --all`.
 
 No open slice left: `sh bin/afc ship --check <id>`, then

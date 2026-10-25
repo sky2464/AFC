@@ -16,8 +16,7 @@ afc-slice	- **Rules and specs:** read them with the file-reading tool, never `ca
 afc-slice	(`sh <path>/bin/afc …`). Never `cd` into its folder.
 afc-slice	the workspace's `reports/` folder (never `/tmp`), and stop it with `kill <pid>`.
 afc-slice	ran and passed. Never show a slice with a failing test, or with none: write the test first. If
-afc-slice	`## Log`. Never under Standing Corrections, which hold only the user's always/never rules.
-afc-slice	Use Edit, never a shell script. Change only the lines that change; never rewrite a whole file.
+afc-slice	It ticks the spec, logs the decision and notes the architecture. Never read or edit those files by hand for it.
 afc-slice	`sh bin/afc plan done <id>`. Not ready: give its list and next step, never deploy. Finished: say in
 afc-deliver	## Never ask, never do
 afc-deliver	- Never ask the user to approve routine commits or pushes of approved slices.

@@ -22,6 +22,7 @@ Local-only is fine; `deliver` then just commits. To back up, share or deploy wit
 
 ## Deliver the slice
 
+Record the slice first with `sh bin/afc slice record` (`afc-slice`); never edit plan files by hand to do it.
 Write a short plain commit message starting with the spec ID (e.g. `S-002: health endpoint`):
 
 ```
