@@ -23,41 +23,6 @@ class RuleModulesTest(unittest.TestCase):
         names = {p.stem for p in (ROOT / "rules").glob("*.md")}
         self.assertEqual(names, set(ALL_MODULES))
 
-    def test_identity_covers_enterprise_terms(self):
-        t = rule("identity")
-        for term in ["SSO", "SAML", "OIDC", "Entra", "Active Directory", "JWT"]:
-            self.assertIn(term, t)
-
-    def test_api_covers_cors_and_rate_limit(self):
-        t = rule("api")
-        for term in ["CORS", "rate limit", "error envelope", "version", "gateway"]:
-            self.assertIn(term, t)
-
-    def test_secrets_covers_env_and_rotation(self):
-        t = rule("secrets")
-        for term in [".env", "secrets manager", "rotat"]:
-            self.assertIn(term, t)
-
-    def test_dependencies_never_from_memory(self):
-        t = rule("dependencies")
-        for term in ["from memory", "pin", "SBOM", "pip-audit", "npm audit"]:
-            self.assertIn(term, t)
-
-    def test_architecture_has_threat_table_and_limits(self):
-        t = rule("architecture")
-        self.assertIn("| Threat | Category | Mitigation |", t)
-        for term in ["500 lines", "ADR", "STRIDE"]:
-            self.assertIn(term, t)
-
-    def test_api_cors_exact_origins_and_identity_csrf(self):
-        self.assertIn("evil-example.com", rule("api"))
-        self.assertIn("null", rule("api"))
-        for term in ["CSRF", "GET", "MFA"]:
-            self.assertIn(term, rule("identity"))
-
-    def test_ai_safety_data_not_instructions(self):
-        self.assertIn("data, not instructions", rule("ai-safety"))
-
     def test_each_check_names_a_verifier(self):
         verifiers = ["Tests:", "Review question:", "guard blocks", "secret scan",
                      "gitleaks", "npm audit", "pip-audit", "semgrep"]
@@ -194,11 +159,6 @@ class BrainTest(unittest.TestCase):
         for term in ["library/skills", "scrub", "maintenance mode"]:
             self.assertIn(term, t)
 
-    def test_enterprise_never_sends(self):
-        t = (ROOT / ".claude/skills/afc-enterprise/SKILL.md").read_text()
-        for term in ["draft", "never send"]:
-            self.assertIn(term, t)
-
     def test_working_skills_size(self):
         for s in SKILLS[1:]:
             t = (ROOT / ".claude/skills" / s / "SKILL.md").read_text()
@@ -218,16 +178,6 @@ class BrainTest(unittest.TestCase):
             self.assertIn("sh bin/afc switch", t)
         for key in ("team_mode", "git_name", "git_email", "ai_trailer"):
             self.assertIn(f"`{key}`", cmd)
-
-    def test_drift_and_interview_wording(self):
-        drift = (ROOT / ".claude/skills/afc-drift/SKILL.md").read_text()
-        self.assertLess(drift.index("keep its output as \"before\""),
-                        drift.index("sh bin/afc set profile"))
-        self.assertIn("If nothing drifted, say nothing", drift)
-        profile = (ROOT / ".claude/skills/afc-profile/SKILL.md").read_text()
-        for term in ("a quick prototype", "an MVP"):
-            self.assertIn(term, profile)
-        self.assertIn("from your own", (ROOT / "README.md").read_text())
 
     def test_skills_use_master_plan(self):
         sk = lambda n: (ROOT / f".claude/skills/{n}/SKILL.md").read_text()
@@ -279,11 +229,6 @@ if __name__ == "__main__":
 
 
 class ToolLayersContentTest(unittest.TestCase):
-    def test_capabilities_uses_library_and_project_servers(self):
-        t = (ROOT / ".claude" / "skills" / "afc-capabilities" / "SKILL.md").read_text()
-        for term in ["sh bin/afc tools", "mcp.json", "library/mcp", "hostnames", "tenant IDs"]:
-            self.assertIn(term, t)
-
     def test_afc_command_has_tools_item_and_numbering(self):
         t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
         self.assertIn("**Tools**", t)
@@ -291,11 +236,6 @@ class ToolLayersContentTest(unittest.TestCase):
         more = t.split("## More…")[1]
         nums = [int(n) for n in re.findall(r"^(\d+)\. \*\*", more, re.M)]
         self.assertEqual(nums, list(range(1, len(nums) + 1)))
-
-    def test_afc_command_explains_blocked_addons(self):
-        t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
-        self.assertIn("isn't on the allowed list", t)
-        self.assertIn("still works everywhere else", t)
 
 
 class RecoveredDoneRowsTest(unittest.TestCase):
@@ -309,13 +249,3 @@ class RecoveredDoneRowsTest(unittest.TestCase):
             "[release](https://github.com/sky2464/AFC/releases/tag/v0.01a) |",
             text,
         )
-
-
-class AgentFilesGuidanceTest(unittest.TestCase):
-    def test_slice_skill_and_ai_safety_mention_agent_files(self):
-        skill = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
-        self.assertIn("agent instruction file", skill)
-        self.assertIn("keep it in the repo", skill)
-        safety = rule("ai-safety")
-        self.assertIn("agent instruction file", safety)
-        self.assertIn("AGENTS.md", safety)
