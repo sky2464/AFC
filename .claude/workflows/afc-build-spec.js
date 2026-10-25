@@ -46,12 +46,20 @@ const SECRET_PATTERNS = [
   /\bxox[abprs]-[A-Za-z0-9-]{10,}\b/,
 ]
 
-// sh(command) -> {code, out}. The runtime may supply `shell`; otherwise use node's child_process.
+// sh(command) -> {code, out}. The runtime has no shell, so a cheap helper runs the command and
+// returns its exit code and output word for word. Tests supply `shell` instead.
+const SH_RESULT = {
+  type: 'object',
+  properties: { code: { type: 'number' }, out: { type: 'string' } },
+  required: ['code', 'out'],
+}
 async function sh(command) {
   if (typeof shell === 'function') return await shell(command)
-  const { spawnSync } = await import('node:child_process')
-  const r = spawnSync('sh', ['-c', command], { encoding: 'utf8' })
-  return { code: r.status, out: (r.stdout || '') + (r.stderr || '') }
+  const r = await agent(
+    `Run this one command from the repo root with Bash and return its exit code and its combined ` +
+    `stdout and stderr, word for word, changing nothing else:\n${command}`,
+    { label: 'gate: ' + command.slice(0, 40), phase: 'Build', schema: SH_RESULT, model: 'haiku', effort: 'low' })
+  return r ? { code: r.code, out: r.out } : { code: 1, out: '' }
 }
 const q = s => JSON.stringify(String(s))
 
@@ -157,7 +165,7 @@ async function quickGate(s, base) {
     add(`no commit since ${base.slice(0, 7)} has "${tag(s)}" in its message`, 'commit tagged with the slice')
   }
 
-  const specText = await sh(`cat ${q(spec)}`)
+  const specText = await sh(`cat ${q(spec)} | grep -E '^- \\[[ x]\\] [0-9]+\\.'`)
   const ticked = new RegExp(`^- \\[x\\] ${s.number}\\.`, 'm')
   if (!ticked.test(specText.out)) add(`slice ${s.number}'s checkbox is not ticked in ${spec}`, 'checkbox ticked')
 
@@ -166,7 +174,7 @@ async function quickGate(s, base) {
     add(`the slice's tests fail: ${tests.out.trim().split('\n').slice(-3).join(' | ')}`, "the slice's tests pass")
   }
 
-  const diff = await sh(`git diff ${q(base)} HEAD`)
+  const diff = await sh(`git diff ${q(base)} HEAD | grep -E '^\\+' | grep -E 'PRIVATE KEY|AKIA|gh[pousr]_|sk-|xox[abprs]-' | head -20`)
   const added = diff.out.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++'))
   if (added.some(l => SECRET_PATTERNS.some(re => re.test(l)))) {
     add('the diff adds a line that looks like a secret', 'no secret patterns in the diff')
@@ -243,7 +251,7 @@ async function fullSuite() {
 // code the test imports or names. If none matches, the last slice built.
 async function ownerOf(failure, built) {
   const file = String(failure).split(':')[0].trim()
-  const text = (await sh(`cat ${q('tests/' + file)}`)).out
+  const text = (await sh(`cat ${q('tests/' + file)} | grep -oE '[A-Za-z0-9_./]+[.](py|js|md)|afc[A-Za-z0-9_.]*'`)).out
   for (const s of built) {
     for (const f of sliceFiles[s.number] || []) {
       const mod = f.replace(/\.py$/, '').replace(/\//g, '.')

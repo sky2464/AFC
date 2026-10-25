@@ -31,6 +31,10 @@ class BuildWorkflowTest(unittest.TestCase):
         self.assertNotIn("parallel(", self.text)
         self.assertIsNone(re.search(r"label:\s*[`'\"]suite", self.text))
 
+    def test_uses_nothing_the_workflow_runtime_lacks(self):
+        # The runtime has no import(), require or process; the gate runs commands through a helper.
+        self.assertIsNone(re.search(r"\bimport\(|\brequire\(|\bprocess\.", self.text))
+
     def test_at_most_two_fix_rounds(self):
         self.assertIn("const MAX_FIX_ROUNDS = 2", self.text)
 
