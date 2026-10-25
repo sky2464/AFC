@@ -64,7 +64,7 @@ Publishing releases (still the user's own step); updating projects' code; updati
 ## Slices
 
 - [ ] 1. Flight Control knows its version — you'll check it by `sh bin/afc version` printing
-      `v0.01a` (tests: `VERSION` file read, version ordering such as `v0.01a` < `v0.02a` < `v0.10a`)
+      `v0.02a` (tests: `VERSION` file read, version ordering such as `v0.01a` < `v0.02a` < `v0.10a`)
 - [ ] 2. Check for a newer release — you'll check it by `sh bin/afc update --check` against a test
       remote with a newer tag, then with none, then offline (tests: `v*` tags only, short timeout,
       once a day, skipped release stays quiet, developer copy on `dev` or maintenance mode never
@@ -94,5 +94,9 @@ Publishing releases (still the user's own step); updating projects' code; updati
 - 2026-10-24: After an update that needs a restart, exit and resume the same conversation.
 - 2026-10-24: When a release changes the workspace layout, the update backs up `~/.A-FC/` and
   upgrades it; a failed upgrade restores the backup.
+- 2026-10-24: Slice 1 reports the last published release, `v0.02a`, not `v0.01a` as first written.
+  This copy is built from v0.02a plus later work; reporting v0.01a would make the update check offer
+  v0.02a to a copy that already has it. The welcome example above describes an older copy, so it is
+  unchanged.
 
 ## Shipped
