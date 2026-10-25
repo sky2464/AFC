@@ -66,8 +66,41 @@ class RuleModulesTest(unittest.TestCase):
             self.assertTrue(any(v in check for v in verifiers), m)
 
 
+class ShortRulesTest(unittest.TestCase):
+    """The short form Claude reads by default: Do and Never only (FC-009 slice 2)."""
+
+    SHORT_LINE_LIMIT = 30  # the spec says about 25; identity needs 29 and no safety rule is cut
+
+    def short(self, name: str) -> str:
+        return (ROOT / "rules" / "short" / f"{name}.md").read_text()
+
+    def test_every_module_has_a_short_form_and_nothing_else_is_there(self):
+        names = {p.stem for p in (ROOT / "rules" / "short").glob("*.md")}
+        self.assertEqual(names, set(ALL_MODULES))
+
+    def test_short_form_is_only_do_and_never_and_small(self):
+        for m in ALL_MODULES:
+            text = self.short(m)
+            self.assertEqual(re.findall(r"^## (.+)$", text, re.M), ["Do", "Never"], m)
+            self.assertLessEqual(len(text.splitlines()), self.SHORT_LINE_LIMIT, m)
+
+    def test_short_form_is_shorter_than_the_long_form(self):
+        for m in ALL_MODULES:
+            self.assertLess(len(self.short(m)), len(rule(m)), m)
+
+    def test_short_form_matches_the_long_form(self):
+        from afc import rules
+
+        for m in ALL_MODULES:
+            self.assertEqual(
+                self.short(m), rules.short_form(rule(m)),
+                f"rules/short/{m}.md is out of date; run: python3 -m afc.rules",
+            )
+
+
 SKILLS = ["afc-start", "afc-interview", "afc-slice", "afc-drift", "afc-deliver",
-          "afc-enterprise", "afc-architecture", "afc-capabilities"]
+          "afc-enterprise", "afc-architecture", "afc-capabilities",
+          "afc-setup", "afc-remote", "afc-profile"]
 COMMANDS = ["afc"]
 TEXT_DIRS = ["afc", "tests", "rules", ".claude", "templates"]
 TEXT_SUFFIXES = {".py", ".md", ".json", ".txt", ".toml", ".yml", ".yaml", ""}
@@ -126,7 +159,9 @@ class BrainTest(unittest.TestCase):
             self.assertEqual(fm.get("user-invocable", "").strip(), "false", d)
 
     def test_start_skill_flows(self):
+        # The start flows span the start skill (first reply) and the setup skill (new or existing).
         t = (ROOT / ".claude/skills/afc-start/SKILL.md").read_text()
+        t += (ROOT / ".claude/skills/afc-setup/SKILL.md").read_text()
         for term in ["sh bin/afc new", "sh bin/afc adopt", "granted", "/add-dir",
                      "afc-architecture", "afc-interview", "Welcome back"]:
             self.assertIn(term, t)
@@ -189,9 +224,9 @@ class BrainTest(unittest.TestCase):
         self.assertLess(drift.index("keep its output as \"before\""),
                         drift.index("sh bin/afc set profile"))
         self.assertIn("If nothing drifted, say nothing", drift)
-        interview = (ROOT / ".claude/skills/afc-interview/SKILL.md").read_text()
+        profile = (ROOT / ".claude/skills/afc-profile/SKILL.md").read_text()
         for term in ("a quick prototype", "an MVP"):
-            self.assertIn(term, interview)
+            self.assertIn(term, profile)
         self.assertIn("from your own", (ROOT / "README.md").read_text())
 
     def test_skills_use_master_plan(self):
@@ -242,3 +277,26 @@ class ToolLayersContentTest(unittest.TestCase):
         t = (ROOT / ".claude" / "commands" / "afc.md").read_text()
         self.assertIn("isn't on the allowed list", t)
         self.assertIn("still works everywhere else", t)
+
+
+class RecoveredDoneRowsTest(unittest.TestCase):
+    def test_pc_and_first_alpha_rows_are_archived(self):
+        text = (ROOT / "docs/specs/archive/done-2026.md").read_text()
+        self.assertTrue(text.startswith("# Done 2026\n"))
+        self.assertIn("| ID | Title | Done | Spec |", text)
+        self.assertIn("| PC | Project controls: remove, pause/resume, health check | 2026-10-23 | — |", text)
+        self.assertIn(
+            "| v0.01a | First alpha: Python launcher, 1/2 welcome, first-run fix | 2026-10-23 | "
+            "[release](https://github.com/sky2464/AFC/releases/tag/v0.01a) |",
+            text,
+        )
+
+
+class AgentFilesGuidanceTest(unittest.TestCase):
+    def test_slice_skill_and_ai_safety_mention_agent_files(self):
+        skill = (ROOT / ".claude/skills/afc-slice/SKILL.md").read_text()
+        self.assertIn("agent instruction file", skill)
+        self.assertIn("keep it in the repo", skill)
+        safety = rule("ai-safety")
+        self.assertIn("agent instruction file", safety)
+        self.assertIn("AGENTS.md", safety)

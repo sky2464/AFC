@@ -9,6 +9,7 @@ from unittest import mock
 from afc.registry import Project, Registry, save_registry
 from afc.scan import (
     Check,
+    agent_files_scan,
     builtin_secret_scan,
     parse_bun_audit,
     parse_npm_audit,
@@ -104,6 +105,48 @@ class ScanTests(AfcTestCase):
         subprocess.run(["git", "add", "bin.dat"], cwd=repo, check=True)
         (repo / "untracked.py").write_text("AKIA" + "ABCDEFGHIJKLMNOP", encoding="utf-8")
         self.assertEqual(builtin_secret_scan(repo).detail, "no secrets")
+
+    def test_agent_files_untracked_agents_md_warns_by_name(self):
+        repo = _git_repo(self.tmp / "app", {"ok.py": "x\n"})
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"], cwd=repo, check=True)
+        (repo / "AGENTS.md").write_text("Read the guide first.\n", encoding="utf-8")
+        c = agent_files_scan(repo)
+        self.assertEqual((c.name, c.status), ("agent files", "warn"))
+        self.assertIn("AGENTS.md", c.detail)
+
+    def test_agent_files_staged_and_nested_names(self):
+        repo = _git_repo(self.tmp / "app", {"ok.py": "x\n"})
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"], cwd=repo, check=True)
+        (repo / ".github").mkdir()
+        (repo / ".github" / "copilot-instructions.md").write_text("hi\n", encoding="utf-8")
+        (repo / ".cursorrules").write_text("hi\n", encoding="utf-8")
+        (repo / "sub").mkdir()
+        (repo / "sub" / "CLAUDE.md").write_text("hi\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=repo, check=True)
+        detail = agent_files_scan(repo).detail
+        for name in (".github/copilot-instructions.md", ".cursorrules", "sub/CLAUDE.md"):
+            self.assertIn(name, detail)
+
+    def test_agent_files_changed_since_last_commit(self):
+        repo = _git_repo(self.tmp / "app", {"CLAUDE.md": "one\n", "ok.py": "x\n"})
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"], cwd=repo, check=True)
+        self.assertIsNone(agent_files_scan(repo))
+        (repo / "CLAUDE.md").write_text("two\n", encoding="utf-8")
+        self.assertIn("CLAUDE.md", agent_files_scan(repo).detail)
+
+    def test_agent_files_none_or_not_a_repo_is_quiet(self):
+        repo = _git_repo(self.tmp / "app", {"ok.py": "x\n", "notes.md": "x\n"})
+        self.assertIsNone(agent_files_scan(repo))
+        plain = self.tmp / "plain"
+        plain.mkdir()
+        self.assertIsNone(agent_files_scan(plain))
+
+    def test_run_checks_includes_agent_files_only_when_found(self):
+        repo = _git_repo(self.tmp / "app", {"AGENTS.md": "hi\n"})
+        names = [c.name for c in run_checks(repo)]
+        self.assertIn("agent files", names)
+        repo2 = _git_repo(self.tmp / "app2", {"ok.py": "x\n"})
+        self.assertNotIn("agent files", [c.name for c in run_checks(repo2)])
 
     def test_missing_tools_reported_not_skipped(self):
         repo = _git_repo(self.tmp / "app", {"ok.py": "x\n", "requirements.txt": "x\n"})

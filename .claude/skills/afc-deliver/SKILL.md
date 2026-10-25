@@ -1,6 +1,6 @@
 ---
 name: afc-deliver
-description: Use when an approved slice needs committing and pushing, a pull request opened, or a new project needs a remote repository.
+description: Use when an approved slice needs committing and pushing.
 user-invocable: false
 ---
 
@@ -18,28 +18,15 @@ If `sh bin/afc status` shows no team mode yet (or `unknown`), run:
 sh bin/afc detect-team
 ```
 
-- `{"team_mode": ..., "confirm": false}` — the host answered; use it.
+- `{"team_mode": ..., "confirm": false}` — already known (recorded earlier, answered by the host, or
+  a personal project only you have committed to); use it and do not ask.
 - `{"confirm": true}` — the guess came from local history only. Ask once: "Is anyone else working on
   this project with you?" Then record it: `sh bin/afc set team_mode solo` (or `team`).
 
-## Does it need a remote?
+## Remote and pull requests
 
-A local-only project is fine; `deliver` then just commits. When the project needs a remote (the user
-wants it backed up, shared, or deployed) and has none:
-
-1. Ask: "Should this live on GitHub or Azure DevOps?"
-   1. GitHub (recommended for personal projects) 2. Azure DevOps
-   If they say AWS: explain in one line that AWS CodeCommit is closed to new customers, so AWS
-   projects keep their code on GitHub or GitLab and connect it to AWS pipelines; then ask GitHub or
-   Azure DevOps.
-2. Ask for the organization if it is not their personal account (one question). For Azure DevOps also
-   the project, if it is not configured.
-3. Run:
-   ```
-   sh bin/afc create-remote --host github|azure [--org <org>] [--project <project>]
-   ```
-   The repository is always private. On `error`, explain in plain words and ask the one question that
-   fixes it (for example, not signed in to `gh` or `az`: ask the user to sign in themselves).
+A local-only project is fine; `deliver` then just commits. When the user wants the project backed
+up, shared or deployed and it has no remote, use `afc-remote`, then come back here.
 
 ## Deliver the slice
 
@@ -56,25 +43,8 @@ working branch; tell the user once.
 
 - `{"pushed": false}` — no remote; committed locally. Say so in one line.
 - `{"pushed": true, "pr_needed": false}` — solo: done, no pull request pause.
-- `{"pushed": true, "pr_needed": true, "branch": ...}` — team: open a pull request from that branch.
-
-## Team: open a pull request
-
-GitHub:
-
-```
-gh pr create --head <branch> --title "<spec ID>: <slice>" --body "<body>"
-```
-
-Azure DevOps:
-
-```
-az repos pr create --source-branch <branch> --title "<slice>" --description "<body>"
-```
-
-The body has: a short summary of the slice, the scan line from `afc scan`, and links to the plan docs
-(`intent.md`, `master-plan.md`, the report in `reports/`). A human merges it; never merge it yourself.
-Give the user the pull request link.
+- `{"pushed": true, "pr_needed": true, "branch": ...}` — team: use `afc-remote` to open a pull
+  request from that branch.
 
 ## Never ask, never do
 

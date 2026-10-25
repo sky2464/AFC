@@ -1,6 +1,6 @@
 # FC-006 — Workspace notes in the right place
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: done · Started: 2026-10-24 · Done: 2026-10-24
 
 Findings: 5, 6.
 
@@ -34,13 +34,24 @@ Rewriting existing projects' `decisions.md`; diagrams.
 
 ## Slices
 
-- [ ] 1. Decisions template with `## Log` and repair for old workspaces — you'll check it by a new
+- [x] 1. Decisions template with `## Log` and repair for old workspaces — you'll check it by a new
       project's `decisions.md` (tests in `tests/test_content.py`, `tests/test_cli_health.py`)
-- [ ] 2. First slice fills the architecture notes — you'll check it by a live first slice (content
-      tests on `afc-slice`)
-- [ ] 3. Health check reports an empty architecture — you'll check it by `check` on a project with a
-      done slice and the template file (tests in `tests/test_cli_health.py`)
+- [x] 2. First slice fills the architecture notes — you'll check it by a live first slice (content
+      tests on `afc-slice`). Live, from a fresh project: decisions under `## Log`; architecture
+      sections 1, 4 and 6 filled; 0 heredoc writes. A first run skipped section 6 and used a script,
+      so the wording was tightened and the run repeated.
+- [x] 3. Health check reports an empty architecture — you'll check it by `check` on a project with a
+      done slice and the template file (tests in `tests/test_cli_health.py`). The real check now
+      reports `architecture_empty` for the php-vuln-checker project.
 
 ## Decisions
 
+- 2026-10-24: "Done slice" means the project has a recorded last slice, which every approved slice
+  sets. A brand-new project is never flagged.
+- 2026-10-24: `architecture_empty` is reported, not fixable: Claude fills the notes from the code,
+  so `repair` leaves it and `check` keeps reporting it until it is filled.
+- 2026-10-24: Slice 2 was checked by live runs, not content tests (see FC-013).
+
 ## Shipped
+
+Shipped 2026-10-24. Slices: 3.

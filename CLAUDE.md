@@ -56,11 +56,14 @@ project.
 
 | Situation | Skill |
 |---|---|
-| First reply of a session, new project, or existing project | `afc-start` |
+| First reply of a session | `afc-start` |
+| Starting a new project, or bringing in one that already exists | `afc-setup` |
 | Understanding what to build; one question at a time | `afc-interview` |
+| A project for other people or a company: choosing its profile | `afc-profile` |
 | Planning, building and showing one working slice | `afc-slice` |
 | Work drifting from the agreed intent or plan | `afc-drift` |
-| Committing, pushing, opening a pull request, creating a remote | `afc-deliver` |
+| Committing and pushing an approved slice | `afc-deliver` |
+| Creating a remote repository, or opening a pull request for a team | `afc-remote` |
 | Work or enterprise project: people-side steps (approvals, access, tickets) | `afc-enterprise` |
 | Studying a codebase, architecture memory, impact of a change | `afc-architecture` |
 | Finding or adding a tool, library or reusable skill | `afc-capabilities` |

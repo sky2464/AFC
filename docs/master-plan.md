@@ -13,30 +13,32 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) | 2026-10-24 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-001 | Test copies use their own home | S | [spec](specs/FC-001-test-copies-use-their-own-home.md) |
-| FC-002 | Fewer questions before building | M | [spec](specs/FC-002-fewer-questions-before-building.md) |
-| FC-003 | A real, tested first slice | M | [spec](specs/FC-003-real-tested-first-slice.md) |
-| FC-004 | Plan goal and plan editing | M | [spec](specs/FC-004-plan-goal-and-plan-editing.md) |
-| FC-005 | Tidy, safe tool use | M | [spec](specs/FC-005-tidy-safe-tool-use.md) |
-| FC-006 | Workspace notes in the right place | S | [spec](specs/FC-006-workspace-notes-in-the-right-place.md) |
-| FC-007 | Package checks fit the stack | S | [spec](specs/FC-007-package-checks-fit-the-stack.md) |
-| FC-008 | Agent instruction files in apps | S | [spec](specs/FC-008-agent-instruction-files-in-apps.md) |
-| FC-009 | Leaner context per slice | M | [spec](specs/FC-009-leaner-context-per-slice.md) |
+| FC-011 | One-click updates | L | [spec](specs/FC-011-one-click-updates.md) |
+| FC-012 | Flight Control keeps its own copy safe | M | [spec](specs/FC-012-flight-control-keeps-its-own-copy-safe.md) |
+| FC-013 | Right-sized tests | M | [spec](specs/FC-013-right-sized-tests.md) |
+| FC-014 | Review before delivery | M | [spec](specs/FC-014-review-before-delivery.md) |
+| FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
+| FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
+| FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
+| FC-006 | Workspace notes in the right place | 2026-10-24 | [FC-006](specs/archive/FC-006-workspace-notes-in-the-right-place.md) |
+| FC-005 | Tidy, safe tool use | 2026-10-24 | [FC-005](specs/archive/FC-005-tidy-safe-tool-use.md) |
+| FC-004 | Plan goal and plan editing | 2026-10-24 | [FC-004](specs/archive/FC-004-plan-goal-and-plan-editing.md) |
+| FC-003 | A real, tested first slice | 2026-10-24 | [FC-003](specs/archive/FC-003-real-tested-first-slice.md) |
+| FC-002 | Fewer questions before building | 2026-10-24 | [FC-002](specs/archive/FC-002-fewer-questions-before-building.md) |
+| FC-001 | Test copies use their own home | 2026-10-24 | [FC-001](specs/archive/FC-001-test-copies-use-their-own-home.md) |
 | FC-010 | Maintenance mode keeps Flight Control work apart | 2026-10-24 | [FC-010](specs/archive/FC-010-maintenance-mode-keeps-flight-control-work-apart.md) |
-| TL | Toolkit layers (allowed add-ons, project tools, recipes) | 2026-10-24 | [stories](superpowers/plans/2026-10-23-toolkit-layers.md) |
-| MP | Master plan, specs and archive | 2026-10-23 | [stories](superpowers/plans/2026-10-23-master-plan.md) |
-| PC | Project controls: remove, pause/resume, health check | 2026-10-23 | — |
-| v0.01a | First alpha: Python launcher, 1/2 welcome, first-run fix | 2026-10-23 | [release](https://github.com/sky2464/AFC/releases/tag/v0.01a) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -84,6 +86,24 @@ php-vuln-checker app three times instead. All of these map to FC-010:
 | M9 | Maintenance work ends up on `dev`, or says where it is |
 | M10 | Undo is verified with `git status`, not assumed |
 
+## Findings from the update session (2026-10-24)
+
+Asked "is there any afc update?", a session on an older copy answered from raw `git tag` and
+`git log` output, then updated Flight Control with a hand `git merge --ff-only v0.02a` — with
+maintenance mode off, leaving the copy on a detached HEAD.
+
+| # | Finding | Spec |
+|---|---|---|
+| U1 | Git that changes the `A-FC` folder ran with maintenance mode off; no guard saw it | FC-012 |
+| U2 | The copy was left on a detached HEAD, which FC-011 would then always refuse to update | FC-012 |
+| U3 | `sh bin/afc check` has no check for the `A-FC` folder's own git state | FC-012 |
+| U4 | A rule was seen to be broken ("updated without a maintenance-mode prompt") and the work carried on | FC-012 |
+| U5 | The installed version was guessed from truncated `git tag` and `git log` output | FC-011 |
+| U6 | "What's new" was told in FC- IDs, branch names and commit subjects, not plain words | FC-011 |
+| U7 | Nothing was verified after the self-update: no tests, no `check`, no workspace backup | FC-011 |
+| U8 | `sh bin/afc maintain` with no argument says `Missing state.` without naming on, off or status | none yet |
+| U9 | The first question was asked twice: the welcome offered 1/2, then `afc-start` asked again | none yet |
+
 ## Update log
 
 | Date | Event |
@@ -94,3 +114,31 @@ php-vuln-checker app three times instead. All of these map to FC-010:
 | 2026-10-24 | Flight Control's specs renamed FC-001 to FC-010; S- stays for project specs |
 | 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
 | 2026-10-24 | FC-010 done |
+| 2026-10-24 | FC-011 One-click updates specced and sliced (7 slices); queued in Next |
+| 2026-10-24 | FC-012 added |
+| 2026-10-24 | FC-012 specced and sliced (5 slices) from the update session's findings; queued last in Next |
+| 2026-10-24 | FC-001 started |
+| 2026-10-24 | FC-001 done |
+| 2026-10-24 | FC-002 started |
+| 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
+| 2026-10-24 | FC-002 done |
+| 2026-10-24 | FC-014 added |
+| 2026-10-24 | FC-015 added |
+| 2026-10-24 | FC-014 and FC-015 specced and sliced (5 slices each): review folded into building a slice, ship folded into finishing a spec; deploys and history rewrites left as the user's own actions |
+| 2026-10-24 | FC-003 started |
+| 2026-10-24 | FC-003 done |
+| 2026-10-24 | FC-004 started |
+| 2026-10-24 | FC-004 done |
+| 2026-10-24 | FC-005 started |
+| 2026-10-24 | FC-005 done |
+| 2026-10-24 | FC-006 started |
+| 2026-10-24 | FC-006 done |
+| 2026-10-24 | FC-007 started |
+| 2026-10-24 | FC-007 done |
+| 2026-10-24 | FC-016 added |
+| 2026-10-24 | FC-016 specced and sliced (3 slices): compaction drops Done rows instead of archiving them, which lost the PC and v0.01a rows; FC-015 depends on it |
+| 2026-10-24 | FC-016 started |
+| 2026-10-24 | FC-016 done |
+| 2026-10-24 | FC-008 started |
+| 2026-10-24 | FC-008 done |
+| 2026-10-24 | FC-009 started |

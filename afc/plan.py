@@ -13,6 +13,7 @@ MASTER = "master-plan.md"
 DONE_KEEP = 10
 LOG_KEEP = 100
 _LOG_HEADER = "| Date | Event |\n|---|---|\n"
+_DONE_HEADER = "| ID | Title | Done | Spec |\n|---|---|---|---|\n"
 
 
 @dataclass(frozen=True)
@@ -92,10 +93,23 @@ def write_rows(text: str, section: str, rows: list[list]) -> str:
     return "\n".join(lines)
 
 
+def set_goal(text: str, goal: str) -> str:
+    """Replace the body of `## Goal` with one line; every other section stays as it is."""
+    lines = text.split("\n")
+    start, end = _section_span(lines, "Goal")
+    lines[start:end] = ["", goal, ""]
+    return "\n".join(lines)
+
+
 def slugify(title: str) -> str:
-    """Lowercase, dash-separated, at most 40 chars; 'spec' when nothing is left."""
-    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40].strip("-")
-    return slug or "spec"
+    """Lowercase, dash-separated, at most 40 chars cut at a word end; 'spec' when nothing is left."""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    if len(slug) > 40:
+        head = slug[:40]
+        if slug[40] != "-" and "-" in head:  # the 41st character continues a word: drop it
+            head = head[: head.rindex("-")]
+        slug = head
+    return slug.strip("-") or "spec"
 
 
 def next_id(where) -> str:
@@ -129,6 +143,21 @@ def all_slices(spec_text: str) -> list[tuple[bool, str]]:
     return found
 
 
+def unreadable_slices(spec_text: str) -> list[str]:
+    """List items under `## Slices` that aren't checkbox lines, so `plan` can't see them."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Slices")
+    except ValueError:
+        return []
+    found = []
+    for line in lines[start:end]:
+        m = re.match(r"(?:[-*]|\d+[.)])\s+(.*)$", line)  # unindented, so continuation lines don't count
+        if m and not re.match(r"\[[ xX]\]", m.group(1)):
+            found.append(m.group(1).strip())
+    return found
+
+
 def open_slices(spec_text: str) -> list[str]:
     """Labels of the unticked slices, in order."""
     return [label for done, label in all_slices(spec_text) if not done]
@@ -156,39 +185,64 @@ def log(text: str, date: str, event: str) -> str:
     return write_rows(text, "Update log", rows)
 
 
+def _archive_rows(space, prefix: str, heading: str, header: str, by_year: dict, undo: dict) -> None:
+    """Append rows to archive/<prefix>-<year>.md, creating it with a heading; never replaces a file.
+
+    `undo` remembers each file's earlier text (None if it did not exist) so a failure can put it back."""
+    archive = space.archive_dir
+    archive.mkdir(parents=True, exist_ok=True)
+    for year, items in by_year.items():
+        target = archive / f"{prefix}-{year}.md"
+        body = "".join("| " + " | ".join(cell(c) for c in r) + " |\n" for r in items)
+        existing = target.read_text(encoding="utf-8") if target.is_file() else None
+        undo.setdefault(target, existing)
+        if existing is None:
+            target.write_text(f"# {heading} {year}\n\n{header}{body}", encoding="utf-8")
+        else:
+            if not existing.endswith("\n"):
+                existing += "\n"
+            target.write_text(existing + body, encoding="utf-8")
+
+
+def _by_year(rows: list[list[str]], column: int) -> dict[str, list[list[str]]]:
+    grouped: dict[str, list[list[str]]] = {}
+    for row in rows:
+        m = re.match(r"\d{4}", row[column]) if len(row) > column else None
+        grouped.setdefault(m.group(0) if m else "unknown", []).append(row)
+    return grouped
+
+
 def compact(where) -> None:
-    """Keep 10 newest Done rows and 100 Update log rows; older log rows are archived."""
+    """Keep 10 newest Done rows and 100 Update log rows; older rows are archived first.
+
+    The archive is written before the plan. If any write fails, archive files are put back as they
+    were and the plan is left whole, so a retry cannot duplicate rows."""
     space = _space(where)
     path = space.master
     text = path.read_text(encoding="utf-8")
     original = text
-    done = read_rows(text, "Done")
-    if len(done) > DONE_KEEP:
-        text = write_rows(text, "Done", done[:DONE_KEEP])
-    rows = read_rows(text, "Update log")
-    if len(rows) > LOG_KEEP:
-        old, keep = rows[:-LOG_KEEP], rows[-LOG_KEEP:]
-        by_year: dict[str, list[list[str]]] = {}
-        for row in old:
-            m = re.match(r"\d{4}", row[0]) if row else None
-            by_year.setdefault(m.group(0) if m else "unknown", []).append(row)
-        archive = space.archive_dir
-        archive.mkdir(parents=True, exist_ok=True)
-        for year, items in by_year.items():
-            target = archive / f"updatelog-{year}.md"
-            body = "".join(
-                "| " + " | ".join(cell(c) for c in r) + " |\n" for r in items
-            )
-            if target.is_file():
-                existing = target.read_text(encoding="utf-8")
-                if not existing.endswith("\n"):
-                    existing += "\n"
-                target.write_text(existing + body, encoding="utf-8")
-            else:
-                target.write_text(f"# Update log {year}\n\n{_LOG_HEADER}{body}", encoding="utf-8")
-        text = write_rows(text, "Update log", keep)
-    if text != original:
-        path.write_text(text, encoding="utf-8")
+    undo: dict = {}
+    try:
+        done = read_rows(text, "Done")
+        if len(done) > DONE_KEEP:
+            _archive_rows(space, "done", "Done", _DONE_HEADER, _by_year(done[DONE_KEEP:], 2), undo)
+            text = write_rows(text, "Done", done[:DONE_KEEP])
+        rows = read_rows(text, "Update log")
+        if len(rows) > LOG_KEEP:
+            _archive_rows(space, "updatelog", "Update log", _LOG_HEADER, _by_year(rows[:-LOG_KEEP], 0), undo)
+            text = write_rows(text, "Update log", rows[-LOG_KEEP:])
+        if text != original:
+            path.write_text(text, encoding="utf-8")
+    except BaseException:
+        for target, before in undo.items():
+            try:
+                if before is None:
+                    target.unlink(missing_ok=True)
+                else:
+                    target.write_text(before, encoding="utf-8")
+            except OSError:
+                pass
+        raise
 
 
 def now_line(where) -> str:

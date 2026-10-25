@@ -18,7 +18,8 @@ from afc.registry import load_registry
 NAMES = ("plan",)
 NO_PLAN = "This project has no master plan yet. A health check repair adds one."
 NO_FC_PLAN = "Flight Control has no master plan at docs/master-plan.md."
-ARCHIVE_INDEX = "# Archive\n\n| ID | Title | Done | Spec |\n|---|---|---|---|\n"
+UNREADABLE = "unreadable"  # slice lines without `- [ ]`, which `plan` cannot see
+ARCHIVE_INDEX ="# Archive\n\n| ID | Title | Done | Spec |\n|---|---|---|---|\n"
 
 
 def register(sub) -> None:
@@ -29,6 +30,20 @@ def register(sub) -> None:
     q.add_argument("title")
     q.add_argument("--size", choices=("S", "M", "L"), default="M")
     q.set_defaults(handler=cmd_add)
+    q = psub.add_parser("goal", help="set the master plan's goal")
+    q.add_argument("text")
+    q.set_defaults(handler=cmd_goal)
+    q = psub.add_parser("rename", help="give a spec a new title (file, row and heading change together)")
+    q.add_argument("id")
+    q.add_argument("title")
+    q.set_defaults(handler=cmd_rename)
+    q = psub.add_parser("drop", help="archive a waiting spec as dropped (never deleted)")
+    q.add_argument("id")
+    q.set_defaults(handler=cmd_drop)
+    q = psub.add_parser("move", help="change a waiting spec's place in Next")
+    q.add_argument("id")
+    q.add_argument("--to", type=int, required=True, help="position in Next, 1 is first")
+    q.set_defaults(handler=cmd_move)
     q = psub.add_parser("start", help="move a spec from Next to Now")
     q.add_argument("id")
     q.set_defaults(handler=cmd_start)
@@ -120,6 +135,8 @@ def cmd_plan(args: argparse.Namespace) -> dict:
         _, spec_text = _read_spec(space, row[0], row)
         open_ = plan.open_slices(spec_text)
         now = {"id": row[0], "title": row[1], "spec": str(_spec_path(space, row)), "next_slice": open_[0] if open_ else None}
+        if plan.unreadable_slices(spec_text):
+            now["slices"] = UNREADABLE
     nxt = [{"id": r[0], "title": r[1], "size": r[2]} for r in plan.read_rows(text, "Next")[:2]]
     return {"for": owner, "goal": _goal(text), "now": now, "next": nxt,
             "done_count": len(plan.read_rows(text, "Done"))}
@@ -149,6 +166,48 @@ def cmd_add(args: argparse.Namespace) -> dict:
     return {"created": sid, "title": title, "size": args.size, "spec": str(target)}
 
 
+def cmd_goal(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    goal = " ".join(args.text.split())
+    if not goal:
+        raise _error("Give the goal as one line of text.")
+    try:
+        new = plan.set_goal(text, goal)
+    except ValueError as exc:
+        raise _error(str(exc)) from None
+    space.master.write_text(plan.log(new, _cli()._today(), "Goal set"), encoding="utf-8")
+    return {"goal": goal}
+
+
+def cmd_rename(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    sid = args.id
+    title = plan.cell(args.title)
+    if not title:
+        raise _error("Give the spec a title.")
+    section, row = _find(space, text, sid)
+    if section == "Done":
+        raise _error(f"{sid} is finished, so it can't be renamed.")
+    old_path, spec_text = _read_spec(space, sid, row)
+    name = f"{sid}-{plan.slugify(title)}.md"
+    new_path = old_path.with_name(name)
+    if new_path != old_path and new_path.exists():
+        raise _error(f"There is already a file called {name}.")
+    row = [row[0], title, row[2], f"[spec](specs/{name})", *row[4:]]
+    rows = [row if r[0] == sid else r for r in plan.read_rows(text, section)]
+    new = plan.log(plan.write_rows(text, section, rows), _cli()._today(), f"{sid} renamed to {title}")
+    body = re.sub(r"\A# [^\n]*", f"# {sid} — {title}", spec_text, count=1)
+    old_path.rename(new_path)
+    try:
+        new_path.write_text(body, encoding="utf-8")
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        new_path.write_text(spec_text, encoding="utf-8")
+        new_path.rename(old_path)
+        raise
+    return {"renamed": sid, "title": title, "spec": str(new_path)}
+
+
 def cmd_start(args: argparse.Namespace) -> dict:
     space, _, text = _load()
     path = space.master
@@ -171,7 +230,10 @@ def cmd_start(args: argparse.Namespace) -> dict:
         spec_path.write_text(spec_text, encoding="utf-8")
         raise
     open_ = plan.open_slices(plan.set_header(spec_text, status="in progress", started=today))
-    return {"started": sid, "next_slice": open_[0] if open_ else None}
+    started = {"started": sid, "next_slice": open_[0] if open_ else None}
+    if plan.unreadable_slices(spec_text):
+        started["slices"] = UNREADABLE
+    return started
 
 
 def _shipped(spec_text: str, line: str) -> str:
@@ -192,6 +254,61 @@ def _archive_index(current: str, row: list[str]) -> str:
         return text.rstrip("\n") + "\n\n" + ARCHIVE_INDEX + new + "\n"
     lines.insert(table[1] + 1, new)
     return "\n".join(lines)
+
+
+def _waiting(space: plan.Space, text: str, sid: str, verb: str) -> tuple[list[str], list[list[str]]]:
+    """The Next row for sid and all Next rows; a spec in progress or finished can't be dropped or moved."""
+    section, row = _find(space, text, sid)
+    if section == "Now":
+        extra = " Finish it or rename it." if verb == "dropped" else ""
+        raise _error(f"{sid} is in progress, so it can't be {verb}.{extra}")
+    if section == "Done":
+        raise _error(f"{sid} is finished, so it can't be {verb}.")
+    return row, plan.read_rows(text, "Next")
+
+
+def cmd_drop(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    sid = args.id
+    row, waiting = _waiting(space, text, sid, "dropped")
+    spec_path, spec_text = _read_spec(space, sid, row)
+    today = _cli()._today()
+    name = spec_path.name
+    target = space.archive_dir / name
+    space.archive_dir.mkdir(parents=True, exist_ok=True)
+    index_path = space.archive_dir / "index.md"
+    old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
+    done_row = [sid, f"{row[1]} (dropped)", today]
+    new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
+    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})"]] + plan.read_rows(new, "Done"))
+    new = plan.log(new, today, f"{sid} dropped")
+    shutil.move(str(spec_path), str(target))
+    try:
+        target.write_text(plan.set_header(spec_text, status="dropped", done=today), encoding="utf-8")
+        index_path.write_text(_archive_index(old_index or "", done_row + [name]), encoding="utf-8")
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        if old_index is None:
+            index_path.unlink(missing_ok=True)
+        else:
+            index_path.write_text(old_index, encoding="utf-8")
+        shutil.move(str(target), str(spec_path))
+        spec_path.write_text(spec_text, encoding="utf-8")
+        raise
+    return {"dropped": sid, "archived": str(target)}
+
+
+def cmd_move(args: argparse.Namespace) -> dict:
+    space, _, text = _load()
+    sid = args.id
+    row, waiting = _waiting(space, text, sid, "moved")
+    if not 1 <= args.to <= len(waiting):
+        raise _error(f"Pick a position from 1 to {len(waiting)}.")
+    waiting = [r for r in waiting if r[0] != sid]
+    waiting.insert(args.to - 1, row)
+    new = plan.log(plan.write_rows(text, "Next", waiting), _cli()._today(), f"{sid} moved to position {args.to}")
+    space.master.write_text(new, encoding="utf-8")
+    return {"moved": sid, "position": args.to, "next": [r[0] for r in waiting]}
 
 
 def cmd_done(args: argparse.Namespace) -> dict:

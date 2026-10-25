@@ -128,3 +128,80 @@ class LauncherFileTest(unittest.TestCase):
     @unittest.skipIf(os.name == "nt", "file modes")
     def test_launcher_is_executable(self):
         self.assertTrue(os.access(LAUNCHER, os.X_OK))
+
+
+@unittest.skipUnless(SH, "needs a POSIX shell")
+class LauncherHomeFileTest(AfcTestCase):
+    """bin/afc reads .afc-home from its own folder when AFC_HOME isn't set."""
+
+    def setUp(self):
+        super().setUp()
+        # A copy of the launcher with its own .afc-home; the afc package is shared by symlink.
+        self.copy = self.tmp / "copy"
+        (self.copy / "bin").mkdir(parents=True)
+        shutil.copy(LAUNCHER, self.copy / "bin" / "afc")
+        (self.copy / "afc").symlink_to(ROOT / "afc")
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        (self.bin / "python3").symlink_to(sys.executable)
+        for tool in TOOLS:
+            (self.bin / tool).symlink_to(shutil.which(tool))
+
+    def write_home_file(self, text):
+        (self.copy / ".afc-home").write_text(text)
+
+    def run_afc(self, *args, env=None, stdin=""):
+        base = {"PATH": str(self.bin), "HOME": str(self.tmp), "PYTHONDONTWRITEBYTECODE": "1"}
+        return subprocess.run([SH, str(self.copy / "bin" / "afc"), *args], input=stdin,
+                              capture_output=True, text=True, env={**base, **(env or {})},
+                              timeout=60)
+
+    def show_home(self, **env):
+        done = self.run_afc("home", env=env)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        return json.loads(done.stdout)
+
+    def test_home_file_sets_the_workspace(self):
+        target = self.tmp / "test-home"
+        self.write_home_file(f"{target}\n")
+        self.assertEqual(self.show_home(), {"home": str(target.resolve()), "source": "file"})
+
+    def test_AFC_HOME_wins_over_the_file(self):
+        self.write_home_file(str(self.tmp / "test-home") + "\n")
+        self.assertEqual(self.show_home(AFC_HOME=str(self.home)),
+                         {"home": str(self.home.resolve()), "source": "env"})
+
+    def test_no_file_and_no_AFC_HOME_means_the_default_home(self):
+        self.assertEqual(self.show_home(),
+                         {"home": str((self.tmp / ".A-FC").resolve()), "source": "default"})
+
+    def test_relative_path_in_the_file_is_a_plain_error(self):
+        self.write_home_file("relative/home\n")
+        done = self.run_afc("home")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn(".afc-home", json.loads(done.stdout)["error"])
+
+    def test_empty_file_is_a_plain_error(self):
+        self.write_home_file("")
+        done = self.run_afc("home")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn(".afc-home", json.loads(done.stdout)["error"])
+
+    def test_bad_file_closes_the_guard(self):
+        self.write_home_file("relative/home\n")
+        done = self.run_afc("hook", "pretool", stdin=json.dumps({"tool_name": "Write"}))
+        self.assertEqual(done.returncode, 2)
+        self.assertTrue(done.stderr.startswith("Flight Control blocked:"), done.stderr)
+
+    def test_bad_file_asks_before_every_command(self):
+        self.write_home_file("relative/home\n")
+        done = self.run_afc("hook", "pretool", stdin='{"tool_name": "Bash"}')
+        self.assertEqual(done.returncode, 0)
+        out = json.loads(done.stdout)["hookSpecificOutput"]
+        self.assertEqual(out["permissionDecision"], "ask")
+
+    def test_bad_file_is_named_in_the_welcome(self):
+        self.write_home_file("relative/home\n")
+        done = self.run_afc("hook", "session_start")
+        self.assertEqual(done.returncode, 0)
+        self.assertIn(".afc-home", json.loads(done.stdout)["systemMessage"])

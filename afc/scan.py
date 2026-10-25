@@ -99,6 +99,47 @@ def builtin_secret_scan(code_path: Path) -> Check:
     return Check("secrets", "pass", "no secrets")
 
 
+AGENT_FILE_NAMES = {
+    "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursorrules", ".windsurfrules", ".clinerules",
+}
+
+
+def _is_agent_file(path: str) -> bool:
+    if path.rsplit("/", 1)[-1] in AGENT_FILE_NAMES:
+        return True
+    if path == ".github/copilot-instructions.md" or path.endswith("/.github/copilot-instructions.md"):
+        return True
+    return path.startswith(".cursor/rules/") or "/.cursor/rules/" in path
+
+
+def agent_files_scan(code_path: Path) -> Check | None:
+    """Warn about agent instruction files added or changed since the last commit; None when there are none."""
+    try:
+        out = subprocess.run(
+            ["git", "status", "--porcelain", "-z", "--untracked-files=all"],
+            cwd=code_path, capture_output=True, check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    entries = out.split(b"\0")
+    found: list[str] = []
+    i = 0
+    while i < len(entries):
+        entry = entries[i].decode("utf-8", "surrogateescape")
+        i += 1
+        if len(entry) < 4:
+            continue
+        if entry[0] in "RC":
+            i += 1  # the original name follows a rename or copy
+        if entry[:2] == " D" or entry[:2] == "D ":
+            continue
+        if _is_agent_file(entry[3:]):
+            found.append(entry[3:])
+    if not found:
+        return None
+    return Check("agent files", "warn", "agent instruction file(s) changed, not followed: " + ", ".join(sorted(found)))
+
+
 def _run_tool(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=TOOL_TIMEOUT)
 
@@ -139,6 +180,9 @@ def pip_audit_command(code: Path) -> list[str]:
 def run_checks(code_path: Path) -> list[Check]:
     code = Path(code_path)
     checks = [builtin_secret_scan(code)]
+    agent_files = agent_files_scan(code)
+    if agent_files:
+        checks.append(agent_files)
     checks.append(_tool(
         "gitleaks", ["gitleaks", "detect", "--no-git", "-s", str(code), "--report-format", "json"],
         code, _judge_gitleaks,

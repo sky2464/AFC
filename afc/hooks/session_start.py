@@ -118,6 +118,8 @@ def _maintenance_output() -> dict:
 
 
 def _wrap(message: str, context: str) -> dict:
+    launcher = afc_root() / "bin" / "afc"
+    context = f"{context} Run Flight Control with: sh {launcher} <command>."
     return {
         "systemMessage": message,
         "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context},
@@ -143,6 +145,20 @@ def build_output(home: Path, session: str | None = None) -> dict:
         message = BANNER
         context = f"Registry unreadable: {exc}. Tell the user and offer to repair it."
     return _wrap(message, context)
+
+
+def _with_home_note(out: dict, home: Path) -> dict:
+    """Tell Claude when the workspace isn't ~/.A-FC. Only test copies set one, so the welcome itself
+    stays clean; Claude can mention it when it matters."""
+    try:
+        if home == (Path.home() / ".A-FC").resolve():
+            return out
+    except Exception:  # the welcome must never break
+        return out
+    context = out["hookSpecificOutput"]["additionalContext"]
+    out["hookSpecificOutput"]["additionalContext"] = (
+        f"{context} The workspace is a test home {home}, not ~/.A-FC.")
+    return out
 
 
 def _session_in(stdin_text: str) -> str | None:
@@ -173,7 +189,8 @@ def main(stdout=None, stdin_text: str = "") -> int:
         home = afc_home()
     except Exception:
         home = Path.home() / ".A-FC"
-    stdout.write(json.dumps(build_output(home, session), ensure_ascii=False) + "\n")
+    out = _with_home_note(build_output(home, session), home)
+    stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
     return 0
 
 

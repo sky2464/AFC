@@ -17,7 +17,7 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root
 from afc.profile import PROFILES, modules_for
-from afc import cli_delivery, cli_health, cli_index, cli_maintain, cli_plan, cli_projects, cli_tools, scan
+from afc import cli_defaults, cli_delivery, cli_health, cli_home, cli_index, cli_maintain, cli_plan, cli_projects, cli_tools, scan
 from afc.registry import (
     PAUSED,
     Project,
@@ -32,7 +32,7 @@ from afc import tools
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "modules", "set", "scan", *cli_delivery.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_tools.NAMES, *cli_maintain.NAMES)
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "modules", "set", "scan", *cli_defaults.NAMES, *cli_delivery.NAMES, *cli_home.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_tools.NAMES, *cli_maintain.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -230,7 +230,11 @@ def cmd_modules(args: argparse.Namespace) -> dict:
     if project.profile not in PROFILES:
         raise CliError(NO_PROFILE_INTERVIEW)
     touches = {t.strip() for t in args.touches.split(",") if t.strip()}
-    return {"profile": project.profile, "modules": modules_for(project.profile, touches)}
+    names = modules_for(project.profile, touches)
+    rules = afc_root() / "rules"
+    folder = rules if args.full else rules / "short"
+    return {"profile": project.profile, "modules": names, "form": "full" if args.full else "short",
+            "paths": {name: str(folder / f"{name}.md") for name in names}}
 
 
 def cmd_set(args: argparse.Namespace) -> dict:
@@ -452,6 +456,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("modules", help="rule modules for the active project")
     p.add_argument("--touches", default="")
+    p.add_argument("--full", action="store_true", help="the long rule files, for review")
     p.set_defaults(handler=cmd_modules)
 
     p = sub.add_parser("set", help="change one setting of the active project")
@@ -470,4 +475,6 @@ def _build_parser() -> argparse.ArgumentParser:
     cli_maintain.register(sub)
     cli_tools.register(sub)
     cli_plan.register(sub)
+    cli_home.register(sub)
+    cli_defaults.register(sub)
     return parser
