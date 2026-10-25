@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-25 — FC-026 Release check and v0.03a
+
+Releasing is a checked, repeatable step: Flight Control says whether `main` is ready to tag, the version it reports is never older than the newest release, and the one-click update is proven on a real copy before v0.03a goes out. Publishing stays the user's own step.
+
+- Version is never behind the newest release
+- Release check
+- Real update between two copies
+- Ready for v0.03a
+
 ## v0.03a
 
 - One-click updates: Flight Control tells you when a newer release is out and updates itself.

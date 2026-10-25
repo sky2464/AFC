@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-026 | Release check and v0.03a | M | [spec](specs/FC-026-release-check-and-v0-03a.md) | 2026-10-25 |
 
 ## Next
 
@@ -24,6 +23,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
 | FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
 | FC-023 | Smoother flow and welcome fixes | 2026-10-25 | [FC-023](specs/archive/FC-023-smoother-flow-and-fixes.md) |
@@ -33,7 +33,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 | FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
 | FC-015 | Ship a finished spec | 2026-10-25 | [FC-015](specs/archive/FC-015-ship-a-finished-spec.md) |
-| FC-014 | Review before delivery | 2026-10-25 | [FC-014](specs/archive/FC-014-review-before-delivery.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -174,3 +173,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-025 done |
 | 2026-10-25 | FC-026 added |
 | 2026-10-25 | FC-026 started |
+| 2026-10-25 | FC-026 done |

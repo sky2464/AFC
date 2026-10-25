@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-026 | Release check and v0.03a | 2026-10-25 | FC-026-release-check-and-v0-03a.md |
 | FC-025 | Token usage cost by model | 2026-10-25 | FC-025-token-usage-by-model.md |
 | FC-024 | Optional TypeSafe Jev (stub) | 2026-10-25 | FC-024-optional-jev.md |
 | FC-023 | Smoother flow and welcome fixes | 2026-10-25 | FC-023-smoother-flow-and-fixes.md |
