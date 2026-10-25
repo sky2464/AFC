@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-25 — FC-022 Project role agents, workflow and init
+
+Every new or adopted project gets role agents under `.claude/agents/`, a slice build workflow, workspace routing JSON, and a first compact brief — without manual copying.
+
+- Install on new/adopt
+- Brief on init and after deliver
+- Workflow template
+
 ## 2026-10-25 — FC-021 Role agents and model routing
 
 Dedicated role agents (research, plan, build, check) with predictable model routing so spec and slice work can use cheaper or stronger models where it helps, without changing safety guards.

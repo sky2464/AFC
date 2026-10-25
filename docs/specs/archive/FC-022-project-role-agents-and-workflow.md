@@ -1,6 +1,6 @@
 # FC-022 — Project role agents, workflow and init
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 ## Goal
 
@@ -24,3 +24,7 @@ Full multi-slice automated builds in the main session (workflow is there to run 
 - [x] 3. Workflow template — you'll check it by file at `templates/project/workflows/afc-build-slice.js` copied into the code tree
 
 ## Decisions
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 3.
