@@ -83,7 +83,7 @@ enough.
 
 ## Slices
 
-- [ ] 1. Parallel suite — `sh bin/afc test` runs every test file in parallel and prints one JSON line;
+- [x] 1. Parallel suite — `sh bin/afc test` runs every test file in parallel and prints one JSON line;
       you'll check it by `tests/test_afc_test.py` (a passing and a failing fixture file are both
       reported), and by the full suite taking at most 40 seconds on this Mac with the same pass and
       fail count as `python3 -m unittest discover -s tests`.
