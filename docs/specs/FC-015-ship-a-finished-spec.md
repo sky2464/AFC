@@ -75,7 +75,7 @@ publishing, which FC-011 covers from the update side.
       Control's own plan included)
 - [ ] 4. `WIP` commits and an unpushed branch — you'll check it by a `WIP:` commit and an unpushed
       branch each failing the gate, each naming the user's own next step (tests)
-- [ ] 5. What shipped and what is next — you'll check it by finishing a spec in a live session and
+- [x] 5. What shipped and what is next — you'll check it by finishing a spec in a live session and
       being told in two plain lines, with the next spec as step 1 (content tests and one live run)
 
 ## Decisions

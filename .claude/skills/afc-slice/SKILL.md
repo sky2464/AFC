@@ -117,8 +117,9 @@ Make these edits with the file tools (Edit), never a shell script or heredoc.
 - Record the slice: `sh bin/afc set last_slice "<n> <label>"`.
 - Refresh the indexes: `sh bin/afc index refresh`, then `sh bin/afc index rebuild --all`.
 
-When `sh bin/afc plan` shows no open slice left in the spec, run `sh bin/afc plan done <id>`, tell
-the user in one line that the spec is finished, and offer the `suggest_next` spec as numbered step 1.
+No open slice left: `sh bin/afc ship --check <id>`, then
+`sh bin/afc plan done <id>`. Not ready: give its list and next step, never deploy. Finished: say in
+two plain lines what shipped and what is next; `suggest_next` is numbered step 1.
 
 Then hand off to `afc-deliver`.
 
