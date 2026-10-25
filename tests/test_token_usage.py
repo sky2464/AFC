@@ -99,29 +99,44 @@ class FloorTests(AfcTestCase):
 
 
 class CompareTests(AfcTestCase):
-    """Slice 4: the re-run against the baseline, judged on growth above each run's own floor."""
+    """Slice 4: the re-run against a like-for-like control, judged on growth above each run's own
+    floor. The target is 10% less growth than the control's (a third was out of reach by trimming)."""
 
     def compare(self, before, after):
         return _load().compare(_session(self.tmp, "a.jsonl", before), _session(self.tmp, "b.jsonl", after))
 
-    def test_a_third_less_growth_meets_the_target(self):
+    def test_ten_percent_less_growth_meets_the_target(self):
+        r = self.compare([(0, 0, 1000, 0), (0, 0, 1900, 0)], [(0, 0, 1000, 0), (0, 0, 1810, 0)])
+        self.assertEqual((r["growth_before"], r["growth_after"]), (900, 810))
+        self.assertEqual(r["growth_target"], 810)
+        self.assertTrue(r["target_met"])
+        self.assertEqual(r["growth_change_percent"], -10)
+
+    def test_less_than_ten_percent_does_not(self):
+        r = self.compare([(0, 0, 1000, 0), (0, 0, 1900, 0)], [(0, 0, 1000, 0), (0, 0, 1811, 0)])
+        self.assertEqual(r["growth_after"], 811)
+        self.assertFalse(r["target_met"])
+
+    def test_the_target_is_ninety_percent_of_the_controls_growth(self):
+        r = self.compare([(0, 0, 1000, 0), (0, 0, 2000, 0)], [(0, 0, 1000, 0), (0, 0, 1900, 0)])
+        self.assertEqual((r["growth_before"], r["growth_target"]), (1000, 900))
+        self.assertTrue(r["target_met"])  # exactly 900: at or below counts
+        r = self.compare([(0, 0, 1000, 0), (0, 0, 2000, 0)], [(0, 0, 1000, 0), (0, 0, 1901, 0)])
+        self.assertFalse(r["target_met"])  # 901: one over
+
+    def test_a_third_less_is_no_longer_what_is_asked(self):
+        # 600 against a 900 control is a third less; the target only needs 810.
         r = self.compare([(0, 0, 1000, 0), (0, 0, 1900, 0)], [(0, 0, 1000, 0), (0, 0, 1600, 0)])
-        self.assertEqual((r["growth_before"], r["growth_after"]), (900, 600))
-        self.assertEqual(r["growth_target"], 600)
         self.assertTrue(r["target_met"])
         self.assertEqual(r["growth_change_percent"], -33)
 
-    def test_less_than_a_third_does_not(self):
-        r = self.compare([(0, 0, 1000, 0), (0, 0, 1900, 0)], [(0, 0, 1000, 0), (0, 0, 1700, 0)])
-        self.assertFalse(r["target_met"])
-
     def test_a_different_floor_does_not_change_the_verdict(self):
-        # The second run starts 5,000 higher (more plugins loaded) but grows the same 600.
-        r = self.compare([(0, 0, 1000, 0), (0, 0, 1900, 0)], [(0, 0, 6000, 0), (0, 0, 6600, 0)])
+        # The second run starts 5,000 higher (more plugins loaded) but grows only 800.
+        r = self.compare([(0, 0, 1000, 0), (0, 0, 1900, 0)], [(0, 0, 6000, 0), (0, 0, 6800, 0)])
         self.assertTrue(r["target_met"])
         self.assertEqual(r["floor_change"], 5000)
 
-    def test_a_baseline_that_never_grew_cannot_be_compared(self):
+    def test_a_control_that_never_grew_cannot_be_compared(self):
         with self.assertRaises(ValueError):
             self.compare([(0, 0, 1000, 0)], [(0, 0, 1000, 0)])
 
@@ -164,8 +179,8 @@ class WholeRunTests(AfcTestCase):
     def test_a_run_that_never_created_the_project_is_refused(self):
         self.assertRefused("re-run", "create the project", after_ran=FULL_RUN[1:])
 
-    def test_a_baseline_that_is_not_a_whole_run_is_refused_too(self):
-        self.assertRefused("baseline", "commit the slice", before_ran=FULL_RUN[:2])
+    def test_a_control_that_is_not_a_whole_run_is_refused_too(self):
+        self.assertRefused("control", "commit the slice", before_ran=FULL_RUN[:2])
 
     def test_other_commands_do_not_count(self):
         self.assertRefused("re-run", "create the project", after_ran=("git status", "sh bin/afc status"))
@@ -182,6 +197,19 @@ class WholeRunTests(AfcTestCase):
                         ran=("sh /Users/x/A-FC-test/bin/afc new --name d", "sh ~/A-FC/bin/afc scan --slice 1",
                              "cd /tmp && sh /Users/x/A-FC-test/bin/afc deliver --message m"))
         self.assertEqual(_load().steps_reached(path), ["new", "scan", "deliver"])
+
+    def test_a_command_run_through_a_variable_set_to_the_afc_path_counts(self):
+        # A session working in the project's folder keeps Flight Control's path in a variable.
+        path = _session(self.tmp, "s.jsonl", GROWTH,
+                        ran=("sh bin/afc new --name d", "A=/Users/x/A-FC-test/bin/afc\nsh $A scan --slice 1",
+                             'SH=~/A-FC/bin/afc; sh "${SH}" deliver --message m'))
+        self.assertEqual(_load().steps_reached(path), ["new", "scan", "deliver"])
+
+    def test_a_variable_that_is_not_the_afc_path_does_not_count(self):
+        path = _session(self.tmp, "s.jsonl", GROWTH,
+                        ran=("X=/usr/bin/other sh $X deliver --message m", "sh $Y new --name d",
+                             "A=/x/bin/afc\nsh $B scan", "A=/x/bin/afc"))
+        self.assertEqual(_load().steps_reached(path), [])
 
     def test_the_command_line_prints_a_plain_error_and_exits_1(self):
         before = _session(self.tmp, "a.jsonl", GROWTH)

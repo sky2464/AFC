@@ -1,7 +1,7 @@
 """Sum token usage from a Claude Code session transcript (JSONL). Measurement only, not shipped.
 
 Usage: python3 docs/measurements/token_usage.py <transcript.jsonl>
-       python3 docs/measurements/token_usage.py <baseline.jsonl> <rerun.jsonl>
+       python3 docs/measurements/token_usage.py <control.jsonl> <rerun.jsonl>
 
 Numbers (each assistant message counted once, by message id):
 - peak_context: the biggest single prompt, input + cache creation + cache read (what "context" means)
@@ -14,8 +14,9 @@ Numbers (each assistant message counted once, by message id):
 - added_fresh_tokens: fresh_tokens without the first turn's input and cache creation
 
 With two transcripts the result compares growth, so a run on a machine with a different floor
-(more or fewer plugins) is still judged fairly. The target is a third less growth. Both runs must
-be a whole start plus first slice: the transcript has to show `afc new`, `afc scan` and
+(more or fewer plugins) is still judged fairly. The control is a whole run of the same flow made on
+`dev` before the change, so both runs build the same kind of first slice; the target is 10% less
+growth than the control's. Both runs must be a whole start plus first slice: the transcript has to show `afc new`, `afc scan` and
 `afc deliver` run through the Bash tool. Anything shorter is refused with a plain error, because
 a session that only said "hi" would otherwise pass as a huge saving.
 """
@@ -31,7 +32,21 @@ STEPS = (
     ("scan", "check the slice"),
     ("deliver", "commit the slice"),
 )
+# The re-run passes when its growth is at most this share of the control's (10% less). A third less
+# was the first target and is out of reach by trimming alone on a tested first slice (FC-009).
+TARGET_SHARE = (9, 10)
 COMMAND = re.compile(r"\bbin/afc\s+(new|scan|deliver)\b")
+# NAME=<path>/bin/afc: a session working in the project's folder keeps Flight Control's path in a variable.
+AFC_VARIABLE = re.compile(r"\b(\w+)=\S*bin/afc(?=[\s;&|\"']|$)")
+
+
+def _steps_in(command: str) -> set[str]:
+    """The new, scan and deliver steps one command runs: `bin/afc <step>`, or `$NAME <step>` when the
+    same command sets NAME to a path ending in bin/afc. Any other variable does not count."""
+    found = set(COMMAND.findall(command))
+    for name in AFC_VARIABLE.findall(command):
+        found.update(re.findall(rf"\$(?:{name}|\{{{name}\}})\"?\s+(new|scan|deliver)\b", command))
+    return found
 
 
 def measure(path) -> dict:
@@ -79,7 +94,7 @@ def steps_reached(path) -> list[str]:
             if isinstance(item, dict) and item.get("type") == "tool_use" and item.get("name") == "Bash":
                 command = (item.get("input") or {}).get("command")
                 if isinstance(command, str):
-                    found.update(COMMAND.findall(command))
+                    found.update(_steps_in(command))
     return [step for step, _ in STEPS if step in found]
 
 
@@ -92,15 +107,16 @@ def _require_whole_run(path, who: str, ask: str) -> None:
                          f"{listed}. {ask}")
 
 
-def compare(baseline, rerun) -> dict:
-    """The re-run against the baseline on growth above each run's own floor; target: a third less."""
+def compare(control, rerun) -> dict:
+    """The re-run against a like-for-like control on growth above each run's own floor; target: 10% less."""
     _require_whole_run(rerun, "re-run", "Finish the first slice (shown, approved and committed) in one "
                                         "session, then compare again.")
-    _require_whole_run(baseline, "baseline", "Use the transcript of the first live run.")
-    before, after = measure(baseline), measure(rerun)
+    _require_whole_run(control, "control", "Use a whole run of the same flow on dev before the change, "
+                                           "made the same day.")
+    before, after = measure(control), measure(rerun)
     if before["growth"] <= 0:
-        raise ValueError("the baseline never grew above its first turn, so there is nothing to compare")
-    target = before["growth"] * 2 // 3
+        raise ValueError("the control never grew above its first turn, so there is nothing to compare")
+    target = before["growth"] * TARGET_SHARE[0] // TARGET_SHARE[1]
     return {
         "floor_before": before["floor_context"], "floor_after": after["floor_context"],
         "floor_change": after["floor_context"] - before["floor_context"],

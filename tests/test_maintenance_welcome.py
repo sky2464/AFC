@@ -10,7 +10,7 @@ from afc import config
 from afc.hooks import session_start
 from afc.hooks.session_start import build_output, main
 from afc.registry import Project, Registry, save_registry
-from tests.helpers import AfcTestCase
+from tests.helpers import AfcTestCase, clean_afc_git
 
 ROOT = Path(__file__).resolve().parent.parent
 A, B = "11111111-aaaa-bbbb-cccc-000000000001", "22222222-aaaa-bbbb-cccc-000000000002"
@@ -29,6 +29,9 @@ class MaintenanceWelcomeTest(AfcTestCase):
         patcher = patch.object(session_start, "_branch", return_value="dev")
         patcher.start()
         self.addCleanup(patcher.stop)
+        git_patch = clean_afc_git()
+        git_patch.start()
+        self.addCleanup(git_patch.stop)
 
     def ctx(self, out: dict) -> str:
         return out["hookSpecificOutput"]["additionalContext"]

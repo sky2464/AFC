@@ -1,6 +1,6 @@
 # FC-014 — Review before delivery
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-24. Reference design: the user's earlier AgToosa review workflow (four
 reviewer personas, a root-cause protocol and a verdict that blocks shipping), adapted to Flight
@@ -73,7 +73,7 @@ own. Reviewing anything other than the current slice's changes.
 
 ## Slices
 
-- [ ] 1. `review` runs the checks and gives a verdict — you'll check it by
+- [x] 1. `review` runs the checks and gives a verdict — you'll check it by
       `sh bin/afc review --slice "1 label"` on a project with a known problem printing `verdict`,
       `critical`, `warning` and `report` (tests: ok and blocked, report written, the existing scan
       checks included)
@@ -97,5 +97,6 @@ own. Reviewing anything other than the current slice's changes.
 - 2026-10-24: An untested acceptance line is quoted in full instead of a coverage percentage.
 - 2026-10-24: Left out of the port on purpose: a second AI platform's opinion, issue-tracker
   updates, and showing the four reviewers as sections.
+- 2026-10-25: Slice 1 approved as built. A scan check that fails is critical, a warning is a warning, and a missing tool counts as neither; the verdict is blocked while anything is critical. A blocked verdict exits 0, as scan does. The review runs over the whole code folder for now; scoping to the slice's own changes comes with slice 2. Slices 2 to 5 are not built.
 
 ## Shipped

@@ -12,9 +12,11 @@ long shell outputs.
 
 ## You'll know it works when
 
-- A measured repeat of the php-vuln-checker start plus first slice grows its context at least a third
-  less than the first run did: peak context minus the first turn's context (the floor, which Flight
-  Control does not control), measured from the session transcript's token counts.
+- A measured repeat of the php-vuln-checker start plus first slice grows its context at least 10% less
+  than a control run of the same flow made on `dev` before slices 2 and 3, the same day: growth is
+  peak context minus the first turn's context (the floor, which Flight Control does not control),
+  measured from the session transcripts' token counts. A third less was the first target; trimming
+  alone can't reach it on a tested first slice (see Decisions).
 - Rule modules have a short form (Do and Never, at most about 25 lines each) that Claude reads by
   default; the long form stays for review.
 - No skill is loaded twice in a row for the same step.
@@ -43,8 +45,10 @@ Changing models or effort settings; removing safety rules.
 - [x] 3. Trim always-loaded skills — you'll check it by skill line counts going down with the content
       tests still passing
 - [ ] 4. Measured live re-run — you'll check it by `python3 docs/measurements/token_usage.py
-      <baseline> <rerun>` showing growth above the floor at or below 24,490 (a third under the
-      baseline's 36,736), with each run's floor beside it (tests in `tests/test_token_usage.py`)
+      <control> <rerun>` showing growth at or below 90% of the control's, with each run's floor beside
+      it (tests in `tests/test_token_usage.py`). Against the two earlier controls (44,274 and 46,689)
+      that is 39,846 and 42,020 or less. Open until a slice that trims what Flight Control controls
+      exists and the re-run passes.
 
 ## Decisions
 
@@ -79,5 +83,25 @@ Changing models or effort settings; removing safety rules.
   target is a third less growth than the baseline's 36,736, so 24,490 or less. Judging growth also
   keeps the comparison fair when the re-run's floor differs, for example because more or fewer
   plugins are loaded; the floors are shown beside the result.
+- 2026-10-24: Slice 4's re-run was measured (headless, `dev` at `973da0c`, Sonnet 5.5): growth 46,010
+  against a target of 24,490, so the target is not met and slice 4 stays open. The baseline's first
+  slice was a skeleton and FC-003 made it a real tested slice, so the two runs don't build the same
+  thing; two whole runs from before slices 2 and 3 grew 44,274 and 46,689, so those slices moved the
+  number by less than the spread between runs. The numbers, where the growth went and a fix to the
+  whole-run check are in `docs/measurements/fc-009-baseline.md`.
+- 2026-10-24: The target is re-aimed. It was a third under the first live run (24,490 or less); it
+  is now at least 10% under a like-for-like control, a whole run of the same flow on `dev` before
+  slices 2 and 3 made the same day as the re-run (`compare` passes when growth is at most 90% of the
+  control's). Two reasons. The first live run built a skeleton and FC-003 made the first slice real
+  and tested, so a third under it asked Flight Control to cancel work it now does on purpose. And
+  trimming alone can't reach a third under a like-for-like run: the parts Flight Control controls
+  (skill text about 5.7k, rules read about 3k, plan and spec edits about 3.6k, `afc` output about 2k,
+  roughly 14k together, each credited to the tool call before the jump, so rough) leave about 31k of
+  growth even if every one were cut to nothing, still above the 30.3k a third under 45.5k needs. Ten
+  per cent is about twice the 2.4k spread between three runs of the same flow (44,274, 46,010 and
+  46,689) and about a third of those 14k, so it is larger than the noise and reachable by trimming.
+  The 10% is a judgment, not a measurement; it is one constant (`TARGET_SHARE`) in the script. Slice 4
+  stays open: no slice yet trims those parts, so a re-run passes only after one is written and built.
+  Supersedes the target in the entries above.
 
 ## Shipped

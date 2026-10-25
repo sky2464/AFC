@@ -142,3 +142,6 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-24 | FC-008 started |
 | 2026-10-24 | FC-008 done |
 | 2026-10-24 | FC-009 started |
+| 2026-10-25 | FC-011 slice 1 approved and ticked: knows its version (v0.02a); spec stays in Next while FC-009 holds Now |
+| 2026-10-25 | FC-012 slice 3 approved and ticked: the health check sees the A-FC folder; spec stays in Next while FC-009 holds Now |
+| 2026-10-25 | FC-014 slice 1 approved and ticked: review gives a verdict; spec stays in Next while FC-009 holds Now |
