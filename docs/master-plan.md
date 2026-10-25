@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-015 | Ship a finished spec | M | [spec](specs/FC-015-ship-a-finished-spec.md) |
 | FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Done
@@ -153,3 +153,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-013 done |
 | 2026-10-25 | FC-014 started |
 | 2026-10-25 | FC-014 done |
+| 2026-10-25 | FC-015 started |

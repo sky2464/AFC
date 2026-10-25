@@ -1,6 +1,6 @@
 # FC-015 — Ship a finished spec
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-24. Reference design: the user's earlier AgToosa ship workflow (a readiness
 gate, a changelog, plan pruning and a suggested next story), cut down to the steps Flight Control is
