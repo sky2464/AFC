@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-022 | Project role agents, workflow and init | M | [spec](specs/FC-022-project-role-agents-and-workflow.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-022 | Project role agents, workflow and init | M | [spec](specs/FC-022-project-role-agents-and-workflow.md) |
 | FC-023 | Smoother flow and welcome fixes | S | [spec](specs/FC-023-smoother-flow-and-fixes.md) |
 | FC-024 | Optional TypeSafe Jev (stub) | S | [spec](specs/FC-024-optional-jev.md) |
 | FC-025 | Token usage cost by model | S | [spec](specs/FC-025-token-usage-by-model.md) |
@@ -167,3 +167,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-020 done |
 | 2026-10-25 | FC-021–FC-025 added (role agents, project workflow, flow fixes, Jev stub, token cost) |
 | 2026-10-25 | FC-021 done |
+| 2026-10-25 | FC-022 started |
