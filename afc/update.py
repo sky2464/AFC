@@ -207,8 +207,9 @@ def offer(root: Path, home: Path, now: float) -> dict:
     """The answer for the welcome, which never waits for the network.
 
     It is the saved answer. When the day's look is due, the day is claimed first (so sessions that
-    start together don't each start one), the old answer is too old to offer, and the look starts in
-    the background: its result is there from the next start on."""
+    start together don't each start one), the saved answer is kept, and the look starts in
+    the background: its result is there from the next start on. A release found earlier is still
+    offered meanwhile (the user may start one session a day), unless the look then finds none."""
     current = version.installed(root)
     quiet = {"update": "none", "current": current}
     if developer_copy(root, home):
@@ -217,10 +218,9 @@ def offer(root: Path, home: Path, now: float) -> dict:
     if not _due(data, now):
         return _answer(current, data)
     data["checked_at"] = now
-    data.pop("latest", None)
     if _save(home, data):  # a workspace that can't be written would start a look on every start
         start_refresh(root, home, now)
-    return quiet
+    return _answer(current, data)
 
 
 def _background(argv: list[str]) -> int:

@@ -23,6 +23,27 @@ class SessionStartTest(AfcTestCase):
     def _ctx(self, out):
         return out["hookSpecificOutput"]["additionalContext"]
 
+    def _welcome_with(self, installed, saved_latest):
+        """The welcome message for a copy at `installed` whose saved daily look found `saved_latest`."""
+        import tempfile
+        import time
+
+        copy = Path(tempfile.mkdtemp())
+        self.addCleanup(__import__("shutil").rmtree, copy, True)
+        (copy / "VERSION").write_text(installed + "\n", encoding="utf-8")
+        now = time.time()
+        (self.home / "update.json").write_text(
+            json.dumps({"checked_at": now, "latest": saved_latest}), encoding="utf-8")
+        with mock.patch("afc.hooks.session_start.afc_root", return_value=copy), \
+                mock.patch("afc.update.start_refresh"):
+            return build_output(self.home, now=now)["systemMessage"]
+
+    def test_versions_are_compared_by_number_not_by_text_in_the_welcome(self):
+        # as text "v0.9a" sorts after "v0.10a"; by number it is older, so nothing is offered
+        self.assertNotIn("is out", self._welcome_with("v0.10a", "v0.9a"))
+        message = self._welcome_with("v0.9a", "v0.10a")
+        self.assertIn("v0.10a is out; you have v0.9a", message)
+
     def test_first_run(self):
         out = build_output(self.home)
         self.assertEqual(

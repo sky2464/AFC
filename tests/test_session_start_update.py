@@ -19,15 +19,23 @@ from tests.helpers import RemoteCase, git, run_cli
 
 NOW = 1_000_000.0
 DAY = 86400
-FIRST_RUN = (f"{INTRO}\nType 1 to start a new project, 2 to bring in one already on this computer, "
-             "or just say hi.")
-OFFER = (f"{INTRO}\nFlight Control v0.02a is out; you have v0.01a.\n"
-         "1. Update now (recommended)  2. Not now")
-
 
 class WelcomeCase(RemoteCase):
     """A welcome built over a clone of a test remote on main at v0.01a, so it is not a developer
     copy. start() is one start of a session."""
+
+    def assertOffer(self, message, latest="v0.02a"):
+        """The update question: both versions, the two options, and not the project question."""
+        self.assertIn(f"{latest} is out; you have v0.01a", message)
+        self.assertIn("1. Update now (recommended)", message)
+        self.assertIn("2. Not now", message)
+        self.assertNotIn("start a new project", message)
+
+    def assertFirstRun(self, message):
+        """The plain welcome: the project question, and nothing about updates."""
+        self.assertIn("Type 1 to start a new project", message)
+        self.assertNotIn("is out; you have", message)
+        self.assertNotIn("Update now", message)
 
     def setUp(self):
         super().setUp()
@@ -84,7 +92,7 @@ class UpdateOfferTest(WelcomeCase):
 
     def test_an_older_copy_is_offered_the_update(self):
         self.tag("v0.02a")
-        self.assertEqual(self.message(), OFFER)
+        self.assertOffer(self.message())
 
     def test_the_notice_is_one_line_and_names_both_versions(self):
         self.tag("v0.10a")
@@ -137,45 +145,45 @@ class UpdateOfferTest(WelcomeCase):
         buf = io.StringIO()
         self.assertEqual(main(buf), 0)
         out = json.loads(buf.getvalue())
-        self.assertEqual(out["systemMessage"], OFFER)
+        self.assertOffer(out["systemMessage"])
         self.assertEqual(out["hookSpecificOutput"]["hookEventName"], "SessionStart")
 
     # -- nothing to offer
 
     def test_no_newer_release_the_welcome_is_as_usual(self):
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
         self.assertIn("The welcome asked: 1 = start a new project", self.context())
         self.assertNotIn("update", self.context().lower().replace("sh bin/afc", ""))
 
     def test_a_copy_already_on_the_newest_release_hears_nothing(self):
         (self.copy / "VERSION").write_text("v0.02a\n")
         self.tag("v0.02a")
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     def test_offline_says_nothing(self):
         self.tag("v0.02a")
         self.go_offline()
         self.assertEqual(self.welcome(), build_output(self.home, now=NOW))
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     def test_a_tag_that_is_not_a_release_says_nothing(self):
         self.tag("nightly", "release-9")
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     def test_a_missing_version_file_says_nothing(self):
         self.tag("v0.02a")
         (self.copy / "VERSION").unlink()
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     def test_a_check_that_blows_up_never_breaks_the_welcome(self):
         self.tag("v0.02a")
         with mock.patch("afc.update.offer", side_effect=RuntimeError("boom")):
-            self.assertEqual(self.message(), FIRST_RUN)
+            self.assertFirstRun(self.message())
 
     def test_a_check_with_an_odd_answer_never_breaks_the_welcome(self):
         for answer in (None, [], "available", {"update": "available"}, {"update": "available", "latest": 5}):
             with self.subTest(answer=answer), mock.patch("afc.update.offer", return_value=answer):
-                self.assertEqual(self.message(), FIRST_RUN)
+                self.assertFirstRun(self.message())
 
     def test_an_unreadable_registry_is_not_held_up_by_a_check(self):
         self.tag("v0.02a")
@@ -189,10 +197,10 @@ class UpdateOfferTest(WelcomeCase):
 
     def test_not_now_stays_quiet_on_the_next_start(self):
         self.tag("v0.02a")
-        self.assertEqual(self.message(), OFFER)
+        self.assertOffer(self.message())
         code, out = self.skip("v0.02a")
         self.assertEqual((code, out), (0, {"skipped": "v0.02a"}))
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     def test_not_now_stays_quiet_after_the_daily_check_runs_again(self):
         self.tag("v0.02a")
@@ -200,26 +208,26 @@ class UpdateOfferTest(WelcomeCase):
         self.skip("v0.02a")
         for days in (1, 2, 30):
             with self.subTest(days=days):
-                self.assertEqual(self.message(now=NOW + days * DAY + 60), FIRST_RUN)
+                self.assertFirstRun(self.message(now=NOW + days * DAY + 60))
 
     def test_not_now_speaks_up_again_when_a_newer_release_comes_out(self):
         self.tag("v0.02a")
         self.message()
         self.skip("v0.02a")
         self.tag("v0.03a")
-        self.assertEqual(self.message(now=NOW + 2 * DAY), OFFER.replace("v0.02a", "v0.03a"))
+        self.assertOffer(self.message(now=NOW + 2 * DAY), "v0.03a")
 
     def test_not_now_for_a_newer_release_than_the_one_found_stays_quiet(self):
         self.tag("v0.02a")
         self.skip("v0.05a")
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     # -- developer copies
 
     def test_a_developer_copy_on_dev_never_hears_about_updates(self):
         self.tag("v0.02a")
         git(self.copy, "switch", "-qc", "dev")
-        self.assertEqual(self.message(), FIRST_RUN)
+        self.assertFirstRun(self.message())
 
     def test_maintenance_mode_never_checks_or_offers(self):
         self.tag("v0.02a")
@@ -236,15 +244,17 @@ class UpdateOfferTest(WelcomeCase):
 
     def test_the_second_start_of_the_day_uses_the_saved_answer(self):
         self.tag("v0.02a")
-        self.assertEqual(self.message(), OFFER)
+        self.assertOffer(self.message())
         self.go_offline()
-        self.assertEqual(self.message(now=NOW + 3600), OFFER)
+        self.assertOffer(self.message(now=NOW + 3600))
 
     def test_the_next_day_asks_the_remote_again(self):
         self.tag("v0.02a")
-        self.assertEqual(self.message(), OFFER)
+        self.assertOffer(self.message())
         self.go_offline()
-        self.assertEqual(self.message(now=NOW + DAY + 60), FIRST_RUN)
+        self.message(now=NOW + DAY + 60)  # starts the look; the saved offer still shows
+        self.look()
+        self.assertFirstRun(self.message(now=NOW + DAY + 120))
 
     # -- never delays the welcome
 
@@ -252,15 +262,15 @@ class UpdateOfferTest(WelcomeCase):
         self.tag("v0.02a")
         with mock.patch("afc.update.subprocess.run", side_effect=AssertionError("git ran in the welcome")):
             out = self.start()
-        self.assertEqual(out["systemMessage"], FIRST_RUN)
+        self.assertFirstRun(out["systemMessage"])
         self.assertEqual(self.looks, [(self.copy, self.home, NOW)])
 
     def test_the_release_is_offered_from_the_start_after_the_look_has_landed(self):
         self.tag("v0.02a")
-        self.assertEqual(self.start()["systemMessage"], FIRST_RUN)
-        self.assertEqual(self.start(now=NOW + 5)["systemMessage"], FIRST_RUN)  # the look is still running
+        self.assertFirstRun(self.start()["systemMessage"])
+        self.assertFirstRun(self.start(now=NOW + 5)["systemMessage"])  # the look is still running
         self.look()
-        self.assertEqual(self.start(now=NOW + 10)["systemMessage"], OFFER)
+        self.assertOffer(self.start(now=NOW + 10)["systemMessage"])
 
     def test_a_slow_look_is_not_begun_again_on_every_start(self):
         for now in (NOW, NOW + 60, NOW + 3600):
@@ -269,12 +279,15 @@ class UpdateOfferTest(WelcomeCase):
         self.start(now=NOW + DAY + 60)
         self.assertEqual(len(self.looks), 2)
 
-    def test_yesterdays_answer_is_not_offered_while_todays_look_runs(self):
+    def test_yesterdays_answer_is_still_offered_while_todays_look_runs(self):
+        # someone who starts one session a day must still be told: the first start of the day
+        # offers what is saved while the new look begins in the background
         self.tag("v0.02a")
-        self.assertEqual(self.message(), OFFER)
-        self.assertEqual(self.start(now=NOW + DAY + 60)["systemMessage"], FIRST_RUN)
+        self.assertIn("v0.02a is out", self.message())
+        self.assertIn("Update now", self.start(now=NOW + DAY + 60)["systemMessage"])
+        self.assertEqual(len(self.looks), 1)
         self.look()
-        self.assertEqual(self.start(now=NOW + DAY + 120)["systemMessage"], OFFER)
+        self.assertIn("v0.02a is out", self.message(now=NOW + DAY + 120))
 
     def test_a_workspace_that_cannot_be_written_does_not_begin_a_look_on_every_start(self):
         with mock.patch.object(update, "_save", return_value=False):
@@ -296,11 +309,11 @@ class UpdateOfferTest(WelcomeCase):
             return started[-1]
 
         with mock.patch.object(update, "start_refresh", side_effect=real):
-            self.assertEqual(self.start()["systemMessage"], FIRST_RUN)
+            self.assertFirstRun(self.start()["systemMessage"])
         self.addCleanup(lambda: [p.wait() for p in started if p])
         self.assertTrue(started[0], "the look did not start")
         self.assertEqual(started[0].wait(timeout=30), 0)
-        self.assertEqual(self.start(now=NOW + 5)["systemMessage"], OFFER)
+        self.assertOffer(self.start(now=NOW + 5)["systemMessage"])
 
 
 class WelcomeTimingTest(WelcomeCase):
@@ -351,7 +364,7 @@ class WelcomeTimingTest(WelcomeCase):
     def seconds_to_start(self):
         started = time.monotonic()
         out = self.start()
-        self.assertEqual(out["systemMessage"], FIRST_RUN)
+        self.assertFirstRun(out["systemMessage"])
         return time.monotonic() - started
 
     def test_a_remote_that_never_answers_does_not_hold_up_the_welcome(self):

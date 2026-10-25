@@ -161,11 +161,12 @@ class UpdateOfferAnswerTest(RemoteCase):
         self.assertEqual(self.offer()["latest"], "v0.02a")
         update.start_refresh.assert_not_called()
 
-    def test_an_answer_more_than_a_day_old_is_not_offered(self):
+    def test_an_answer_more_than_a_day_old_is_still_offered_while_the_new_look_runs(self):
         self.write_state(checked_at=self.NOW - 3 * DAY, latest="v0.02a")
-        self.assertEqual(self.offer()["update"], "none")
+        self.assertEqual(self.offer()["update"], "available")
         update.start_refresh.assert_called_once()
-        self.assertNotIn("latest", self.saved())
+        self.assertEqual(self.saved()["latest"], "v0.02a")
+        self.assertEqual(self.saved()["checked_at"], self.NOW)
 
     def test_a_skipped_release_stays_skipped_through_the_claim_and_the_look(self):
         self.tag("v0.02a")
