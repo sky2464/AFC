@@ -113,7 +113,7 @@ the spec line or safety rule it breaks; anything else is reported as a note.
 ## Tests
 
 ```bash
-python3 -m unittest discover -s tests -v
+sh bin/afc test
 ```
 
 Size tests by risk. Guards, secrets and anything that moves or deletes data get thorough tests.
@@ -125,7 +125,8 @@ While building, run only the file for what changed, then run everything once bef
 
 ```bash
 python3 -m unittest tests.test_<name>
-python3 -m unittest discover -s tests
+sh bin/afc test --changed <ref>   # only the tests for what changed
+sh bin/afc test                   # everything, in parallel
 ```
 
 To find a test, list names with `grep -n "def test_" tests/test_<name>.py` instead of reading the file.

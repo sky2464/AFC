@@ -97,7 +97,7 @@ enough.
       `tests/test_build_workflow.py`: a slice changing only `afc/plan.py` runs 1 helper,
       a slice changing `afc/hooks/rules_git.py` runs 2, `check: 'all'` runs 2 for both, a gate
       failure starts 1 fix round, and every file in `afc/hooks/` matches the risky list.
-- [ ] 4. One full suite at the end — after the last slice the workflow runs `sh bin/afc test` once
+- [x] 4. One full suite at the end — after the last slice the workflow runs `sh bin/afc test` once
       and sends a failure to the slice that changed the failing test's code; the builder and checker
       helpers and CONTRIBUTING use the new command; you'll check it by `tests/test_build_workflow.py`
       (a failing final suite starts exactly 1 fixer and 1 checker, for the right slice) and by no

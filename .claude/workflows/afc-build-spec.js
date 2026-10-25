@@ -5,6 +5,7 @@ export const meta = {
   phases: [
     { title: 'Build', detail: 'one builder per slice, then the quick gate; the checker for risky slices' },
     { title: 'Fix', detail: 'one fixer plus one checker per round, at most two rounds' },
+    { title: 'Final suite', detail: 'the full suite once at the end; a failure goes to the slice whose commits changed the failing test\'s code' },
   ],
 }
 
@@ -99,8 +100,8 @@ const buildPrompt = s => `Build ${tag(s)} of the spec at ${spec}.
 
 Slice: ${s.number}. ${s.text}
 
-Read the spec first. Build only this slice, test first. Run the full test suite once before
-committing; commit on the current branch with a message that contains "${tag(s)}" and the spec ID.
+Read the spec first. Build only this slice, test first. Run "sh bin/afc test --changed <the commit before your work>" before
+committing (the workflow runs the full suite once at the end); commit on the current branch with a message that contains "${tag(s)}" and the spec ID.
 Tick the slice's checkbox in the spec in the same commit. Do not push or change branch.
 Return the suite's last lines.`
 
@@ -111,7 +112,7 @@ Slice: ${s.number}. ${s.text}
 The checker found these problems; each quotes the spec line or rule it breaks:
 ${problems.map(p => `- ${p.problem} (quotes: "${p.quotes}")`).join('\n')}
 
-Fix only these. Run the full test suite once before committing; commit with a message that
+Fix only these. Run "sh bin/afc test --changed <the commit before your fix>" before committing; commit with a message that
 contains "${tag(s)}" and the spec ID. Do not push or change branch. Return the suite's last lines.`
 
 const checkPrompt = (s, builderSuite) => `Check ${tag(s)} of the spec at ${spec}. Change nothing.
@@ -129,6 +130,10 @@ are no problems.
 
 Builder's suite report:
 ${builderSuite || '(none)'}`
+
+const runChecker = (s, report, label, phaseName) => agent(checkPrompt(s, report), {
+  label, phase: phaseName, schema: CHECK_RESULT, model: checkerModel, agentType: 'afc-checker',
+})
 
 // A problem that quotes nothing is a note; it does not start a fix round.
 function sortProblems(check) {
@@ -174,6 +179,7 @@ async function quickGate(s, base) {
 }
 
 const results = []
+const sliceFiles = {}
 const todo = slices.filter(s => s.number >= start && !alreadyBuilt.has(s.number))
 log(`Building ${todo.length} slice(s) of ${spec}`)
 
@@ -194,17 +200,14 @@ for (const s of todo) {
   let check = null
   for (let round = 0; ; round++) {
     const gate = await quickGate(s, base)
+    sliceFiles[s.number] = gate.files
     const checked = checkMode === 'all' || gate.files.some(isRisky)
     if (!gate.ok) {
       check = { pass: false, problems: gate.problems, notes: ['quick gate failed'] }
     } else if (!checked) {
       check = { pass: true, problems: [], notes: ['quick gate passed; not risky, no checker'] }
     } else {
-      const raw = await agent(checkPrompt(s, report), {
-        label: round ? `check ${s.number}.${round}` : `check ${s.number}`,
-        phase: round ? 'Fix' : 'Build', schema: CHECK_RESULT,
-        model: checkerModel, agentType: 'afc-checker',
-      })
+      const raw = await runChecker(s, report, round ? `check ${s.number}.${round}` : `check ${s.number}`, round ? 'Fix' : 'Build')
       check = raw ? sortProblems(raw) : { pass: false, problems: [], notes: ['checker did not return'] }
     }
     if (check.pass || round >= MAX_FIX_ROUNDS || !check.problems.length) break
@@ -224,4 +227,54 @@ for (const s of todo) {
   }
 }
 
-return { spec, results, passed: results.filter(r => r.pass).map(r => r.slice) }
+// The full suite, once, after the last slice. Returns {ok, failures, tail}.
+async function fullSuite() {
+  const run = await sh('sh bin/afc test')
+  let report = null
+  for (const line of run.out.split('\n').reverse()) {
+    try { report = JSON.parse(line); break } catch (e) { /* not the JSON line */ }
+  }
+  const failures = (report && report.failures) || []
+  const ok = run.code === 0 && failures.length === 0 && (!report || !report.failed)
+  return { ok, failures, tail: run.out.trim().split('\n').slice(-3).join('\n') }
+}
+
+// Which built slice owns a failing test: the one whose commits changed the test file itself or
+// code the test imports or names. If none matches, the last slice built.
+async function ownerOf(failure, built) {
+  const file = String(failure).split(':')[0].trim()
+  const text = (await sh(`cat ${q('tests/' + file)}`)).out
+  for (const s of built) {
+    for (const f of sliceFiles[s.number] || []) {
+      const mod = f.replace(/\.py$/, '').replace(/\//g, '.')
+      if (f === 'tests/' + file || (f.endsWith('.py') && text.includes(mod)) || text.includes(f)) return s
+    }
+  }
+  return built[built.length - 1]
+}
+
+let finalSuite = null
+const builtSlices = todo.filter(s => results.some(r => r.slice === s.number && r.pass))
+if (builtSlices.length && builtSlices.length === todo.length) {
+  phase('Final suite')
+  finalSuite = await fullSuite()
+  for (let round = 1; !finalSuite.ok && round <= MAX_FIX_ROUNDS; round++) {
+    const owner = await ownerOf(finalSuite.failures[0] || '', builtSlices)
+    phase('Fix')
+    const problems = (finalSuite.failures.length ? finalSuite.failures : [finalSuite.tail]).map(f => ({
+      problem: `the final full suite fails: ${f}`, quotes: 'the full suite runs once. If it fails',
+    }))
+    const fixed = await agent(fixPrompt(owner, problems, round), {
+      label: `fix ${owner.number}.final${round}`, phase: 'Fix', schema: WORK_RESULT,
+      model: builderModel, agentType: 'afc-builder',
+    })
+    if (!fixed || !fixed.done) break
+    const raw = await runChecker(owner, fixed.suite, `check ${owner.number}.final${round}`, 'Fix')
+    finalSuite = await fullSuite()
+    finalSuite.checker = raw ? sortProblems(raw).pass : false
+    log(`Final suite after round ${round}: ${finalSuite.ok ? 'passes' : 'still fails'}`)
+  }
+  if (!finalSuite.ok) log('The final full suite still fails')
+}
+
+return { spec, finalSuite, results, passed: results.filter(r => r.pass).map(r => r.slice) }
