@@ -217,14 +217,20 @@ def slug(label: str) -> str:
     return text[:40].strip("-") or "slice"
 
 
-def write_report(workspace: Path, checks: list[Check], label: str) -> Path:
-    """Write reports/<stamp>-<slug>.md and a .json sidecar with the same stem."""
+def write_report(workspace: Path, checks: list[Check], label: str, verdict: str | None = None) -> Path:
+    """Write reports/<stamp>-<slug>.md and a .json sidecar with the same stem.
+
+    A verdict, when given (the slice review passes one), is written into both files.
+    """
     now = datetime.now()
     reports = Path(workspace) / "reports"
     reports.mkdir(parents=True, exist_ok=True)
     path = reports / f"{now.strftime('%Y-%m-%d-%H%M')}-{slug(label)}.md"
     summary = summary_line(checks)
-    lines = [f"# Slice checks: {label}", "", summary, "", "## Checks", ""]
+    lines = [f"# Slice checks: {label}", ""]
+    if verdict:
+        lines += [f"Verdict: {verdict}", ""]
+    lines += [summary, "", "## Checks", ""]
     for c in checks:
         detail = "not installed" if c.status == "missing" else c.detail
         lines.append(f"- **{c.name}** ({c.status}): {detail}")
@@ -235,5 +241,7 @@ def write_report(workspace: Path, checks: list[Check], label: str) -> Path:
         "summary": summary,
         "checks": [asdict(c) for c in checks],
     }
+    if verdict:
+        sidecar["verdict"] = verdict
     path.with_suffix(".json").write_text(json.dumps(sidecar, indent=2) + "\n", encoding="utf-8")
     return path
