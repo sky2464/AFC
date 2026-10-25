@@ -18,6 +18,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-026 | Release check and v0.03a | M | [spec](specs/FC-026-release-check-and-v0-03a.md) |
 
 ## Done
 
@@ -171,3 +172,4 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-024 done |
 | 2026-10-25 | FC-025 started |
 | 2026-10-25 | FC-025 done |
+| 2026-10-25 | FC-026 added |
