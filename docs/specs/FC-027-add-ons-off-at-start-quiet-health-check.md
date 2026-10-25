@@ -1,6 +1,6 @@
 # FC-027 — Add-ons off at start, quiet health check
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Found on 2026-10-25 while testing the v0.03a one-click update on a scratch copy of the previous
 `main` (dd75b26 → v0.03a, 1034 tests passing). The update worked, but its summary said the health
@@ -60,7 +60,7 @@ switch-off, nothing more. Other problem kinds keep their meaning.
 
 ## Slices
 
-- [ ] 1. Honest check wording — you'll check it by `tests/test_cli_health.py`: a not-yet-switched
+- [x] 1. Honest check wording — you'll check it by `tests/test_cli_health.py`: a not-yet-switched
       add-on's detail says it will be switched off at the next start; one already in
       `afcBlockedAddons` and reported disabled gives no problem
 - [ ] 2. Switch off at session start — you'll check it by `tests/test_session_start.py` cases: not

@@ -357,8 +357,8 @@ def _addon_problems(root: Path) -> list[dict]:
         return found  # state unknown: don't guess
     for name in off:
         p = _problem("addon_not_allowed", name, True,
-                     detail=f"Flight Control switched off {name} in its own sessions because it isn't "
-                            "on the allowed list. It still works everywhere else.")
+                     detail=f"{name} isn't on the allowed list, so Flight Control switches it off in "
+                            "its own sessions from the next start. It still works everywhere else.")
         p["addon"] = name
         found.append(p)
     for name in blocked_addons(root):

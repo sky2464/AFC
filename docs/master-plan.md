@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-027 | Add-ons off at start, quiet health check | M | [spec](specs/FC-027-add-ons-off-at-start-quiet-health-check.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-027 | Add-ons off at start, quiet health check | M | [spec](specs/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 | FC-028 | Welcome says it once | S | [spec](specs/FC-028-welcome-says-it-once.md) |
 
 ## Done
@@ -194,3 +194,4 @@ same day showed the rest.
 | 2026-10-25 | FC-027 added |
 | 2026-10-25 | FC-027 renamed to Add-ons off at start, quiet health check |
 | 2026-10-25 | FC-028 added |
+| 2026-10-25 | FC-027 started |

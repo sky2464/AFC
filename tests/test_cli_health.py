@@ -187,6 +187,8 @@ class HealthTest(CliTestCase):
             self.assertEqual(len(found), 1)
             self.assertTrue(found[0]["fixable"])
             self.assertIn("agent-recall@synced", found[0]["detail"])
+            self.assertIn("switches it off in its own sessions from the next start", found[0]["detail"])
+            self.assertNotIn("switched off", found[0]["detail"])  # not done yet, so never past tense
             self.assertIn("still works everywhere else", found[0]["detail"])
             rc, out = run_cli(["repair"])
         self.assertEqual(rc, 0, out)
@@ -221,6 +223,17 @@ class HealthTest(CliTestCase):
         settings = self.local_settings()
         self.assertEqual(settings["enabledPlugins"], {"mine@x": False})
         self.assertEqual(settings["afcBlockedAddons"], [])
+
+    def test_an_add_on_already_switched_off_is_quiet(self):
+        self.allow_list("superpowers@claude-plugins-official")
+        with self.addons_reported():
+            run_cli(["repair"])
+        self.assertEqual(self.local_settings()["afcBlockedAddons"], ["agent-recall@synced"])
+        # Claude Code now reports it switched off in this folder.
+        plugins = [{"id": "superpowers@claude-plugins-official", "enabled": True},
+                   {"id": "agent-recall@synced", "enabled": False}]
+        with patch("afc.addons.reported", return_value=(plugins, None)):
+            self.assertEqual(self.kinds(), [])
 
     def test_unknown_add_on_state_is_not_a_problem(self):
         with patch("afc.addons.reported", return_value=([], "no claude")):
