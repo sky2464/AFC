@@ -70,7 +70,7 @@ switch-off, nothing more. Other problem kinds keep their meaning.
 - [x] 3. Short update summary — you'll check it by `tests/test_update_apply.py` cases for a clean
       check, add-ons only (one counted phrase, no names) and one other problem plus add-ons ("and N
       more"), each three sentences or fewer
-- [ ] 4. Live check — you'll check it by starting two sessions on the real `A-FC` folder: the first
+- [x] 4. Live check — you'll check it by starting two sessions on the real `A-FC` folder: the first
       switches the 28 add-ons off, the second's welcome mentions no add-ons, and the first-reply
       token count before and after is written in Decisions
 
@@ -78,5 +78,14 @@ switch-off, nothing more. Other problem kinds keep their meaning.
 
 - 2026-10-25: Add-ons not on the allowed list are switched off automatically at session start,
   not only on `repair` (user's choice).
+- 2026-10-25: Tests get no add-ons by default (`real_addons` opts in), so no test can switch off
+  add-ons in the real `A-FC` folder's settings.
+- 2026-10-25: The update summary is written by the code of the copy being updated, so the shorter
+  summary shows from the first update after this release, not on the way to it.
+- 2026-10-25: Live, two `claude -p hi` starts (Sonnet, maintenance mode) in the real `A-FC` folder.
+  First: 31 plugins, 546 tools, 242 skills, 75,961 tokens of context; it switched 28 add-ons off.
+  Second: 4 plugins, 350 tools, 107 skills, 60,291 tokens (−21%). `sh bin/afc check` lists no
+  add-ons; the welcome says nothing about them. The 350 tools left are mostly claude.ai connectors,
+  which `enabledPlugins` doesn't reach.
 
 ## Shipped
