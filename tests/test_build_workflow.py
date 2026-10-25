@@ -118,6 +118,11 @@ class QuickGateTest(unittest.TestCase):
         out = run_workflow(["/etc/hosts"])
         self.assertFalse(out["r"]["results"][0]["pass"])
 
+    def test_maintenance_mode_code_is_risky(self):
+        for f in ("afc/config.py", "afc/cli_home.py"):
+            out = run_workflow([f])
+            self.assertIn("check 1", out["calls"], f)
+
     def test_every_hooks_file_is_risky(self):
         for f in sorted((ROOT / "afc" / "hooks").glob("*.py")):
             out = run_workflow([f"afc/hooks/{f.name}"])

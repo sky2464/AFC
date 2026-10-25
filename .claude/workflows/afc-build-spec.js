@@ -30,8 +30,8 @@ const RISKY = [
   /^afc\/hooks\//,
   /^bin\/afc$/,
   /^\.claude\/(settings[^/]*\.json|agents\/|workflows\/)/,
-  /^afc\/(git_ops|ship|undo|update|update_apply|secrets|scan|rules|tools|profile)\.py$/,
-  /^afc\/cli_(ship|delivery|maintain|tools)\.py$/,
+  /^afc\/(git_ops|ship|undo|update|update_apply|secrets|scan|rules|tools|profile|config)\.py$/,
+  /^afc\/cli_(ship|delivery|maintain|tools|home)\.py$/,
   /^afc\/.*remote/,
 ]
 const isRisky = file => RISKY.some(re => re.test(file))
