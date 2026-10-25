@@ -53,7 +53,7 @@ have no update code, so they move once by hand.
       printing `v0.02a` on `dev`, and `tests/test_version.py` failing when `VERSION` is older than
       the newest `v*` tag merged into `main` (tests: equal passes, newer passes, older fails, no tags
       passes)
-- [ ] 2. Release check — you'll check it by `sh bin/afc release check` printing `ready: false` with
+- [x] 2. Release check — you'll check it by `sh bin/afc release check` printing `ready: false` with
       exactly one line per problem on `dev`, and `ready: true` on a scratch repo on `main` with a
       bumped `VERSION`, a new changelog heading and a clean tree (tests: each of the 5 problems alone,
       all clear, and `git status --short` unchanged after the run)
