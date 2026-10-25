@@ -98,7 +98,7 @@ settings.
       `notes` apart, with a problem that quotes no spec line or rule landing in `notes`, and by
       CONTRIBUTING's rule asking for a number where an outcome is a time, size or count (one
       structural test each)
-- [ ] 4. Stay awake while building — you'll check it by `sh bin/afc awake on`, `status` and `off`
+- [x] 4. Stay awake while building — you'll check it by `sh bin/afc awake on`, `status` and `off`
       with a fake `caffeinate` and `pmset` on the path: on starts it once, a second on does not
       start another, off stops it, the four-hour limit is passed, and other systems get
       `not macOS` (tests)
