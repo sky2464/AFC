@@ -18,7 +18,8 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-027 | Quiet health check after an update | M | [spec](specs/FC-027-quiet-health-check-after-an-update.md) |
+| FC-027 | Add-ons off at start, quiet health check | M | [spec](specs/FC-027-add-ons-off-at-start-quiet-health-check.md) |
+| FC-028 | Welcome says it once | S | [spec](specs/FC-028-welcome-says-it-once.md) |
 
 ## Done
 
@@ -102,12 +103,17 @@ maintenance mode off, leaving the copy on a detached HEAD.
 ## Findings from the v0.03a update test (2026-10-25)
 
 A scratch copy of the previous `main` updated itself from v0.01a to v0.03a in one step, ended clean
-on `main` and passed all 1034 tests. Its summary still read as a failure.
+on `main` and passed all 1034 tests. Its summary still read as a failure. An `A-FC-test` session the
+same day showed the rest.
 
 | # | Finding | Spec |
 |---|---|---|
 | R1 | The after-update summary listed 28 account add-ons as "problems to look at"; nothing was wrong | FC-027 |
-| R2 | `sh bin/afc check` reports add-ons Flight Control already switched off, so it is never `ok` for anyone with add-ons | FC-027 |
+| R2 | Add-ons are switched off only on `repair`, which nothing runs, so all 28 load in every Flight Control session; `check` says they were "switched off" | FC-027 |
+| R3 | The welcome said "a health check found 30 problems"; 28 were those add-ons | FC-027 |
+| R4 | The first reply to "hi" used 75,950 tokens, mostly the 28 add-ons loading | FC-027 |
+| R5 | After the welcome, the reply to "hi" introduced Flight Control again and re-asked the same 1/2 question | FC-028 |
+| R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | none; the user moves it forward |
 
 ## Update log
 
@@ -186,3 +192,5 @@ on `main` and passed all 1034 tests. Its summary still read as a failure.
 | 2026-10-25 | FC-026 started |
 | 2026-10-25 | FC-026 done |
 | 2026-10-25 | FC-027 added |
+| 2026-10-25 | FC-027 renamed to Add-ons off at start, quiet health check |
+| 2026-10-25 | FC-028 added |
