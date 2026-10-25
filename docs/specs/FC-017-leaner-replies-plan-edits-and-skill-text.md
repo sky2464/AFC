@@ -1,6 +1,6 @@
 # FC-017 — Leaner replies, plan edits and skill text
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25, after FC-009 was closed with its target missed. The re-run that missed
 (dev `973da0c`) grew 46,010 against a target of 24,490. Its growth is in `fc-009-baseline.md`: code

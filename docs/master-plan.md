@@ -13,18 +13,18 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-019 | Checks only when needed | M | [spec](specs/FC-019-checks-only-when-needed.md) | 2026-10-25 |
+| FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-017 | Leaner replies, plan edits and skill text | M | [spec](specs/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
 | FC-015 | Ship a finished spec | 2026-10-25 | [FC-015](specs/archive/FC-015-ship-a-finished-spec.md) |
 | FC-014 | Review before delivery | 2026-10-25 | [FC-014](specs/archive/FC-014-review-before-delivery.md) |
 | FC-013 | Right-sized tests | 2026-10-25 | [FC-013](specs/archive/FC-013-right-sized-tests.md) |
@@ -34,7 +34,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-009 | Leaner context per slice (closed; target not met, rest in FC-017) | 2026-10-25 | [FC-009](specs/archive/FC-009-leaner-context-per-slice.md) |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | [FC-008](specs/archive/FC-008-agent-instruction-files-in-apps.md) |
 | FC-016 | Nothing drops out of the plan | 2026-10-24 | [FC-016](specs/archive/FC-016-nothing-drops-out-of-the-plan.md) |
-| FC-007 | Package checks fit the stack | 2026-10-24 | [FC-007](specs/archive/FC-007-package-checks-fit-the-stack.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -157,3 +156,5 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-019 Checks only when needed added and specced (6 slices) during the FC-015 build: parallel suite, tests for what changed, checker only for risky slices, one suite at the end, CI; queued first in Next |
 | 2026-10-25 | FC-015 done |
 | 2026-10-25 | FC-019 started |
+| 2026-10-25 | FC-019 done |
+| 2026-10-25 | FC-017 started |

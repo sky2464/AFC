@@ -1,6 +1,6 @@
 # FC-019 — Checks only when needed
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-25, while FC-015 was being built. Each slice took longer than the one before,
 and most of that time went on checks that found nothing.
@@ -117,3 +117,7 @@ enough.
   less.
 - 2026-10-25: Parallel runs come before trimming slow tests. They cut 105 seconds to 38 seconds
   without changing a test, and the risk of losing a check is lower.
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 6.

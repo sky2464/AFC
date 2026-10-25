@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-019 | Checks only when needed | 2026-10-25 | FC-019-checks-only-when-needed.md |
 | FC-015 | Ship a finished spec | 2026-10-25 | FC-015-ship-a-finished-spec.md |
 | FC-014 | Review before delivery | 2026-10-25 | FC-014-review-before-delivery.md |
 | FC-013 | Right-sized tests | 2026-10-25 | FC-013-right-sized-tests.md |
