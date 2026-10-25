@@ -1,0 +1,12 @@
+{
+  "roles": {},
+  "notes": {
+    "main_session": "Keep the main Claude Code session on Sonnet or Opus, not Haiku.",
+    "providers": "On Bedrock or Vertex, set full model IDs under roles, e.g. {\"build\": {\"model\": \"anthropic.claude-sonnet-4-20250514-v1:0\"}}"
+  },
+  "jev": {
+    "enabled": false,
+    "mode": "off",
+    "model": "jev-latest"
+  }
+}

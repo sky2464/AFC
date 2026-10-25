@@ -17,7 +17,26 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root
 from afc.profile import PROFILES, modules_for
-from afc import cli_awake, cli_defaults, cli_delivery, cli_health, cli_home, cli_index, cli_maintain, cli_plan, cli_projects, cli_review, cli_ship, cli_slice, cli_test, cli_tools, cli_version, scan
+from afc import (
+    cli_agents,
+    cli_awake,
+    cli_context,
+    cli_defaults,
+    cli_delivery,
+    cli_health,
+    cli_home,
+    cli_index,
+    cli_maintain,
+    cli_plan,
+    cli_projects,
+    cli_review,
+    cli_ship,
+    cli_slice,
+    cli_test,
+    cli_tools,
+    cli_version,
+    scan,
+)
 from afc.registry import (
     PAUSED,
     Project,
@@ -32,7 +51,34 @@ from afc import tools
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "modules", "set", "scan", *cli_defaults.NAMES, *cli_delivery.NAMES, *cli_home.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_review.NAMES, *cli_ship.NAMES, *cli_slice.NAMES, *cli_tools.NAMES, *cli_test.NAMES, *cli_maintain.NAMES, *cli_version.NAMES, *cli_awake.NAMES)
+COMMAND_NAMES = (
+    "new",
+    "adopt",
+    "switch",
+    "list",
+    "status",
+    "open",
+    "modules",
+    "set",
+    "scan",
+    *cli_defaults.NAMES,
+    *cli_agents.NAMES,
+    *cli_context.NAMES,
+    *cli_delivery.NAMES,
+    *cli_home.NAMES,
+    *cli_index.NAMES,
+    *cli_plan.NAMES,
+    *cli_projects.NAMES,
+    *cli_health.NAMES,
+    *cli_review.NAMES,
+    *cli_ship.NAMES,
+    *cli_slice.NAMES,
+    *cli_tools.NAMES,
+    *cli_test.NAMES,
+    *cli_maintain.NAMES,
+    *cli_version.NAMES,
+    *cli_awake.NAMES,
+)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -53,12 +99,16 @@ class _UsageError(Exception):
 
 class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
-        raise _UsageError(_plain_usage(message))
+        from afc.cli_parser import plain_usage
+
+        raise _UsageError(plain_usage(message))
 
 
 def main(argv: list[str]) -> int:
     try:
-        args = _build_parser().parse_args(argv)
+        from afc.cli_parser import build_parser
+
+        args = build_parser().parse_args(argv)
         result = args.handler(args)
     except (_UsageError, CliError, SettingError, RegistryError, GrantError, OSError) as exc:
         return _fail(str(exc))
@@ -84,92 +134,6 @@ def icloud_synced(path: Path) -> bool:
 
 
 # ---------------------------------------------------------------- commands
-
-
-def cmd_new(args: argparse.Namespace) -> dict:
-    home = afc_home()
-    reg = load_registry(home)
-    name = _new_name(reg, args.name)
-    profile = _profile_arg(args.profile)
-    parent = Path(args.parent).expanduser().resolve()
-    if not parent.is_dir():
-        raise CliError(f"Folder {parent} does not exist.")
-    code = parent / name
-    if code.exists() and (not code.is_dir() or any(code.iterdir())):
-        raise CliError(f"Folder {code} already exists and is not empty.")
-    readme, ignore = _app_templates()
-    if shutil.which("git") is None:
-        raise CliError("git is not installed.")
-
-    undo = _settings_undo()
-    undo.mark(
-        [
-            home,
-            home / "projects",
-            home / "projects" / name,
-            settings_path(afc_root()).parent,
-            code,
-            code / ".git",
-            code / "README.md",
-            code / ".gitignore",
-        ]
-    )
-    try:
-        code.mkdir(exist_ok=True)
-        _git_init(code)
-        (code / "README.md").write_text(readme.replace("{name}", name), encoding="utf-8")
-        (code / ".gitignore").write_bytes(ignore)
-        ws = create_workspace(home, name)
-        project = Project(
-            name=name,
-            code_path=str(code),
-            workspace_path=str(ws),
-            profile=profile,
-            git_name=args.git_name,
-            git_email=args.git_email,
-            ai_trailer=args.ai_trailer,
-            last_active=_today(),
-        )
-        reg.add(project)
-        reg.set_active(name)
-        granted = _commit(home, reg, project, undo)
-    except BaseException:
-        undo.rollback()
-        raise
-    return {**_project_result(project, granted), **_icloud_fields(project, code)}
-
-
-def cmd_adopt(args: argparse.Namespace) -> dict:
-    home = afc_home()
-    reg = load_registry(home)
-    name = _new_name(reg, args.name)
-    path = Path(args.path).expanduser().resolve()
-    if not path.is_dir():
-        raise CliError(f"Folder {path} does not exist.")
-
-    undo = _settings_undo()
-    undo.mark([home, home / "projects", home / "projects" / name, settings_path(afc_root()).parent])
-    try:
-        ws = create_workspace(home, name)
-        project = Project(
-            name=name,
-            code_path=str(path),
-            workspace_path=str(ws),
-            git_name=args.git_name or "",
-            git_email=args.git_email or "",
-            last_active=_today(),
-        )
-        reg.add(project)
-        reg.set_active(name)
-        granted = _commit(home, reg, project, undo)
-    except BaseException:
-        undo.rollback()
-        raise
-    return {
-        **_project_result(project, granted),
-        **_icloud_fields(project, path),
-        "is_git": (path / ".git").exists(),
-    }
 
 
 def cmd_switch(args: argparse.Namespace) -> dict:
@@ -286,11 +250,6 @@ def _commit(home: Path, reg, project: Project, undo: Undo) -> list[str]:
     return granted
 
 
-def _app_templates() -> tuple[str, bytes]:
-    src = afc_root() / "templates" / "app"
-    return (src / "README.md").read_text(encoding="utf-8"), (src / "gitignore").read_bytes()
-
-
 def _new_name(reg, raw: str) -> str:
     validate_name(raw)
     if raw in reg.projects:
@@ -345,21 +304,6 @@ def _icloud_warning(profile: str, synced: bool) -> str | None:
     return None
 
 
-def _git_init(code: Path) -> None:
-    try:
-        subprocess.run(
-            ["git", "init", "-q", "-b", "main"],
-            cwd=code,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError as exc:
-        raise CliError("git is not installed.") from exc
-    except subprocess.CalledProcessError as exc:
-        raise CliError(f"git init failed: {exc.stderr.strip()}") from exc
-
-
 def _now_text(ws: Path) -> str:
     """The active spec from the master plan; else text under '## Now' in plan/progress.md."""
     from afc.plan import now_line
@@ -383,105 +327,8 @@ def _now_text(ws: Path) -> str:
     return "\n".join(lines).strip()
 
 
-def _plain_usage(message: str) -> str:
-    """Turn an argparse complaint into a plain sentence."""
-    choice = re.search(r"argument (\S+): invalid choice: '([^']*)' \(choose from (.*)\)$", message)
-    if choice:
-        field, value, options = choice.groups()
-        # Python 3.12 lists the choices unquoted; other versions quote them.
-        items = re.findall(r"'([^']*)'", options) or [o.strip() for o in options.split(",")]
-        if field == "command":
-            return f"Unknown command {value}. Use one of: {', '.join(items)}."
-        return f"Use one of: {', '.join(items)}."
-    missing = re.search(r"the following arguments are required: (.*)$", message)
-    if missing:
-        names = [n.strip() for n in missing.group(1).split(",")]
-        if names == ["command"]:
-            return f"Missing command. Use one of: {', '.join(COMMAND_NAMES)}."
-        return f"Missing {_join_and(names)}."
-    needs = re.search(r"argument (\S+): expected one argument", message)
-    if needs:
-        return f"{needs.group(1)} needs a value."
-    unknown = re.search(r"unrecognized arguments: (.*)$", message)
-    if unknown:
-        return f"Unknown option {unknown.group(1)}."
-    return "That command is not valid."
-
-
-def _join_and(items: list[str]) -> str:
-    if len(items) <= 1:
-        return "".join(items)
-    return ", ".join(items[:-1]) + " and " + items[-1]
-
-
 def _fail(message: str) -> int:
     print(json.dumps({"error": message}))
     return 1
 
 
-# ------------------------------------------------------------------ parser
-
-
-def _build_parser() -> argparse.ArgumentParser:
-    parser = _Parser(prog="sh bin/afc", description="Flight Control command line.")
-    sub = parser.add_subparsers(dest="command", required=True, parser_class=_Parser)
-
-    p = sub.add_parser("new", help="create a project folder, workspace and registry entry")
-    p.add_argument("--name", required=True)
-    p.add_argument("--parent", required=True)
-    p.add_argument("--git-name", required=True)
-    p.add_argument("--git-email", required=True)
-    p.add_argument("--ai-trailer", action="store_true")
-    p.add_argument("--profile")
-    p.set_defaults(handler=cmd_new)
-
-    p = sub.add_parser("adopt", help="register an existing folder")
-    p.add_argument("--name", required=True)
-    p.add_argument("--path", required=True)
-    p.add_argument("--git-name")
-    p.add_argument("--git-email")
-    p.set_defaults(handler=cmd_adopt)
-
-    p = sub.add_parser("switch", help="make a registered project active")
-    p.add_argument("name")
-    p.set_defaults(handler=cmd_switch)
-
-    p = sub.add_parser("list", help="list registered projects")
-    p.set_defaults(handler=cmd_list)
-
-    p = sub.add_parser("status", help="show the active project")
-    p.set_defaults(handler=cmd_status)
-
-    p = sub.add_parser("open", help="open the active workspace (macOS)")
-    p.set_defaults(handler=cmd_open)
-
-    p = sub.add_parser("modules", help="rule modules for the active project")
-    p.add_argument("--touches", default="")
-    p.add_argument("--full", action="store_true", help="the long rule files, for review")
-    p.set_defaults(handler=cmd_modules)
-
-    p = sub.add_parser("set", help="change one setting of the active project")
-    p.add_argument("field")
-    p.add_argument("value")
-    p.set_defaults(handler=cmd_set)
-
-    p = sub.add_parser("scan", help="run slice checks and write a report")
-    p.add_argument("--slice", required=True)
-    p.set_defaults(handler=cmd_scan)
-
-    cli_delivery.register(sub)
-    cli_index.register(sub)
-    cli_projects.register(sub)
-    cli_health.register(sub)
-    cli_maintain.register(sub)
-    cli_tools.register(sub)
-    cli_plan.register(sub)
-    cli_slice.register(sub)
-    cli_home.register(sub)
-    cli_version.register(sub)
-    cli_defaults.register(sub)
-    cli_review.register(sub)
-    cli_ship.register(sub)
-    cli_test.register(sub)
-    cli_awake.register(sub)
-    return parser

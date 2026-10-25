@@ -157,8 +157,10 @@ class DeliverCliTests(RepoTestCase):
         self.change()
         code, out = run_cli(["deliver", "--message", "feat: Add login page"])
         self.assertEqual(code, 0, out)
-        self.assertEqual(out, {"commit": out["commit"], "pushed": True,
-                               "branch": "afc/feat-add-login-page", "pr_needed": True})
+        self.assertEqual(out["pushed"], True)
+        self.assertEqual(out["branch"], "afc/feat-add-login-page")
+        self.assertTrue(out["pr_needed"])
+        self.assertIn("brief", out)
         self.assertEqual(git(bare, "rev-parse", "afc/feat-add-login-page"), out["commit"])
 
 

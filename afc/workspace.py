@@ -6,7 +6,7 @@ from pathlib import Path
 from afc.config import afc_root
 from afc.registry import validate_name
 
-WORKSPACE_DIRS = ("plan", "resources", "reports", "skills", "drafts")
+WORKSPACE_DIRS = ("plan", "resources", "reports", "skills", "drafts", "agents")
 PLAN_SUBDIRS = ("specs", "archive")
 
 

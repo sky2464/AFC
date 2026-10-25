@@ -32,7 +32,7 @@ sh bin/afc deliver --message "<message>" [--default-deploys] [--protected]
 Add `--default-deploys` when pushing the default branch deploys, `--protected` when it is
 protected; solo projects then use a working branch (tell the user once).
 
-- `{"pushed": false}` — no remote; committed locally. Say so in one line.
+- `{"pushed": false}` — no remote; committed locally. Say so in one line. A successful deliver also refreshes `resources/afc-brief.md`.
 - `{"pushed": true, "pr_needed": false}` — solo: done.
 - `{"pushed": true, "pr_needed": true, "branch": ...}` — team: `afc-remote` opens a pull request.
 
