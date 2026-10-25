@@ -6,7 +6,7 @@ from pathlib import Path
 from afc import testrun
 from afc.config import afc_root
 
-NAMES = ("test", "ci")
+NAMES = ("test", "ci", "gate")
 
 
 def register(sub) -> None:
@@ -17,6 +17,11 @@ def register(sub) -> None:
     p.set_defaults(handler=cmd_test)
     c = sub.add_parser("ci", help="show how the last test run on GitHub went")
     c.set_defaults(handler=cmd_ci)
+    g = sub.add_parser("gate", help="the build workflow's quick gate for one built slice")
+    g.add_argument("--spec", required=True)
+    g.add_argument("--slice", required=True, type=int)
+    g.add_argument("--base", required=True, help="the commit the slice started from")
+    g.set_defaults(handler=cmd_gate)
 
 
 def cmd_test(args: argparse.Namespace) -> dict:
@@ -45,3 +50,9 @@ def cmd_ci(args: argparse.Namespace) -> dict:
     from afc import ci_status
 
     return ci_status.last_run(Path(afc_root()))
+
+
+def cmd_gate(args: argparse.Namespace) -> dict:
+    from afc import gate
+
+    return gate.quick_gate(Path(afc_root()), Path(args.spec), args.slice, args.base)

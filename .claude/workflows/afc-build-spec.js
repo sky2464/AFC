@@ -37,15 +37,6 @@ const RISKY = [
 ]
 const isRisky = file => RISKY.some(re => re.test(file))
 
-// Secret patterns the gate looks for in added lines of the diff.
-const SECRET_PATTERNS = [
-  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
-  /\bAKIA[0-9A-Z]{16}\b/,
-  /\bgh[pousr]_[A-Za-z0-9]{30,}\b/,
-  /\bsk-[A-Za-z0-9_-]{20,}\b/,
-  /\bxox[abprs]-[A-Za-z0-9-]{10,}\b/,
-]
-
 // sh(command) -> {code, out}. The runtime has no shell, so a cheap helper runs the command and
 // returns its exit code and output word for word. Tests supply `shell` instead.
 const SH_RESULT = {
@@ -56,9 +47,9 @@ const SH_RESULT = {
 async function sh(command) {
   if (typeof shell === 'function') return await shell(command)
   const r = await agent(
-    `Run this one command from the repo root with Bash and return its exit code and its combined ` +
-    `stdout and stderr, word for word, changing nothing else:\n${command}`,
-    { label: 'gate: ' + command.slice(0, 40), phase: 'Build', schema: SH_RESULT, model: 'haiku', effort: 'low' })
+    `Run this one command from the repo root with Bash. Put its stdout in "out" exactly as printed, ` +
+    `adding no words, and its exit status in "code":\n${command}`,
+    { label: 'run: ' + command.slice(0, 40), phase: 'Build', schema: SH_RESULT, model: 'haiku', effort: 'low' })
   return r ? { code: r.code, out: r.out } : { code: 1, out: '' }
 }
 const q = s => JSON.stringify(String(s))
@@ -153,37 +144,19 @@ function sortProblems(check) {
   return { ...check, problems, notes, pass: check.pass && problems.length === 0 }
 }
 
-// The quick gate: code, no helper. Returns {ok, problems, files}; each problem quotes its rule.
+// The quick gate runs as `sh bin/afc gate`: one helper call, one JSON line back.
+function lastJson(text) {
+  for (const line of String(text).split('\n').reverse()) {
+    const t = line.trim()
+    if (t.startsWith('{') && t.endsWith('}')) { try { return JSON.parse(t) } catch (e) { /* keep looking */ } }
+  }
+  return null
+}
 async function quickGate(s, base) {
-  const problems = []
-  const add = (problem, quotes) => problems.push({ problem, quotes })
-  const names = await sh(`git diff --name-only ${q(base)} HEAD`)
-  const files = names.out.split('\n').map(f => f.trim()).filter(Boolean)
-
-  const commits = await sh(`git log --format=%H --grep ${q(tag(s))} ${q(base)}..HEAD`)
-  if (commits.code !== 0 || !commits.out.trim()) {
-    add(`no commit since ${base.slice(0, 7)} has "${tag(s)}" in its message`, 'commit tagged with the slice')
-  }
-
-  const specText = await sh(`cat ${q(spec)} | grep -E '^- \\[[ x]\\] [0-9]+\\.'`)
-  const ticked = new RegExp(`^- \\[x\\] ${s.number}\\.`, 'm')
-  if (!ticked.test(specText.out)) add(`slice ${s.number}'s checkbox is not ticked in ${spec}`, 'checkbox ticked')
-
-  const tests = await sh(`sh bin/afc test --changed ${q(base)}`)
-  if (tests.code !== 0) {
-    add(`the slice's tests fail: ${tests.out.trim().split('\n').slice(-3).join(' | ')}`, "the slice's tests pass")
-  }
-
-  const diff = await sh(`git diff ${q(base)} HEAD | grep -E '^\\+' | grep -E 'PRIVATE KEY|AKIA|gh[pousr]_|sk-|xox[abprs]-' | head -20`)
-  const added = diff.out.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++'))
-  if (added.some(l => SECRET_PATTERNS.some(re => re.test(l)))) {
-    add('the diff adds a line that looks like a secret', 'no secret patterns in the diff')
-  }
-
-  const outside = files.filter(f => f.startsWith('/') || f.split('/').includes('..'))
-  if (outside.length) add(`files outside this repo: ${outside.join(', ')}`, 'no file changed outside this repo')
-
-  return { ok: problems.length === 0, problems, files }
+  const run = await sh(`sh bin/afc gate --spec ${q(spec)} --slice ${s.number} --base ${q(base)}`)
+  const g = lastJson(run.out)
+  if (!g) return { ok: false, files: [], problems: [{ problem: 'the gate gave no result: ' + String(run.out).slice(-200), quotes: 'commit tagged with the slice' }] }
+  return { ok: !!g.ok, files: g.files || [], problems: g.problems || [] }
 }
 
 const results = []
@@ -193,7 +166,7 @@ log(`Building ${todo.length} slice(s) of ${spec}`)
 
 for (const s of todo) {
   phase('Build')
-  const base = (await sh('git rev-parse HEAD')).out.trim()
+  const base = ((await sh('git rev-parse HEAD')).out.match(/[0-9a-f]{40}/) || [''])[0]
   const built = await agent(buildPrompt(s), {
     label: `build ${s.number}`, phase: 'Build', schema: WORK_RESULT,
     model: builderModel, agentType: 'afc-builder',

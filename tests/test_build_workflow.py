@@ -51,7 +51,7 @@ HARNESS = r"""
 const cfg = JSON.parse(process.argv[1]);
 const body = require('fs').readFileSync(process.argv[2], 'utf8').replace('export const', 'const');
 const calls = [];
-let testRuns = 0;
+let gateRuns = 0;
 let finalRuns = 0;
 const agent = async (prompt, opts) => {
   calls.push(opts.label);
@@ -59,7 +59,13 @@ const agent = async (prompt, opts) => {
   return {done: true, suite: 'OK', summary: '', commits: []};
 };
 const shell = async (cmd) => {
-  if (cmd.startsWith('git rev-parse')) return {code: 0, out: 'abc1234\n'};
+  if (cmd.startsWith('git rev-parse')) return {code: 0, out: 'a'.repeat(40) + '\n'};
+  if (cmd.startsWith('sh bin/afc gate')) {
+    gateRuns++;
+    const bad = gateRuns <= (cfg.failGate || 0);
+    return {code: 0, out: JSON.stringify({ok: !bad, files: cfg.files,
+      problems: bad ? [{problem: 'x', quotes: 'q'}] : []})};
+  }
   if (cmd.startsWith('git diff --name-only')) return {code: 0, out: cfg.files.join('\n')};
   if (cmd.startsWith('git log')) return {code: 0, out: 'abc\n'};
   if (cmd.startsWith('cat "tests/')) return {code: 0, out: cfg.testText || ''};
@@ -70,10 +76,6 @@ const shell = async (cmd) => {
       return {code: 1, out: JSON.stringify({failed: 1, failures: [cfg.failTest + ': FAIL: test_x']})};
     }
     return {code: 0, out: JSON.stringify({failed: 0, failures: []})};
-  }
-  if (cmd.startsWith('sh bin/afc test')) {
-    testRuns++;
-    return {code: testRuns <= (cfg.failGate || 0) ? 1 : 0, out: 'tests'};
   }
   if (cmd.startsWith('git diff')) return {code: 0, out: cfg.diff || ''};
   return {code: 0, out: ''};
@@ -124,15 +126,6 @@ class QuickGateTest(unittest.TestCase):
         out = run_workflow(["afc/plan.py"], fail_gate=1)
         self.assertEqual(out["calls"], ["build 1", "fix 1.1"])
         self.assertTrue(out["r"]["results"][0]["pass"])
-
-    def test_gate_catches_a_secret_in_the_diff(self):
-        out = run_workflow(["afc/plan.py"], diff="+key = 'AKIAABCDEFGHIJKLMNOP'")
-        self.assertFalse(out["r"]["results"][0]["pass"])
-        self.assertEqual(out["calls"], ["build 1", "fix 1.1", "fix 1.2"])
-
-    def test_gate_catches_a_file_outside_the_repo(self):
-        out = run_workflow(["/etc/hosts"])
-        self.assertFalse(out["r"]["results"][0]["pass"])
 
     def test_maintenance_mode_code_is_risky(self):
         for f in ("afc/config.py", "afc/cli_home.py"):
