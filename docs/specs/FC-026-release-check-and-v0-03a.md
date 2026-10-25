@@ -57,7 +57,7 @@ have no update code, so they move once by hand.
       exactly one line per problem on `dev`, and `ready: true` on a scratch repo on `main` with a
       bumped `VERSION`, a new changelog heading and a clean tree (tests: each of the 5 problems alone,
       all clear, and `git status --short` unchanged after the run)
-- [ ] 3. Real update between two copies — you'll check it by `tests/test_update_live.py` updating a
+- [x] 3. Real update between two copies — you'll check it by `tests/test_update_live.py` updating a
       scratch copy from local tag `v0.03a` to `v0.03b` and finding `sh bin/afc version` printing
       `v0.03b` and `sh bin/afc check` with no problems, with the real `~/.A-FC` unchanged (file
       count and newest modified time compared before and after)
