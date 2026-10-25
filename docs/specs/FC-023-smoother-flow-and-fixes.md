@@ -1,6 +1,6 @@
 # FC-023 — Smoother flow and welcome fixes
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-25 · Done: -
 
 Finding U8: `sh bin/afc maintain` with no argument printed only "Missing state." Finding U9: the first welcome question was sometimes asked twice.
 
