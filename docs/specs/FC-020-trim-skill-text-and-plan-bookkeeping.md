@@ -50,7 +50,7 @@ this spec still misses. Changing the ceiling or the measuring method.
 
 ## Slices
 
-- [ ] 1. Pin the safety lines — you'll check it by `tests/test_skill_safety_lines.py` listing every
+- [x] 1. Pin the safety lines — you'll check it by `tests/test_skill_safety_lines.py` listing every
       line with "never", "must not" or "always ask" in the five skills and failing when one
       disappears (tests: passes on today's skills; a fixture with one line removed fails)
 - [ ] 2. Trim the five skills to at most 14,000 bytes in total — you'll check it by the same test
