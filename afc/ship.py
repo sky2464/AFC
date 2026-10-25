@@ -61,9 +61,60 @@ def clean_tree(code: Path) -> list[str]:
     return []
 
 
+WIP_RE = re.compile(r"^wip\b", re.I)
+
+
+def _git(code: Path, *args: str) -> str | None:
+    done = subprocess.run(["git", *args], cwd=code, capture_output=True, text=True)
+    return done.stdout.strip() if done.returncode == 0 else None
+
+
+def _upstream(code: Path) -> str | None:
+    return _git(code, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+
+
+def wip_commits(code: Path) -> list[str]:
+    """Name any `WIP` commit on the branch; squashing them is the user's own history rewrite."""
+    branch = _git(code, "rev-parse", "--abbrev-ref", "HEAD")
+    if not branch:
+        return []
+    head = _git(code, "symbolic-ref", "--short", "refs/remotes/origin/HEAD")
+    default = head.split("/", 1)[1] if head else None
+    base = None
+    if default and default != branch and _git(code, "rev-parse", "--verify", "--quiet", head):
+        base = head
+    elif default and default != branch and _git(code, "rev-parse", "--verify", "--quiet", default):
+        base = default
+    else:
+        base = _upstream(code)
+    rng = [f"{base}..HEAD"] if base else ["HEAD"]
+    out = _git(code, "log", "--format=%h %s", *rng)
+    found = [l for l in (out or "").splitlines() if WIP_RE.match(l.split(" ", 1)[-1])]
+    if not found:
+        return []
+    return [f"{len(found)} `WIP` commit(s) are still on the branch ({'; '.join(found[:3])}). "
+            "Squash or reword them yourself (for example `git rebase -i`); Flight Control does not "
+            "rewrite history."]
+
+
+def pushed(code: Path) -> list[str]:
+    """On a project with a remote, the branch must be fully pushed."""
+    if not _git(code, "remote"):
+        return []
+    branch = _git(code, "rev-parse", "--abbrev-ref", "HEAD") or "HEAD"
+    step = f"Push it yourself with `git push -u origin {branch}`."
+    if not _upstream(code):
+        return [f"The branch {branch} is not pushed yet. {step}"]
+    ahead = _git(code, "rev-list", "--count", "@{u}..HEAD")
+    if ahead and ahead != "0":
+        return [f"The branch {branch} has {ahead} commit(s) not pushed. {step}"]
+    return []
+
+
 def gate(spec_text: str, code: Path, test_command: str | None) -> dict:
     """What is missing before the spec is finished; ready only when nothing is."""
-    missing = [*open_slices(spec_text), *tests_green(code, test_command), *clean_tree(code)]
+    missing = [*open_slices(spec_text), *tests_green(code, test_command), *clean_tree(code),
+               *wip_commits(code), *pushed(code)]
     return {"ready": not missing, "missing": missing,
             "next": "Ready to finish." if not missing else missing[0]}
 

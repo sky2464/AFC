@@ -29,7 +29,7 @@ More detail nobody needs.
 
 
 def _finish_ready(testcase):
-    for name in ("tests_green", "clean_tree"):
+    for name in ("tests_green", "clean_tree", "wip_commits", "pushed"):
         patcher = patch(f"afc.ship.{name}", return_value=[])
         patcher.start()
         testcase.addCleanup(patcher.stop)
