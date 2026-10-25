@@ -1,6 +1,6 @@
 # FC-019 — Checks only when needed
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25, while FC-015 was being built. Each slice took longer than the one before,
 and most of that time went on checks that found nothing.
