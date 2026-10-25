@@ -100,6 +100,11 @@ def apply(root: Path, home: Path) -> dict:
     ws = result["workspace"]
     if isinstance(ws, dict) and ws.get("summary"):
         result["summary"] += " " + ws["summary"]
+    elif not isinstance(ws, dict):
+        result["summary"] += (
+            " Your workspace upgrade could not be run or read, so check it by running the upgrade again"
+            " (sh bin/afc upgrade)."
+        )
     check = result["check"]
     if isinstance(check, dict) and (check.get("ok") is False or check.get("problems")):
         problems = check.get("problems") or []

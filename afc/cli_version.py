@@ -17,7 +17,8 @@ def register(sub) -> None:
     u.add_argument("--skip", metavar="VERSION", help="stay quiet about this release")
     u.set_defaults(handler=cmd_update)
     g = sub.add_parser("upgrade", help="upgrade the workspace to the layout this release expects")
-    g.add_argument("--from-version", default="unknown", help="the version being left, for the backup name")
+    g.add_argument("--from-version", default=None,
+                   help="the version being left, for the backup name (default: the installed version)")
     g.set_defaults(handler=cmd_upgrade)
 
 
@@ -49,4 +50,10 @@ def cmd_version(args: argparse.Namespace) -> dict:
 
 
 def cmd_upgrade(args: argparse.Namespace) -> dict:
-    return workspace_upgrade.upgrade(afc_home(), args.from_version)
+    old = args.from_version
+    if not old:
+        try:
+            old = version.installed(afc_root())
+        except version.VersionError:
+            old = "unknown"
+    return workspace_upgrade.upgrade(afc_home(), old)
