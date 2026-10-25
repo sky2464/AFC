@@ -114,7 +114,7 @@ for (const s of todo) {
   phase('Build')
   const built = await agent(buildPrompt(s), {
     label: `build ${s.number}`, phase: 'Build', schema: WORK_RESULT,
-    model: builderModel,
+    model: builderModel, agentType: 'afc-builder',
   })
   if (!built || !built.done) {
     results.push({ slice: s.number, pass: false, stopped: 'builder did not finish', built })
@@ -128,14 +128,14 @@ for (const s of todo) {
     const raw = await agent(checkPrompt(s, report), {
       label: round ? `check ${s.number}.${round}` : `check ${s.number}`,
       phase: round ? 'Fix' : 'Build', schema: CHECK_RESULT,
-      model: checkerModel,
+      model: checkerModel, agentType: 'afc-checker',
     })
     check = raw ? sortProblems(raw) : { pass: false, problems: [], notes: ['checker did not return'] }
     if (check.pass || round >= MAX_FIX_ROUNDS || !check.problems.length) break
     phase('Fix')
     const fixed = await agent(fixPrompt(s, check.problems, round + 1), {
       label: `fix ${s.number}.${round + 1}`, phase: 'Fix', schema: WORK_RESULT,
-      model: builderModel,
+      model: builderModel, agentType: 'afc-builder',
     })
     if (!fixed || !fixed.done) break
     report = fixed.suite

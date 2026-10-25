@@ -91,7 +91,7 @@ settings.
 - [x] 1. One build workflow with one checker — you'll check it by the workflow file existing in
       `.claude/workflows/` and taking spec, slices and models as inputs, and by a structural test that
       it starts one checker per round and at most two fix rounds (tests; no live build yet)
-- [ ] 2. Lean helpers — you'll check it by a do-nothing helper's starting tokens measured before and
+- [x] 2. Lean helpers — you'll check it by a do-nothing helper's starting tokens measured before and
       after, the after at most half the before, both numbers written in Decisions (one structural
       test that both helper files name their tools; the measure is live)
 - [ ] 3. Checks that quote the spec — you'll check it by the checker's result keeping `problems` and
@@ -114,5 +114,9 @@ settings.
   check.
 - 2026-10-25: A failed check must quote the spec line or safety rule it breaks; anything else is a
   note.
+- 2026-10-25: Slice 2 measured a do-nothing helper (prompt "Reply ok", `claude -p --output-format json`,
+  start tokens = input + cache read + cache write): default 75,031 tokens (527 tools), `afc-checker`
+  17,657 (24%). An in-session general-purpose helper started at 79,640. Target was at most half: met.
+  New helper files load only when a session starts, so the next build session picks them up.
 
 ## Shipped
