@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and support
+    url: https://github.com/sky2464/AFC#questions
+    about: See the README Questions section before opening an issue.
