@@ -58,5 +58,37 @@ class ParallelSuiteTest(unittest.TestCase):
         self.assertEqual(json.loads(lines[0])["failed"], 1)
 
 
+class PickTestsTest(unittest.TestCase):
+    """Which test files a change picks (FC-019 slice 2), against the real repo."""
+
+    def pick(self, *changed):
+        return testrun.pick_tests(list(changed), ROOT, ROOT / "tests")
+
+    def test_ship_change_picks_ship_gate_not_update_check(self):
+        picked = self.pick("afc/ship.py")
+        self.assertIn("test_ship_gate.py", picked)
+        self.assertNotIn("test_update_check.py", picked)
+
+    def test_shared_helper_runs_every_file(self):
+        everything = sorted(p.name for p in (ROOT / "tests").glob("test_*.py"))
+        for shared in ("tests/helpers.py", "tests/__init__.py", "bin/afc", "afc/hooks/rules_git.py"):
+            self.assertEqual(self.pick(shared), everything, shared)
+
+    def test_workflow_change_picks_spec_checks(self):
+        self.assertIn("test_spec_checks.py", self.pick(".claude/workflows/afc-build-spec.js"))
+
+    def test_changed_test_file_picks_itself(self):
+        self.assertEqual(self.pick("tests/test_scan.py"), ["test_scan.py"])
+
+    def test_nothing_matching_runs_everything(self):
+        self.assertGreater(len(self.pick("zz" + "/no" + "thing.txt")), 50)
+
+    def test_changed_ref_uses_git_diff(self):
+        proc = subprocess.run(["sh", str(ROOT / "bin" / "afc"), "test", "--changed", "HEAD", "--list"],
+                              capture_output=True, text=True, cwd=ROOT)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("picked", json.loads(proc.stdout.strip().splitlines()[-1]))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -87,7 +87,7 @@ enough.
       you'll check it by `tests/test_afc_test.py` (a passing and a failing fixture file are both
       reported), and by the full suite taking at most 40 seconds on this Mac with the same pass and
       fail count as `python3 -m unittest discover -s tests`.
-- [ ] 2. Tests for what changed — `sh bin/afc test --changed <ref>` picks tests by changed files,
+- [x] 2. Tests for what changed — `sh bin/afc test --changed <ref>` picks tests by changed files,
       imports and named paths, and runs everything for shared files; you'll check it by
       `tests/test_afc_test.py`: a change to `afc/ship.py` picks `test_ship_gate` and not
       `test_update_check`, a change to `tests/helpers.py` runs all 60 files, and a change to the
