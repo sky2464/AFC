@@ -84,6 +84,20 @@ class OwnCopyGuardTest(AfcTestCase):
         self.assertIsNone(check_own_copy({"tool_name": "Write", "tool_input": {}}, self.off))
         self.allowed('echo "unclosed')
 
+    def test_pulls_must_fast_forward_in_every_mode(self):
+        for ctx in (self.on, self.off):
+            for command in ("git pull", "git pull origin main", "git pull --rebase",
+                            "git pull --ff-only --rebase", "git pull --no-ff"):
+                self.assertIsNotNone(check_own_copy(bash(command, cwd=ROOT), ctx), command)
+        self.assertIn("--ff-only", check_own_copy(bash("git pull", cwd=ROOT), self.on))
+        self.allowed("git pull --ff-only", ctx=self.on)
+        self.allowed("git pull --ff-only origin main", ctx=self.on)
+        self.allowed("git pull", cwd=self.app, ctx=self.off)
+
+    def test_cd_chains_and_subfolders_are_the_a_fc_folder(self):
+        self.blocked(f"cd {ROOT} && git merge --ff-only v1", cwd=self.app)
+        self.blocked("git stash", cwd=ROOT / "afc")
+
     def test_rule_is_registered(self):
         self.assertIn(check_own_copy, RULES)
 

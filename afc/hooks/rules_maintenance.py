@@ -24,6 +24,8 @@ MERGE_REASON = ("this merge in the A-FC folder wouldn't fast-forward "
                 "— run it yourself if you mean it")
 MERGE_UNKNOWN_REASON = ("Flight Control couldn't confirm this merge in the A-FC folder fast-forwards "
                         "— run it yourself if you mean it")
+PULL_REASON = ("a pull in the A-FC folder must fast-forward "
+               "— use git pull --ff-only, or run it yourself if you mean it")
 DETACH_REASON = ("this would leave the A-FC folder on a detached HEAD "
                  "— switch to the branch main (or dev) instead")
 _MERGE_VALUE_OPTS = {"-m", "-F", "-s", "-X", "--into-name", "--message", "--file", "--strategy",
@@ -202,6 +204,14 @@ def _merge_reason(location: list[str], base: Path, args: list[str]) -> str | Non
     return MERGE_REASON if code == 1 else MERGE_UNKNOWN_REASON
 
 
+def _pull_reason(args: list[str]) -> str | None:
+    """Block reason for a pull that could make a merge commit or rebase; None for --ff-only."""
+    names = {a.split("=", 1)[0] for a in args if a.startswith("-")}
+    if "--ff-only" in names and not names & {"--no-ff", "--ff", "--rebase", "-r", "--squash"}:
+        return None
+    return PULL_REASON
+
+
 def _switch_reason(sub: str, location: list[str], base: Path, args: list[str]) -> str | None:
     """Block reason for a checkout/switch that would not land on a local branch."""
     if "--detach" in args or (sub == "switch" and "-d" in args):
@@ -254,6 +264,8 @@ def check_own_copy(event: dict, ctx: Context) -> str | None:
             reason = _merge_reason(location, base, args)
         elif sub in ("checkout", "switch"):
             reason = _switch_reason(sub, location, base, args)
+        elif sub == "pull":
+            reason = _pull_reason(args)
         else:
             continue
         if reason:
