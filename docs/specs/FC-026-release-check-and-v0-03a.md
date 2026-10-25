@@ -61,7 +61,7 @@ have no update code, so they move once by hand.
       scratch copy from local tag `v0.03a` to `v0.03b` and finding `sh bin/afc version` printing
       `v0.03b` and `sh bin/afc check` with no problems, with the real `~/.A-FC` unchanged (file
       count and newest modified time compared before and after)
-- [ ] 4. Ready for v0.03a — you'll check it by `sh bin/afc release check` on `dev` reporting only
+- [x] 4. Ready for v0.03a — you'll check it by `sh bin/afc release check` on `dev` reporting only
       "not on main", `VERSION` saying `v0.03a`, a `## v0.03a` changelog section listing what
       changed since v0.02a in 10 lines or fewer, and the README line for older copies
 
