@@ -3,6 +3,8 @@
 import json
 import os
 import subprocess
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest import mock
 
@@ -21,7 +23,9 @@ def git(cwd, *args):
     )
 
 
-class UpdateCheckTest(AfcTestCase):
+class RemoteCase(AfcTestCase):
+    """A test remote on main with one release (v0.01a), and a clone of it as the Flight Control copy."""
+
     def setUp(self):
         super().setUp()
         self.remote = self.tmp / "remote"
@@ -38,9 +42,15 @@ class UpdateCheckTest(AfcTestCase):
         for name in names:
             git(self.remote, "tag", name)
 
+    def commit(self, text):
+        (self.remote / "VERSION").write_text(text + "\n")
+        git(self.remote, "commit", "-qam", text)
+
     def check(self, now=1_000_000.0):
         return update.check(self.copy, self.home, now=now)
 
+
+class UpdateCheckTest(RemoteCase):
     def test_newer_tag_is_offered(self):
         self.tag("v0.02a")
         self.assertEqual(self.check(), {"update": "available", "current": "v0.01a", "latest": "v0.02a"})
@@ -101,7 +111,83 @@ class UpdateCheckTest(AfcTestCase):
         self.assertEqual(self.check()["update"], "none")
 
 
-class UpdateCommandTest(UpdateCheckTest):
+    def test_tag_only_on_dev_is_not_offered(self):
+        git(self.remote, "switch", "-qc", "dev")
+        self.commit("dev work")
+        self.tag("v0.03a")
+        git(self.remote, "switch", "-q", "main")
+        self.assertEqual(self.check(), {"update": "none", "current": "v0.01a"})
+
+    def test_annotated_tag_only_on_dev_is_not_offered(self):
+        git(self.remote, "switch", "-qc", "dev")
+        self.commit("dev work")
+        git(self.remote, "tag", "-a", "v0.03a", "-m", "not a release")
+        git(self.remote, "switch", "-q", "main")
+        self.assertEqual(self.check()["update"], "none")
+
+    def test_tag_on_dev_does_not_hide_the_newest_tag_on_main(self):
+        self.commit("two")
+        self.tag("v0.02a")
+        git(self.remote, "switch", "-qc", "dev")
+        self.commit("dev work")
+        self.tag("v0.03a")
+        git(self.remote, "switch", "-q", "main")
+        self.assertEqual(self.check(), {"update": "available", "current": "v0.01a", "latest": "v0.02a"})
+
+    def test_tag_on_an_earlier_main_commit_is_offered(self):
+        self.commit("two")
+        self.tag("v0.02a")
+        self.commit("three")
+        self.commit("four")
+        self.assertEqual(self.check()["latest"], "v0.02a")
+
+    def test_annotated_tag_on_main_is_offered(self):
+        self.commit("two")
+        git(self.remote, "tag", "-a", "v0.02a", "-m", "release")
+        self.commit("three")
+        self.assertEqual(self.check()["latest"], "v0.02a")
+
+    def test_main_missing_on_remote_says_nothing(self):
+        git(self.remote, "switch", "-qc", "trunk")
+        git(self.remote, "branch", "-qD", "main")
+        self.tag("v0.02a")
+        self.assertEqual(self.check(), {"update": "none", "current": "v0.01a"})
+
+    def test_check_does_not_prompt_for_credentials(self):
+        # The git calls must run without a terminal or a credential helper prompt, even for a
+        # private origin; here the origin refuses with 401 and a fake askpass records any ask.
+        class Refuse(BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="private"')
+                self.end_headers()
+
+            def log_message(self, *args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Refuse)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        asked = self.tmp / "asked"
+        askpass = self.tmp / "askpass.sh"
+        askpass.write_text(f'#!/bin/sh\ntouch "{asked}"\necho nope\n')
+        askpass.chmod(0o755)
+        git(self.copy, "remote", "set-url", "origin", f"http://127.0.0.1:{server.server_port}/private.git")
+        with mock.patch.dict(os.environ, {"GIT_ASKPASS": str(askpass), "GIT_TERMINAL_PROMPT": "1"}):
+            self.assertEqual(self.check(), {"update": "none", "current": "v0.01a"})
+        self.assertFalse(asked.exists(), "the check asked for a credential")
+
+    def test_git_runs_without_stdin_or_prompts(self):
+        with mock.patch("afc.update.subprocess.run", side_effect=OSError) as run:
+            self.check()
+        self.assertTrue(run.call_args_list)
+        for call in run.call_args_list:
+            self.assertIs(call.kwargs["stdin"], subprocess.DEVNULL)
+            self.assertEqual(call.kwargs["env"]["GIT_TERMINAL_PROMPT"], "0")
+
+
+class UpdateCommandTest(RemoteCase):
     def test_command_prints_one_object(self):
         self.tag("v0.02a")
         with mock.patch("afc.cli_version.afc_root", return_value=self.copy):
