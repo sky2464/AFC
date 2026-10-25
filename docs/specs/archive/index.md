@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-013 | Right-sized tests | 2026-10-25 | FC-013-right-sized-tests.md |
 | FC-011 | One-click updates | 2026-10-25 | FC-011-one-click-updates.md |
 | FC-012 | Flight Control keeps its own copy safe | 2026-10-25 | FC-012-flight-control-keeps-its-own-copy-safe.md |
 | FC-008 | Agent instruction files in apps | 2026-10-24 | FC-008-agent-instruction-files-in-apps.md |

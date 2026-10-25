@@ -1,6 +1,6 @@
 # FC-013 — Right-sized tests
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-24, after FC-002 slice 3 added 18 tests (about 120 lines) to check about 20
 lines of skill wording, and two of them failed on exact phrasing and had to be rewritten.
@@ -64,7 +64,7 @@ are. A coverage tool, a faster test runner, or running tests in parallel.
 - [x] 2. Trim the wording-only tests — you'll check it by the full suite passing with fewer tests and
       fewer lines than the 943 tests and 8,792 lines in `tests/test_*.py` on 2026-10-25, and a commit message listing every
       deleted test (tests: the suite itself; the structural checks stay)
-- [ ] 3. Try it on the next slice — you'll check it by FC-002 slice 4 or the next one adding tests
+- [x] 3. Try it on the next slice — you'll check it by FC-002 slice 4 or the next one adding tests
       under the new rule and the count staying in proportion to the change (no test code; compare
       lines of tests to lines changed in the commit)
 
@@ -72,5 +72,9 @@ are. A coverage tool, a faster test runner, or running tests in parallel.
 
 - 2026-10-24: Wording is checked by a live run, not by tests. Behavior that code decides is tested
   by size of risk, not field by field.
+- 2026-10-25: Closed with slice 3 unmeasured. It is checked on FC-014 slice 2 instead: compare lines of
+  tests to lines changed in that commit.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 3.
