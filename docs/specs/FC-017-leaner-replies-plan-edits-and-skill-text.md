@@ -41,7 +41,7 @@ first real tested slice that FC-003 added.
 
 ## Slices
 
-- [ ] 1. Measure the parts — the token script prints growth by part from the transcript, with a
+- [x] 1. Measure the parts — the token script prints growth by part from the transcript, with a
       fixture transcript covering each part (tests in `tests/test_token_usage.py`); run on the
       FC-009 transcript pair, the breakdown is printed.
 - [ ] 2. Plan and spec edits — the rules and skills say to edit changed lines only; you'll check it
