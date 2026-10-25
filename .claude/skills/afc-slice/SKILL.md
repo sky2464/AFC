@@ -63,9 +63,9 @@ they will see.
 
 - Write tests first where the stack has tests; then the code to pass them.
 - Keep the rules from checkpoint 1 in context. Files stay under 500 lines.
-- Code goes only into the active project's code path. If a guard blocks you ("Flight Control
-  blocked …"), don't work around it; fix the cause or tell the user. A guard that should have
-  fired is a full stop (CLAUDE.md).
+- Code goes only into the active project's code path. If a guard blocks you
+  ("Flight Control blocked …"), fix the cause or say so; never work around it.
+  A guard that should have fired is a full stop.
 - Check versions of anything you add against current docs, never from memory.
 
 How to work, quietly and safely:
