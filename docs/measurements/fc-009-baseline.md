@@ -31,3 +31,9 @@ python3 docs/measurements/token_usage.py <baseline.jsonl> <rerun.jsonl>
 
 The re-run's transcript is under `~/.claude/projects/` in the folder named for where `claude` was
 started. `target_met` is true when growth is 24,490 or less.
+
+Both runs must be a whole start plus first slice: the transcript has to show `afc new`, `afc scan`
+and `afc deliver` run through the Bash tool. Anything shorter is refused with a plain error naming
+the steps it never reached. This exists because the newest transcript in that folder was once a
+two-turn "hi" session, and it passed as a 95% saving. Naming the transcript instead of using the
+newest one avoids the same mistake.

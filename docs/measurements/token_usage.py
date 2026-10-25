@@ -14,12 +14,24 @@ Numbers (each assistant message counted once, by message id):
 - added_fresh_tokens: fresh_tokens without the first turn's input and cache creation
 
 With two transcripts the result compares growth, so a run on a machine with a different floor
-(more or fewer plugins) is still judged fairly. The target is a third less growth.
+(more or fewer plugins) is still judged fairly. The target is a third less growth. Both runs must
+be a whole start plus first slice: the transcript has to show `afc new`, `afc scan` and
+`afc deliver` run through the Bash tool. Anything shorter is refused with a plain error, because
+a session that only said "hi" would otherwise pass as a huge saving.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
+
+# What a whole start plus first slice does: create the project, check the slice, commit it.
+STEPS = (
+    ("new", "create the project"),
+    ("scan", "check the slice"),
+    ("deliver", "commit the slice"),
+)
+COMMAND = re.compile(r"\bbin/afc\s+(new|scan|deliver)\b")
 
 
 def measure(path) -> dict:
@@ -51,8 +63,40 @@ def measure(path) -> dict:
             "added_fresh_tokens": fresh - first_input}
 
 
+def steps_reached(path) -> list[str]:
+    """Which of the new, scan and deliver steps the session ran, in start-to-finish order.
+
+    Only commands the session ran through the Bash tool count, never text that mentions them.
+    """
+    found: set[str] = set()
+    for line in Path(path).read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        content = (entry.get("message") or {}).get("content") if entry.get("type") == "assistant" else None
+        for item in content if isinstance(content, list) else []:
+            if isinstance(item, dict) and item.get("type") == "tool_use" and item.get("name") == "Bash":
+                command = (item.get("input") or {}).get("command")
+                if isinstance(command, str):
+                    found.update(COMMAND.findall(command))
+    return [step for step, _ in STEPS if step in found]
+
+
+def _require_whole_run(path, who: str, ask: str) -> None:
+    reached = steps_reached(path)
+    missing = [label for step, label in STEPS if step not in reached]
+    if missing:
+        listed = ", ".join(missing[:-1]) + " and " + missing[-1] if len(missing) > 1 else missing[0]
+        raise ValueError(f"The {who} is not a whole start plus first slice: it never got to these steps: "
+                         f"{listed}. {ask}")
+
+
 def compare(baseline, rerun) -> dict:
     """The re-run against the baseline on growth above each run's own floor; target: a third less."""
+    _require_whole_run(rerun, "re-run", "Finish the first slice (shown, approved and committed) in one "
+                                        "session, then compare again.")
+    _require_whole_run(baseline, "baseline", "Use the transcript of the first live run.")
     before, after = measure(baseline), measure(rerun)
     if before["growth"] <= 0:
         raise ValueError("the baseline never grew above its first turn, so there is nothing to compare")
@@ -69,5 +113,9 @@ def compare(baseline, rerun) -> dict:
 
 
 if __name__ == "__main__":
-    result = compare(*sys.argv[1:3]) if len(sys.argv) > 2 else measure(sys.argv[1])
+    try:
+        result = compare(*sys.argv[1:3]) if len(sys.argv) > 2 else measure(sys.argv[1])
+    except ValueError as error:
+        print(json.dumps({"error": str(error)}))
+        sys.exit(1)
     print(json.dumps(result, indent=2))
