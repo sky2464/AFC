@@ -17,7 +17,7 @@ from pathlib import Path
 
 from afc.config import afc_home, afc_root
 from afc.profile import PROFILES, modules_for
-from afc import cli_awake, cli_defaults, cli_delivery, cli_health, cli_home, cli_index, cli_maintain, cli_plan, cli_projects, cli_review, cli_tools, cli_version, scan
+from afc import cli_awake, cli_defaults, cli_delivery, cli_health, cli_home, cli_index, cli_maintain, cli_plan, cli_projects, cli_review, cli_ship, cli_tools, cli_version, scan
 from afc.registry import (
     PAUSED,
     Project,
@@ -32,7 +32,7 @@ from afc import tools
 from afc.undo import Undo
 from afc.workspace import create_workspace
 
-COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "modules", "set", "scan", *cli_defaults.NAMES, *cli_delivery.NAMES, *cli_home.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_review.NAMES, *cli_tools.NAMES, *cli_maintain.NAMES, *cli_version.NAMES, *cli_awake.NAMES)
+COMMAND_NAMES = ("new", "adopt", "switch", "list", "status", "open", "modules", "set", "scan", *cli_defaults.NAMES, *cli_delivery.NAMES, *cli_home.NAMES, *cli_index.NAMES, *cli_plan.NAMES, *cli_projects.NAMES, *cli_health.NAMES, *cli_review.NAMES, *cli_ship.NAMES, *cli_tools.NAMES, *cli_maintain.NAMES, *cli_version.NAMES, *cli_awake.NAMES)
 ICLOUD_WARNING = (
     "This folder syncs to iCloud. Work and enterprise code should not sync, "
     "so move the project to a folder that is not synced."
@@ -479,5 +479,6 @@ def _build_parser() -> argparse.ArgumentParser:
     cli_version.register(sub)
     cli_defaults.register(sub)
     cli_review.register(sub)
+    cli_ship.register(sub)
     cli_awake.register(sub)
     return parser

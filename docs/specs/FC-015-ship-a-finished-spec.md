@@ -65,7 +65,7 @@ publishing, which FC-011 covers from the update side.
 
 ## Slices
 
-- [ ] 1. The readiness gate — you'll check it by `sh bin/afc ship --check <id>` listing exactly what
+- [x] 1. The readiness gate — you'll check it by `sh bin/afc ship --check <id>` listing exactly what
       is missing on a project with an open slice, a failing suite and a dirty tree, then saying
       ready on a clean one (tests, one per check)
 - [ ] 2. `plan done` runs the gate first — you'll check it by `plan done` refusing with the gate's
