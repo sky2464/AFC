@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 — FC-025 Token usage cost by model
+
+The measurement script can estimate run cost from transcript models, so role and model experiments can be compared in dollars as well as tokens.
+
+- Cost fields
+
 ## 2026-10-25 — FC-024 Optional TypeSafe Jev (stub)
 
 A place to plug TypeSafe Jev later without committing to product behavior now. Off by default; always off for enterprise; shadow-only when enabled; `TYPESAFE_API_KEY` from the environment; stdlib `urllib`; mockable tests; never overrides Flight Control hard blocks.

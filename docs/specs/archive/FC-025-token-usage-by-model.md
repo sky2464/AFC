@@ -1,6 +1,6 @@
 # FC-025 — Token usage cost by model
 
-Size: S · Status: in progress · Started: 2026-10-25 · Done: -
+Size: S · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 ## Goal
 
@@ -18,3 +18,7 @@ The measurement script can estimate run cost from transcript models, so role and
 ## Decisions
 
 - 2026-10-25: Prices are rough USD/Mtok hints for comparison, not an invoice.
+
+## Shipped
+
+Shipped 2026-10-25. Slices: 1.
