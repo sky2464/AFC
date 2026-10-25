@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-25 — FC-020 Trim skill text and plan bookkeeping
+
+A whole start plus first slice adds less context in the two parts FC-017 left short: skill text and plan and spec edits. The code and tests a slice writes, and the review that runs before approval, are left as they are.
+
+- Pin the safety lines
+- Trim the five skills to at most 14,000 bytes in total
+- `sh bin/afc slice record`
+- `afc-slice` and `afc-deliver` use it
+- Measured live re-run — same method as FC-017 slice 4 (a whole start plus first slice on a
+
 ## 2026-10-25 — FC-017 Leaner replies, plan edits and skill text
 
 A slice adds less context in the parts Flight Control can change: replies during a build, plan and spec edits, and skill text. The code and tests a slice writes are left as they are.

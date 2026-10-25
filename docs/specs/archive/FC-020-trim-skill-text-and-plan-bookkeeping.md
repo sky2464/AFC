@@ -1,6 +1,6 @@
 # FC-020 — Trim skill text and plan bookkeeping
 
-Size: M · Status: in progress · Started: 2026-10-25 · Done: -
+Size: M · Status: done · Started: 2026-10-25 · Done: 2026-10-25
 
 Asked for on 2026-10-25, after FC-017 closed with its ceiling missed (growth 41,916 against 36,736).
 Replies met their third; skill text (9,483 against 7,581) and plan and spec edits (4,573 against
@@ -75,3 +75,5 @@ this spec still misses. Changing the ceiling or the measuring method.
 - 2026-10-25: Slice 5 measured on `dev` at `4087be3` and met its numbers: growth 31,793 (ceiling 36,736), skill text 6,394 (7,581), plan and spec edits 0 (4,003). The 0 is because `slice record` is a Bash command counted under Other; the two together fell 10%. The control was the FC-017 re-run made earlier the same day, and this run built a smaller first slice (6 tests against 19), so part of the drop is not FC-020's. Closed as met. The numbers are in `docs/measurements/fc-020-rerun.md`.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.
