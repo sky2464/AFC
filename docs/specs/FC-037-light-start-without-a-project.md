@@ -62,7 +62,7 @@ step to the README's two-command install, so it needs its own decision.
 
 ## Slices
 
-- [ ] 1. Hold back with no project — you'll see it by a start in a scratch copy with an empty
+- [x] 1. Hold back with no project — you'll see it by a start in a scratch copy with an empty
       workspace writing `deniedMcpServers` for every claude.ai connector, and the welcome saying so
       in one line
 - [ ] 2. Ask for one with no project — you'll see it by "I need Gmail" with no active project putting

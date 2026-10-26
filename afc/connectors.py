@@ -240,6 +240,23 @@ def hold_for(root: Path, workspace: Path, code: Path) -> tuple[int, int]:
         raise
 
 
+def hold_for_workspace(root: Path, home: Path) -> tuple[int, int]:
+    """With no active project: hold back every connector not on the workspace's own list
+    (connectors.json in the workspace root; missing means empty). Same undo as hold_for."""
+    from afc.session_dirs import check_settings, settings_path
+    from afc.undo import Undo
+
+    check_settings(root)
+    wanted = to_hold(names(load(home)), root)
+    undo = Undo(settings_path(root))
+    undo.save_settings()
+    try:
+        return hold(root, wanted), len(wanted)
+    except BaseException:
+        undo.rollback()
+        raise
+
+
 def release(root: Path, name: str) -> bool:
     """Unblock one connector Flight Control held here, so it loads from the next start. Only
     entries Flight Control wrote are removed; the user's own entries and choices stay."""
