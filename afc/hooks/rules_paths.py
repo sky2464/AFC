@@ -1,6 +1,7 @@
 """Path rule: writes (direct or via Bash) must stay inside the active project."""
 
 import re
+import shlex
 from pathlib import Path
 
 from afc.hooks.common import (
@@ -51,6 +52,20 @@ def _spellings(root: Path) -> list[str]:
     return forms
 
 
+def _command_tokens(command: str) -> list[str]:
+    """Words of a shell command, also split at ; & | < > = and parentheses, so a relative
+    spelling like `ls ../.A-FC` or `cat x>../.A-FC/f` is seen."""
+    try:
+        words = shlex.split(command, posix=True)
+    except ValueError:
+        words = command.split()
+    out: list[str] = []
+    for w in words:
+        out.append(w)
+        out += [t for t in re.split(r"[;&|<>=()]+", w) if t and t != w]
+    return out
+
+
 def check_foreign_home(event: dict, ctx: Context) -> str | None:
     """Block any tool call that names the real workspace (or a project registered only there)
     while the session's workspace is a test home. Reads included."""
@@ -67,6 +82,13 @@ def check_foreign_home(event: dict, ctx: Context) -> str | None:
             path = resolve_path(raw, cwd)
             if any(path == r or path.is_relative_to(r) for r in roots):
                 return FOREIGN_REASON
+    command = tool_input.get("command")
+    if event.get("tool_name") == "Bash" and isinstance(command, str):
+        for token in _command_tokens(command):
+            if token in (".", "..") or "/" in token:
+                path = resolve_path(token, cwd)
+                if any(path == r or path.is_relative_to(r) for r in roots):
+                    return FOREIGN_REASON
     for text in string_values(tool_input):
         for root in roots:
             for form in _spellings(root):
