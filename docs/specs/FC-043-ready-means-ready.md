@@ -80,7 +80,7 @@ Rewriting older specs to the new shape. Any test.
       `to_confirm`, and `afc-slice` carrying the sentence about settling it in slice 1 (proves A3)
 - [x] 4. New specs and Shipped — you'll see it by `plan add` on a scratch plan giving a spec with the new
       sections, and `plan done` on it writing the Shipped line (proves A4, A5)
-- [ ] 5. Live on both plans — you'll see it by `sh bin/afc plan` on Flight Control's own plan and on a
+- [x] 5. Live on both plans — you'll see it by `sh bin/afc plan` on Flight Control's own plan and on a
       scratch copy of php-vuln-checker's plan (own registry and workspace) showing the answers in A6
       (proves A6)
 
@@ -107,5 +107,13 @@ Slice 5:
   Never use the real project.
 
 ## Decisions
+
+- Slice 5, run 2026-10-26 on a scratch copy of php-vuln-checker's plan (own registry and workspace via
+  `AFC_HOME`, never the real project; the copy matched the real plan file for file):
+  - S-002 and S-003 now answer. Both show `ready: false`, `missing: ["no slices yet"]` and one note:
+    "the criteria are not numbered, so they are not linked to slices". Before this spec they showed
+    nothing. They are older specs, so the note does not block them; they only lack slices.
+  - Flight Control's own plan: FC-044 and FC-045 both show `ready: true` with no `missing` and no
+    `notes` (A6).
 
 ## Shipped
