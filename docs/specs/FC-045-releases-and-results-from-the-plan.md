@@ -73,7 +73,7 @@ gives it. Deciding FC-040's fate (see Design notes). Measuring anything new beyo
       on a scratch clone, and `--show` on the real `dev` listing the specs FC-040 misses (proves A1, A2)
 - [x] 2. Releases table and Release column — you'll see it by a scratch plan showing the table and the
       stamped Done rows after `prepare` (proves A3)
-- [ ] 3. Outcome on Done rows — you'll see it by `plan done --outcome` and `plan drop` on scratch specs
+- [x] 3. Outcome on Done rows — you'll see it by `plan done --outcome` and `plan drop` on scratch specs
       and FC-009's row backfilled (proves A4)
 - [ ] 4. Scoreboard — you'll see it by the three seeded rows in the plan and `plan score` changing one
       with a log row (proves A5)

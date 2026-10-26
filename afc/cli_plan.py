@@ -58,6 +58,8 @@ def register(sub) -> None:
     q.set_defaults(handler=cmd_reopen)
     q = psub.add_parser("done", help="finish the spec in Now and archive it")
     q.add_argument("id")
+    q.add_argument("--outcome", nargs=2, metavar=("RESULT", "WHY"),
+                   help='what it reached: met, partly or not-met, then the number or reason')
     q.set_defaults(handler=cmd_done)
 
 
@@ -392,7 +394,7 @@ def cmd_drop(args: argparse.Namespace) -> dict:
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
     done_row = [sid, f"{row[1]} (dropped)", today]
     new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
-    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", ""]] + plan.read_rows(new, "Done"))
+    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", "dropped"]] + plan.read_rows(new, "Done"))
     new = plan.log(new, today, f"{sid} dropped")
     shutil.move(str(spec_path), str(target))
     try:
@@ -480,7 +482,22 @@ def cmd_reopen(args: argparse.Namespace) -> dict:
     return {"reopened": sid, "spec": str(target)}
 
 
+OUTCOMES = {"met": "met", "partly": "partly", "not-met": "not met"}
+
+
+def _outcome_cell(args: argparse.Namespace) -> str:
+    given = getattr(args, "outcome", None)
+    if not given:
+        return ""
+    result, why = given
+    if result not in OUTCOMES:
+        raise _error("The result must be met, partly or not-met.")
+    why = why.strip()
+    return OUTCOMES[result] + (f": {why}" if why else "")
+
+
 def cmd_done(args: argparse.Namespace) -> dict:
+    outcome = _outcome_cell(args)
     space, _, text = _load(write=True)
     path = space.master
     sid = args.id
@@ -504,7 +521,7 @@ def cmd_done(args: argparse.Namespace) -> dict:
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
     done_row = [sid, row[1], today]
     new = plan.write_rows(text, "Now", [])
-    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", ""]] + plan.read_rows(new, "Done"))
+    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", outcome]] + plan.read_rows(new, "Done"))
     new = plan.log(new, today, f"{sid} done")
     body = plan.set_header(spec_text, status="done", done=today)
     body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}. {_criteria_line(spec_text)}")
