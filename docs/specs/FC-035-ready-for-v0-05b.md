@@ -1,4 +1,4 @@
-# FC-035 — Ready for v0.05a
+# FC-035 — Ready for v0.05b
 
 Size: S · Status: next
 
@@ -7,7 +7,7 @@ changes what users and their apps get. Same shape as FC-029.
 
 ## Goal
 
-`main` can be released as v0.05a: `VERSION` says `v0.05a`, the release notes are in plain words, and
+`main` can be released as v0.05b: `VERSION` says `v0.05b`, the release notes are in plain words, and
 `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
 
 ## Reaches the apps
@@ -18,8 +18,8 @@ until they update.
 
 ## You'll know it works when
 
-- `sh bin/afc version` prints `v0.05a` on `dev`.
-- `docs/changelog.md` has a `## v0.05a` section of 10 lines or fewer, in plain words, covering only
+- `sh bin/afc version` prints `v0.05b` on `dev`.
+- `docs/changelog.md` has a `## v0.05b` section of 10 lines or fewer, in plain words, covering only
   what changed since v0.04a:
   - tests run only when you ask (Flight Control keeps five, and your apps get none unless you ask);
   - every spec says how it reaches your apps;
@@ -45,15 +45,15 @@ Any new feature.
 
 ## Slices
 
-- [ ] 1. Ready for v0.05a — you'll see it by `sh bin/afc version` printing `v0.05a`, a `## v0.05a`
+- [ ] 1. Ready for v0.05b — you'll see it by `sh bin/afc version` printing `v0.05b`, a `## v0.05b`
       changelog section of 10 lines or fewer, and `sh bin/afc release check` on `dev` reporting only
       "not on main"
 
 ## Tasks
 
 Slice 1:
-- `VERSION`: `v0.05a`.
-- `docs/changelog.md`: add `## v0.05a` above `## v0.04a`, five bullets from the list above.
+- `VERSION`: `v0.05b`.
+- `docs/changelog.md`: add `## v0.05b` above `## v0.04a`, five bullets from the list above.
 - Run the layout-change check from the design notes and say what it found.
 
 ## Decisions

@@ -20,7 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-035 | Ready for v0.05a | S | [FC-035](specs/FC-035-ready-for-v0-05a.md) |
+| FC-035 | Ready for v0.05b | S | [FC-035](specs/FC-035-ready-for-v0-05b.md) |
 
 ## Done
 
