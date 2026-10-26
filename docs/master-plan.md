@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) | 2026-10-26 |
 
 ## Next
 
@@ -36,6 +35,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-046 | Findings, parked and waiting in one place | 2026-10-26 | [FC-046](specs/archive/FC-046-findings-parked-and-waiting-in-one-place.md) |  |  |
 | FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
 | FC-045 | Releases and results from the plan | 2026-10-26 | [FC-045](specs/archive/FC-045-releases-and-results-from-the-plan.md) |  |  |
 | FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |  |  |
@@ -45,7 +45,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-041 | Maintenance mode survives a new session | 2026-10-26 | [FC-041](specs/archive/FC-041-maintenance-mode-survives-a-new-session.md) |  |  |
 | FC-042 | Review asks for tests only when asked | 2026-10-26 | [FC-042](specs/archive/FC-042-review-asks-for-tests-only-when-asked.md) |  |  |
 | FC-039 | Welcome counts held-back connectors | 2026-10-26 | [FC-039](specs/archive/FC-039-welcome-counts-held-back-connectors.md) |  |  |
-| FC-038 | Light first start | 2026-10-25 | [FC-038](specs/archive/FC-038-light-first-start.md) |  |  |
 
 ## Areas
 

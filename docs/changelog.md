@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-26 — FC-046 Findings, parked and waiting in one place
+
+One findings file with a State for every item, a "Waiting on you" list and a "Parked" list (with a reason and when to look again) in every plan, one command to take a finding in, states that follow the specs on their own, and a few Areas that say where the work is going, each with a target.
+
+- Findings leave the plan
+- Take a finding in with one command
+- Parked and waiting
+- The check
+- Findings close themselves
+- Areas
+
 ## 2026-10-26 — FC-047 Apps close out cleanly, and a lean log
 
 A spec in a user's app cannot be started with no goal or finished with the architecture notes still empty; the plan answers "where are we" in one computed line; and the plan's log keeps only what cannot be worked out elsewhere, while the full event trail is kept in the workspace.

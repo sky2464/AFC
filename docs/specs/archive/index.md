@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-046 | Findings, parked and waiting in one place | 2026-10-26 | FC-046-findings-parked-and-waiting-in-one-place.md |
 | FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | FC-047-apps-close-out-cleanly-and-a-lean-log.md |
 | FC-045 | Releases and results from the plan | 2026-10-26 | FC-045-releases-and-results-from-the-plan.md |
 | FC-044 | The plan can't drift | 2026-10-26 | FC-044-the-plan-can-t-drift.md |

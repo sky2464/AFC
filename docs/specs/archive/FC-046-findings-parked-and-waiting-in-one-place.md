@@ -1,6 +1,6 @@
 # FC-046 — Findings, parked and waiting in one place
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 Area: flow
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose roadmap index says every item must end
@@ -120,3 +120,5 @@ Slice 6:
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 6. Criteria: 0 of 9 proven.
