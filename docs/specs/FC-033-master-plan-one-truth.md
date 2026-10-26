@@ -64,7 +64,7 @@ written.
       `dev`'s plan, and `plan start` there changing `dev`'s file
 - [x] 4. A stale plan is found and fixed — you'll see it by `sh bin/afc check` listing a built spec
       still in Next as fixable, and `repair` moving it
-- [ ] 5. Apps stay current — you'll see it by a slice finished in a test project leaving its plan
+- [x] 5. Apps stay current — you'll see it by a slice finished in a test project leaving its plan
       with the right Now/Done rows with no extra step
 
 ## Tasks

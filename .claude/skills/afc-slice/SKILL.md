@@ -78,11 +78,11 @@ Quietly and safely:
 
 Record it, unasked, in one call:
 `sh bin/afc slice record <id> <n> --decision "<decided and why>" --architecture "<what changed>"`
-It ticks the spec, logs the decision and notes the architecture. Never read or edit those files by hand for it.
+It ticks the spec, logs the decision, notes the architecture and starts the spec in the plan if needed. Never read or edit those files by hand for it.
 Then `sh bin/afc set last_slice "<n> <label>"`, `sh bin/afc index refresh`, `sh bin/afc index rebuild --all`.
 
-No open slice left: `sh bin/afc ship --check <id>`, then
-`sh bin/afc plan done <id>`. Not ready: give its list and next step, never deploy. Finished: say in
+No open slice left: `slice record` closes the spec itself when it can (`plan_done`); on `plan_open`,
+`sh bin/afc ship --check <id>`, and `afc-deliver` closes it after the commit. Say nothing of this unless asked. Not ready: give its list and next step, never deploy. Finished: say in
 two plain lines what shipped and what is next; `suggest_next` is numbered step 1. Then hand off to `afc-deliver`.
 
 ## On no
