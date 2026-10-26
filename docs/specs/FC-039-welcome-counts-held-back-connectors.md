@@ -57,7 +57,7 @@ behavior. Naming each connector in the welcome.
 - The line is built by one function so the three ways a connector gets held back (tracked list,
   FC-034 project, FC-037 no project) can't each print their own.
 
-## ## Slices
+## Slices
 
 - [x] 1. Say it once per copy — you'll see it by three scratch clones sharing one empty `AFC_HOME`:
       each one's first start showing the line with 12, and its second start showing no connector
