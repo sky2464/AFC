@@ -20,6 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-034 | Connectors load only when needed | M | [FC-034](specs/FC-034-connectors-load-only-when-needed.md) |
 
 ## Done
 
@@ -114,7 +115,7 @@ same day showed the rest.
 | R4 | The first reply to "hi" used 75,950 tokens, mostly the 28 add-ons loading | FC-027 |
 | R5 | After the welcome, the reply to "hi" introduced Flight Control again and re-asked the same 1/2 question | FC-028 |
 | R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | none; the user moves it forward |
-| R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | none yet |
+| R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | FC-034 |
 
 ## Update log
 
@@ -210,3 +211,4 @@ same day showed the rest.
 | 2026-10-25 | FC-032 done |
 | 2026-10-25 | FC-033 started |
 | 2026-10-25 | FC-033 done |
+| 2026-10-25 | FC-034 added and specced (5 slices): connectors load only when needed, per project |
