@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-048 | MM: prefix turns maintenance mode on | 2026-10-26 | FC-048-mm-prefix-turns-maintenance-mode-on.md |
 | FC-043 | Ready means ready | 2026-10-26 | FC-043-ready-means-ready.md |
 | FC-040 | Ready for v0.06a | 2026-10-26 | FC-040-ready-for-v0-06a.md |
 | FC-041 | Maintenance mode survives a new session | 2026-10-26 | FC-041-maintenance-mode-survives-a-new-session.md |

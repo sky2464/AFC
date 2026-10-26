@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-26 — FC-048 MM: prefix turns maintenance mode on
+
+Typing `/afc MM: <request>` turns maintenance mode on for the session and then handles `<request>` as Flight Control work, so the user never has to send `/afc mm` first as a separate message.
+
+- `/afc MM: …` turns the mode on and carries on with the request
+
 ## 2026-10-26 — FC-043 Ready means ready
 
 `afc plan` says, for every spec in Next, in Flight Control's plan and in a project's, whether it is ready for build and, when it is not, what is missing in plain words. A criterion with no slice behind it is caught before the build, without any test. Guesses a spec rests on are listed, not hidden.

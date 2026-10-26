@@ -1,6 +1,6 @@
 # FC-048 — MM: prefix turns maintenance mode on
 
-Size: S · Status: in progress · Started: 2026-10-26 · Done: -
+Size: S · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26. The user typed `/afc MM: Master plan for each project…` meaning "maintenance mode on,
 then this". `/afc` only switched maintenance mode on for `mm` or `mm on` as the whole argument, so the
@@ -64,3 +64,5 @@ Slice 1:
   only be seen in a fresh session, because command files load at session start; they are not yet seen.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 1. Criteria: 0 of 4 proven.
