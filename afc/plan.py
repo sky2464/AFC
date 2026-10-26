@@ -168,6 +168,67 @@ def section_filled(spec_text: str, section: str) -> bool:
     return any(ln.strip() for ln in lines[start:end])
 
 
+def _slice_blocks(spec_text: str) -> list[str]:
+    """Each checkbox slice under `## Slices` with its wrapped continuation lines, as one string."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Slices")
+    except ValueError:
+        return []
+    blocks: list[str] = []
+    for line in lines[start:end]:
+        if re.match(r"\s*- \[[ xX]\]", line):
+            blocks.append(line.strip())
+        elif blocks and line.strip():
+            blocks[-1] += " " + line.strip()
+    return blocks
+
+
+def _bullets(spec_text: str, section: str) -> list[str]:
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, section)
+    except ValueError:
+        return []
+    return [m.group(1).strip() for ln in lines[start:end] if (m := re.match(r"\s*[-*]\s+(.*)$", ln))]
+
+
+def readiness(spec_text: str, fc: bool) -> dict:
+    """Is a spec ready for build? {'ready': bool} plus 'missing' (plain words) when it is not.
+
+    Checks Goal, Out of scope, criteria, slices (each with "you'll see it by"), Tasks (a `Slice n:`
+    line per slice) and, for Flight Control's own specs, "Reaches the apps"."""
+    missing: list[str] = []
+    for section, what in (("Goal", "no goal yet"), ("Out of scope", "nothing said about what is out of scope")):
+        if not section_filled(spec_text, section):
+            missing.append(what)
+    if fc and not section_filled(spec_text, "Reaches the apps"):
+        missing.append("no 'Reaches the apps' section filled in")
+    if not _bullets(spec_text, "You'll know it works when"):
+        missing.append("no criteria yet (what you will see when it works)")
+    blocks = _slice_blocks(spec_text)
+    if not blocks:
+        missing.append("no slices yet")
+    for n, block in enumerate(blocks, 1):
+        if not re.search(r"you'll see it by\s+(?!<)\S", block, re.IGNORECASE):
+            missing.append(f"slice {n} has no 'you'll see it by'")
+    if blocks:
+        tasks = "\n".join(_task_lines(spec_text))
+        absent = [str(n) for n in range(1, len(blocks) + 1) if not re.search(rf"^\s*Slice {n}:", tasks, re.M)]
+        if absent:
+            missing.append("no tasks for slice " + ", ".join(absent))
+    return {"ready": not missing, **({"missing": missing} if missing else {})}
+
+
+def _task_lines(spec_text: str) -> list[str]:
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Tasks")
+    except ValueError:
+        return []
+    return lines[start:end]
+
+
 def open_slices(spec_text: str) -> list[str]:
     """Labels of the unticked slices, in order."""
     return [label for done, label in all_slices(spec_text) if not done]

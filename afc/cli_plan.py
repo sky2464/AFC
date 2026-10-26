@@ -162,13 +162,11 @@ def _goal(text: str) -> str:
 
 
 def _ready(space: plan.Space, row: list[str]) -> dict:
-    """Flight Control specs are not ready while their 'Reaches the apps' section is missing or empty."""
-    if space.prefix != "FC":
-        return {}
+    """Is the spec ready for build, and if not what is missing (every plan, not only Flight Control's)."""
     path = _spec_path(space, row)
     if not path.is_file():
-        return {"ready": False}
-    return {"ready": plan.section_filled(path.read_text(encoding="utf-8"), "Reaches the apps")}
+        return {"ready": False, "missing": ["the spec file is missing"]}
+    return plan.readiness(path.read_text(encoding="utf-8"), space.prefix == "FC")
 
 
 def cmd_plan(args: argparse.Namespace) -> dict:

@@ -1,6 +1,6 @@
 # FC-043 — Ready means ready
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-26 · Done: -
 
 Found on 2026-10-26, comparing this plan with AgToosa's. "Ready for build" is the gate for the rule
 *spec, then slices, then tasks, then queue*, but it checks almost nothing:
@@ -46,7 +46,8 @@ criterion nobody builds can no longer slip through when the user asked for no te
 - A5. `plan done` writes the Shipped line with the date, the slices and "Criteria: n of n proven"
   (or "not numbered").
 - A6. On a scratch copy of php-vuln-checker's plan, S-002 and S-003 now answer; on Flight Control's
-  own plan, FC-040 stays ready with only the unlinked-criteria note.
+  own plan, FC-044 (numbered criteria, `proves` on every slice) shows `ready: true` with no
+  `missing` and no note.
 
 ## Out of scope
 
@@ -69,7 +70,7 @@ Rewriting older specs to the new shape. Any test.
 
 ## Slices
 
-- [ ] 1. Say what is missing — you'll see it by a scratch project plan with a bare spec in Next giving
+- [x] 1. Say what is missing — you'll see it by a scratch project plan with a bare spec in Next giving
       `ready: false` and the list, the filled-in spec giving `ready: true`, and an `S-` spec answering
       too (proves A1)
 - [ ] 2. Criteria tied to slices — you'll see it by a scratch spec whose A3 has no slice and whose
