@@ -68,7 +68,7 @@ start. Changing a project's own list (FC-034) or the no-project hold-back (FC-03
 
 ## Slices
 
-- [ ] 1. Does a tracked list work on the first start? — you'll see it by two first-start
+- [x] 1. Does a tracked list work on the first start? — you'll see it by two first-start
       `claude -p hi` runs in a scratch clone of `dev`, with and without a tracked
       `deniedMcpServers` list, the connector count and token numbers in Decisions, plus one run
       with an `allowedMcpServers` entry showing it wins or not
@@ -96,5 +96,24 @@ Slice 3:
   list. `afc/cli_connectors.py` reports it.
 
 ## Decisions
+
+- Slice 1 measurement (2026-10-25): fresh clones of `dev` at 3af3853, each with its own empty
+  workspace (`AFC_HOME`), one `claude -p hi` each (first start), first prompt counted as in
+  `docs/measurements/token_usage.py`; tools and connectors read from the stream-json init line.
+  - Without a tracked list: 73,310 tokens, 546 tools (515 from servers), 74 servers, all 10
+    claude.ai connectors listed (9 connected, Canva needs sign-in). (An earlier plain run gave 73,283.)
+  - With `deniedMcpServers` (10 `serverName` objects) in the tracked `.claude/settings.json`:
+    56,247 tokens, 227 tools (196 from servers), 69 servers, no claude.ai connector listed.
+    Answer 1: YES, a tracked list applies on the first start. Saving 17,063 tokens, above the
+    12,000 target. The rest still loaded here are add-ons (user-specific, out of reach as noted).
+  - Same tracked list plus `allowedMcpServers` for `claude.ai Notion` in `settings.local.json`:
+    43,153 tokens, 28 tools, 0 servers; Notion stayed off. Answer 2: NO, an allow entry does not
+    turn a denied connector back on (deny wins).
+  - Extra: the allow entry on its own (no deny list): 43,098 tokens, 28 tools, 0 servers, Notion
+    not loaded either. So `allowedMcpServers` here behaves as a strict allowlist that switches off
+    every other server, and in this headless run did not bring Notion in. Slice 3 must not rely on
+    an allow entry to release a connector; it should remove the name from the denying list the
+    user controls instead, and the tracked list cannot be overridden from `settings.local.json`.
+    This needs deciding before slice 3.
 
 ## Shipped
