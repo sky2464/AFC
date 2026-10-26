@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-039 | Welcome counts held-back connectors | S | [FC-039](specs/FC-039-welcome-counts-held-back-connectors.md) | 2026-10-26 |
 
 ## Next
 
@@ -26,6 +25,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-039 | Welcome counts held-back connectors | 2026-10-26 | [FC-039](specs/archive/FC-039-welcome-counts-held-back-connectors.md) |
 | FC-038 | Light first start | 2026-10-25 | [FC-038](specs/archive/FC-038-light-first-start.md) |
 | FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |
 | FC-036 | Maintenance mode never sticks | 2026-10-25 | [FC-036](specs/archive/FC-036-maintenance-mode-never-sticks.md) |
@@ -35,7 +35,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
 | FC-031 | Test copy stays current and separate | 2026-10-25 | [FC-031](specs/archive/FC-031-test-copy-stays-current-and-separate.md) |
 | FC-030 | Tests only when asked | 2026-10-25 | [FC-030](specs/archive/FC-030-tests-only-when-asked.md) |
-| FC-029 | Ready for v0.04a | 2026-10-25 | [FC-029](specs/archive/FC-029-ready-for-v0-04a.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -121,8 +120,6 @@ same day showed the rest.
 
 | Date | Event |
 |---|---|
-| 2026-10-24 | FC-010 added at the top after the maintenance mix-up; the Bun audit fix for FC-007 already exists on `claude/toolkit-layers-build-0d5bc1` (`77eda62`) |
-| 2026-10-24 | FC-010 started |
 | 2026-10-24 | Flight Control's specs renamed FC-001 to FC-010; S- stays for project specs |
 | 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
 | 2026-10-24 | FC-010 done |
@@ -222,3 +219,4 @@ same day showed the rest.
 | 2026-10-25 | FC-038 started |
 | 2026-10-25 | FC-038 done |
 | 2026-10-26 | FC-039 started |
+| 2026-10-26 | FC-039 done |

@@ -1,6 +1,6 @@
 # FC-039 — Welcome counts held-back connectors
 
-Size: S · Status: in progress
+Size: S · Status: done
 
 Left open by FC-038 on 2026-10-25. FC-038 ships a list of 12 claude.ai connectors in the tracked
 `.claude/settings.json` (`tracked_deny` in `afc-connectors.json`), so they are held back from the
@@ -88,3 +88,5 @@ Slice 3:
 - Slice 3, measured with `docs/measurements/token_usage.py` (floor_context of a one-turn `claude -p` start on two scratch clones, each with its own empty `AFC_HOME`; the "without" clone was marked as told first, so only the line differs): with the line 43048 tokens, without 43045, a difference of 3 (limit 60). The line goes to the welcome message the user reads, not into the model's context. A first try that compared a first start with a second start read 56977 against 43047, but that gap came from other first-start content, not this line, so it was redone as above.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 3.

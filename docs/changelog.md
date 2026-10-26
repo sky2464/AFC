@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-26 — FC-039 Welcome counts held-back connectors
+
+The first welcome in a new copy says once, in one plain line, that account connectors are held back and how to get one, so a missing connector is never a surprise.
+
+- Say it once per copy
+- Say it again when it grows, and count down when asked
+- Cheap
+
 ## 2026-10-25 — FC-038 Light first start
 
 The very first "hi" in a new copy costs clearly fewer tokens, with no extra step for the user and nothing taken away from a connector they use.
