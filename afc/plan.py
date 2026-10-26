@@ -309,18 +309,43 @@ def open_slices(spec_text: str) -> list[str]:
 
 
 def set_header(spec_text: str, **fields) -> str:
-    """Rewrite Status/Started/Done on the `Size: ... · Status: ...` line only."""
+    """Rewrite Size/Status/Started/Done/Depends on the `Size: ... · Status: ...` line only.
+
+    Depends is added at the end of the line when it is new; an empty value removes it."""
     lines = spec_text.split("\n")
     for i, line in enumerate(lines):
         if line.startswith("Size:") and "Status:" in line:
-            for key in ("status", "started", "done"):
+            for key in ("size", "status", "started", "done"):
                 if key in fields:
                     name = key.capitalize()
                     value = cell(fields[key]) or "-"
                     line = re.sub(rf"({name}: )[^·]*?(\s*(?:·|$))", lambda m: m.group(1) + value + m.group(2), line, count=1)
+            if "depends" in fields:
+                value = cell(fields["depends"])
+                line = re.sub(r"\s*·\s*Depends:[^·]*", "", line).rstrip()
+                if value:
+                    line += f" · Depends: {value}"
             lines[i] = line
             break
     return "\n".join(lines)
+
+
+def depends(spec_text: str) -> list[str]:
+    """Spec IDs named in the header's `Depends:` field (comma separated); none when absent."""
+    for line in spec_text.split("\n"):
+        if line.startswith("Size:") and "Status:" in line:
+            m = re.search(r"Depends:\s*([^·]*)", line)
+            return [d for d in re.split(r"[,\s]+", m.group(1).strip()) if d and d != "-"] if m else []
+    return []
+
+
+def header_size(spec_text: str) -> str:
+    """The size on the spec's header line, or "" when there is none."""
+    for line in spec_text.split("\n"):
+        if line.startswith("Size:") and "Status:" in line:
+            m = re.match(r"Size:\s*([^·\s]*)", line)
+            return m.group(1) if m else ""
+    return ""
 
 
 def log(text: str, date: str, event: str) -> str:

@@ -1,4 +1,4 @@
-"""Plan commands: plan, plan add|start|done.
+"""Plan commands: plan, plan add|goal|rename|drop|move|set|start|reopen|done.
 
 Registered into the main parser by afc.cli through register(). They move a spec from
 Next to Now to Done in the master plan and keep its file in specs/ or the archive.
@@ -45,9 +45,17 @@ def register(sub) -> None:
     q.add_argument("id")
     q.add_argument("--to", type=int, required=True, help="position in Next, 1 is first")
     q.set_defaults(handler=cmd_move)
+    q = psub.add_parser("set", help="change a waiting or running spec's size or what it waits for")
+    q.add_argument("id")
+    q.add_argument("--size", choices=("S", "M", "L"))
+    q.add_argument("--depends", help="the spec that must be done first (a comma list, or none to clear)")
+    q.set_defaults(handler=cmd_set)
     q = psub.add_parser("start", help="move a spec from Next to Now")
     q.add_argument("id")
     q.set_defaults(handler=cmd_start)
+    q = psub.add_parser("reopen", help="bring a finished spec back to Next")
+    q.add_argument("id")
+    q.set_defaults(handler=cmd_reopen)
     q = psub.add_parser("done", help="finish the spec in Now and archive it")
     q.add_argument("id")
     q.set_defaults(handler=cmd_done)
@@ -254,6 +262,51 @@ def cmd_rename(args: argparse.Namespace) -> dict:
     return {"renamed": sid, "title": title, "spec": str(new_path)}
 
 
+def _is_done(text: str, sid: str) -> bool:
+    """Is sid a finished spec in Done? A dropped one, or an ID the plan doesn't have, is not."""
+    for row in plan.read_rows(text, "Done"):
+        if row and row[0] == sid:
+            return not row[1].endswith("(dropped)")
+    return False
+
+
+def cmd_set(args: argparse.Namespace) -> dict:
+    space, _, text = _load(write=True)
+    sid = args.id
+    if args.size is None and args.depends is None:
+        raise _error("Say what to change: --size S, M or L, and/or --depends <spec id> (or none).")
+    section, row = _find(space, text, sid)
+    if section == "Done":
+        raise _error(f"{sid} is finished, so it can't be changed. Reopen it first.")
+    spec_path, spec_text = _read_spec(space, sid, row)
+    fields: dict = {}
+    events: list[str] = []
+    if args.size is not None:
+        fields["size"] = args.size
+        events.append(f"size set to {args.size}")
+    deps: list[str] | None = None
+    if args.depends is not None:
+        raw = [d.strip() for d in re.split(r"[,\s]+", args.depends) if d.strip()]
+        deps = [] if [d.lower() for d in raw] == ["none"] else raw
+        for dep in deps:
+            if dep == sid:
+                raise _error(f"{sid} can't wait for itself.")
+            _find(space, text, dep)  # a plain error when the plan doesn't have it
+        fields["depends"] = ", ".join(deps)
+        events.append(f"waits for {', '.join(deps)}" if deps else "waits for nothing")
+    rows = [[r[0], r[1], args.size or r[2], *r[3:]] if r[0] == sid else r for r in plan.read_rows(text, section)]
+    new = plan.log(plan.write_rows(text, section, rows), _cli()._today(), f"{sid} " + " and ".join(events))
+    spec_path.write_text(plan.set_header(spec_text, **fields), encoding="utf-8")
+    try:
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        spec_path.write_text(spec_text, encoding="utf-8")
+        raise
+    out = {"changed": sid, "size": args.size or row[2]}
+    out["depends"] = deps if deps is not None else plan.depends(spec_text)
+    return out
+
+
 def cmd_start(args: argparse.Namespace) -> dict:
     space, _, text = _load(write=True)
     path = space.master
@@ -265,6 +318,10 @@ def cmd_start(args: argparse.Namespace) -> dict:
     if section != "Next":
         raise _error(f"{sid} isn't waiting in Next.")
     spec_path, spec_text = _read_spec(space, sid, row)
+    for dep in plan.depends(spec_text):
+        if not _is_done(text, dep):
+            raise _error(f"{sid} waits for {dep}, which is not done yet. Finish {dep} first, "
+                         f"or run: plan set {sid} --depends none")
     today = _cli()._today()
     new = plan.write_rows(text, "Next", [r for r in plan.read_rows(text, "Next") if r[0] != sid])
     new = plan.write_rows(new, "Now", [[sid, row[1], row[2], row[3], today]])
@@ -364,6 +421,63 @@ def cmd_move(args: argparse.Namespace) -> dict:
     new = plan.log(plan.write_rows(text, "Next", waiting), _cli()._today(), f"{sid} moved to position {args.to}")
     space.master.write_text(new, encoding="utf-8")
     return {"moved": sid, "position": args.to, "next": [r[0] for r in waiting]}
+
+
+def _without_changelog_entry(changelog: str, sid: str) -> str:
+    """The changelog with the entry for sid taken out (one entry per spec)."""
+    lines = changelog.split("\n")
+    out: list[str] = []
+    skipping = False
+    for ln in lines:
+        if ln.startswith("## "):
+            skipping = bool(re.match(rf"## \S+ — {re.escape(sid)}\b", ln))
+        if not skipping:
+            out.append(ln)
+    return "\n".join(out)
+
+
+def cmd_reopen(args: argparse.Namespace) -> dict:
+    space, _, text = _load(write=True)
+    sid = args.id
+    section, row = _find(space, text, sid)
+    if section != "Done":
+        raise _error(f"{sid} isn't finished, so there is nothing to reopen.")
+    archived, spec_text = _read_spec(space, sid, row)
+    name = archived.name
+    target = space.specs / name
+    if target.exists():
+        raise _error(f"There is already a file called {name} in specs, so {sid} can't come back.")
+    today = _cli()._today()
+    title = re.sub(r"\s*\(dropped\)$", "", row[1])
+    size = plan.header_size(spec_text) or "M"
+    new = plan.write_rows(text, "Done", [r for r in plan.read_rows(text, "Done") if r[0] != sid])
+    new = plan.write_rows(new, "Next", [[sid, title, size, f"[spec](specs/{name})"]] + plan.read_rows(new, "Next"))
+    new = plan.log(new, today, f"{sid} reopened")
+    body = plan.set_header(spec_text, status="next", started="-", done="-")
+    index_path = space.archive_dir / "index.md"
+    old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
+    changelog = (space.base if space.prefix == "FC" else space.base.parent) / "changelog.md"
+    old_changelog = changelog.read_text(encoding="utf-8") if changelog.is_file() else None
+    space.specs.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(archived), str(target))
+    try:
+        target.write_text(body, encoding="utf-8")
+        if old_index is not None:
+            kept = [ln for ln in old_index.split("\n")
+                    if not (ln.lstrip().startswith("|") and plan._split_row(ln)[:1] == [sid])]
+            index_path.write_text("\n".join(kept), encoding="utf-8")
+        if old_changelog is not None:
+            changelog.write_text(_without_changelog_entry(old_changelog, sid), encoding="utf-8")
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        if old_changelog is not None:
+            changelog.write_text(old_changelog, encoding="utf-8")
+        if old_index is not None:
+            index_path.write_text(old_index, encoding="utf-8")
+        shutil.move(str(target), str(archived))
+        archived.write_text(spec_text, encoding="utf-8")
+        raise
+    return {"reopened": sid, "spec": str(target)}
 
 
 def cmd_done(args: argparse.Namespace) -> dict:

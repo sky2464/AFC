@@ -75,7 +75,7 @@ plan's table columns. Merging, pushing or rewriting history.
       scratch project plan broken the same ways, `check` naming each in one sentence (proves A1, A5)
 - [x] 2. Fix what needs no decision — you'll see it by `repair` adding the missing archive file to the
       index and saying why it left the other problems (proves A2)
-- [ ] 3. Commands for what was done by hand — you'll see it by `plan set` changing size and dependency,
+- [x] 3. Commands for what was done by hand — you'll see it by `plan set` changing size and dependency,
       `plan start` refusing while the dependency is open, and `plan reopen` bringing a finished
       scratch spec back (proves A3)
 - [ ] 4. A build leaves a clean tree — you'll see it by the workflow building a one-slice scratch spec
