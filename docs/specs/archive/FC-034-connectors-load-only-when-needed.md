@@ -1,6 +1,6 @@
 # FC-034 — Connectors load only when needed
 
-Size: M · Status: next
+Size: M · Status: done
 
 Found on 2026-10-25 (finding R7 in the master plan). With the account add-ons switched off, a
 plain "hi" in a Flight Control session still loads 350 tools, 107 skills and 60,291 tokens (FC-027,
@@ -71,15 +71,15 @@ at start).
 
 ## Slices
 
-- [ ] 1. Where the tokens go — you'll see it by a written breakdown of a "hi" start by part, and a
+- [x] 1. Where the tokens go — you'll see it by a written breakdown of a "hi" start by part, and a
       restart showing a `deniedMcpServers` entry really removes that connector's tools
-- [ ] 2. A connector list per project — you'll see it by `sh bin/afc` showing a project's connector
+- [x] 2. A connector list per project — you'll see it by `sh bin/afc` showing a project's connector
       list, filled from what the project shows, and adding one by name
-- [ ] 3. Hold back the rest at start — you'll see it by a session on a project with no connectors
+- [x] 3. Hold back the rest at start — you'll see it by a session on a project with no connectors
       starting with those tools blocked, one welcome line, and a second start saying nothing
-- [ ] 4. Ask for one in plain words — you'll see it by saying "I need Gmail", seeing it listed and
+- [x] 4. Ask for one in plain words — you'll see it by saying "I need Gmail", seeing it listed and
       unblocked from the next start, with a `/mcp` choice left untouched
-- [ ] 5. Live check — you'll see it by two `claude -p hi` starts on the real `A-FC` folder, before
+- [x] 5. Live check — you'll see it by two `claude -p hi` starts on the real `A-FC` folder, before
       and after, with the token numbers written in Decisions
 
 ## Tasks
@@ -115,4 +115,28 @@ Slice 5:
 - 2026-10-25: Not off for everyone. Load only the connectors that mean something for the project,
   chosen automatically, and add more on request (user's choice).
 
+- 2026-10-25 (slice 1): Where the 60k goes, measured with `docs/measurements/start_parts.py` (new:
+  runs `claude -p hi` with one part switched off at a time, first turn only, on `dev`, add-ons off).
+  The "hi" start is 59,687 tokens (350 tools, 107 skills, 10 connectors). Share: connector tools
+  17,392 (29%, 319 of the 350 tools); built-in tools, their instructions and project text 33,437
+  (56%); skill listing 1,317 (2%); bare floor 7,541 (13%). Tool search is already on: connector
+  tools are listed by name only. With it off (`--tools ""` run) the same start was 318,336 tokens,
+  so full connector schemas would cost about 300k. So the most blocking can save is about 17k of
+  59.7k (29%), not most of it; the goal "clearly fewer than 60,291" is still met, but the spec should
+  not promise more. Slice 5 judges the real number.
+- 2026-10-25 (slice 1): Restart check. A start with `deniedMcpServers: [{"serverName": "claude.ai
+  Notion"}]` (passed as session settings) went from 350 tools / 10 connectors / 59,685 tokens to 285
+  tools / 9 connectors / 57,491 tokens, and Notion was gone from the connector list: 65 tools and
+  about 2,200 tokens for one connector. The entry works by connector name and takes effect at the
+  next start. Note the entry is an object with `serverName`, not a bare string. Not yet tried from
+  `.claude/settings.local.json` itself (slice 3 does it).
+- 2026-10-25 (slice 5): Live, in a scratch copy of `dev` with a new project that uses no
+  connectors, two `claude -p hi` starts. First: 64,892 tokens, 340 tools, 113 of them connector
+  tools, 28 add-on servers listed; it wrote `deniedMcpServers` for the 10 claude.ai connectors and
+  switched 28 add-ons off. Second: 42,818 tokens, 28 tools, no servers. That is 22,000 fewer tokens
+  than the first start (-34%) and 17,500 fewer than the 60,291 measured before (-29%). The second
+  start's welcome says nothing about connectors.
+
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.

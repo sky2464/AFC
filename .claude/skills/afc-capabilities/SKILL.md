@@ -27,6 +27,13 @@ Do not search on every slice; only when there is a real new need.
 3. Web search for current options and recent news about them. Never rely on memory for what exists
    or which version is current.
 
+## Account connectors (Gmail, Notion, Slack...)
+
+Held back at start unless the project uses them. When the user says "I need Gmail" (any connector
+name), run `sh bin/afc connectors add <name>` without searching or vetting; it is already theirs.
+Say in one line: it is on this project's list and loads from the next start, or right away from
+`/mcp`. Never touch what they set in `/mcp`. `sh bin/afc connectors` shows the list.
+
 ## Vet before showing
 
 For each candidate, check and show the user this short list:

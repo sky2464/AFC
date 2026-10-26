@@ -20,6 +20,7 @@ from afc.profile import PROFILES, modules_for
 from afc import (
     cli_agents,
     cli_awake,
+    cli_connectors,
     cli_context,
     cli_defaults,
     cli_delivery,
@@ -63,6 +64,7 @@ COMMAND_NAMES = (
     "scan",
     *cli_defaults.NAMES,
     *cli_agents.NAMES,
+    *cli_connectors.NAMES,
     *cli_context.NAMES,
     *cli_delivery.NAMES,
     *cli_home.NAMES,
@@ -246,6 +248,12 @@ def _commit(home: Path, reg, project: Project, undo: Undo) -> list[str]:
         tools.swap_in(afc_root(), Path(project.workspace_path))
     except tools.ToolsError as exc:
         raise CliError(str(exc))
+    try:
+        from afc import connectors
+
+        connectors.hold_for(afc_root(), Path(project.workspace_path), Path(project.code_path))
+    except Exception:  # connectors are a bonus; switching must not fail over them
+        pass
     save_registry(home, reg)
     return granted
 

@@ -35,3 +35,5 @@ question. Anything else: answer briefly, then ask the update question. Never bot
   something else, ask: a new project or another of theirs?
 - **First run** (no projects): "Are you starting a new project, or working on one that already
   exists on this machine?" 1. A new project 2. One that already exists (both `afc-setup`).
+- **"Held back" connector line in the welcome**: if the user then names one ("I need Gmail"), follow
+  `afc-capabilities` (Account connectors); do not ask more.

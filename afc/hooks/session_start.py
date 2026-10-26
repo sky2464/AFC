@@ -133,6 +133,25 @@ def _addons_line(root: Path) -> str:
             f"{'It still works' if one else 'They still work'} everywhere else.\n")
 
 
+def _connectors_line(reg, root: Path) -> str:
+    """Block the account connectors the active project doesn't use, and say so once. Empty when
+    nothing new was held back or anything failed: the settings are then as they were."""
+    try:
+        from afc import connectors
+
+        active = reg.active()
+        if active is None:
+            return ""
+        new, _ = connectors.hold_for(root, Path(active.workspace_path), Path(active.code_path))
+    except Exception:  # the welcome must never break over connectors
+        return ""
+    if not new:
+        return ""
+    one = new == 1
+    return (f"🔌 {new} account connector{'' if one else 's'} held back from the next start "
+            f"(not used by {active.name}); say which you need and I'll add {'it' if one else 'them'}.\n")
+
+
 def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | None:
     """(installed, newest) when a newer release is on offer, else None. Never waits for the network
     and never raises: whatever goes wrong with the check, the welcome simply says nothing about
@@ -240,7 +259,7 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
                 "question again. If they said hi or asked something else, answer briefly, then ask "
                 f"one question: 1 = {one} (recommended) or 2 = {two}."
             )
-        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}", 1)
+        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}{_connectors_line(reg, afc_root())}", 1)
         context = (
             f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "
             "Follow CLAUDE.md and the afc-start skill for the first reply."

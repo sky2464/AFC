@@ -20,12 +20,13 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-034 | Connectors load only when needed | M | [FC-034](specs/FC-034-connectors-load-only-when-needed.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-035 | Ready for v0.05b | 2026-10-25 | [FC-035](specs/archive/FC-035-ready-for-v0-05b.md) |
+| FC-034 | Connectors load only when needed | 2026-10-25 | [FC-034](specs/archive/FC-034-connectors-load-only-when-needed.md) |
 | FC-033 | Master plan, one truth | 2026-10-25 | [FC-033](specs/archive/FC-033-master-plan-one-truth.md) |
 | FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
 | FC-031 | Test copy stays current and separate | 2026-10-25 | [FC-031](specs/archive/FC-031-test-copy-stays-current-and-separate.md) |
@@ -34,8 +35,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 | FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
-| FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
-| FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -212,3 +211,7 @@ same day showed the rest.
 | 2026-10-25 | FC-033 started |
 | 2026-10-25 | FC-033 done |
 | 2026-10-25 | FC-034 added and specced (5 slices): connectors load only when needed, per project |
+| 2026-10-25 | FC-034 started |
+| 2026-10-25 | FC-034 done |
+| 2026-10-25 | FC-035 started |
+| 2026-10-25 | FC-035 done |

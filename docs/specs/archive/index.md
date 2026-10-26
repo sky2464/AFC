@@ -2,6 +2,8 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-035 | Ready for v0.05b | 2026-10-25 | FC-035-ready-for-v0-05b.md |
+| FC-034 | Connectors load only when needed | 2026-10-25 | FC-034-connectors-load-only-when-needed.md |
 | FC-033 | Master plan, one truth | 2026-10-25 | FC-033-master-plan-one-truth.md |
 | FC-032 | Every spec reaches the apps | 2026-10-25 | FC-032-every-spec-reaches-the-apps.md |
 | FC-031 | Test copy stays current and separate | 2026-10-25 | FC-031-test-copy-stays-current-and-separate.md |

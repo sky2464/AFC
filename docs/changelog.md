@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-10-25 — FC-035 Ready for v0.05b
+
+`main` can be released as v0.05b: `VERSION` says `v0.05b`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
+
+- Ready for v0.05b
+
+## v0.05b
+
+- Tests run only when you ask. Flight Control keeps five on the things that protect your data, and your apps get none unless you ask.
+- Every spec now says how it reaches the apps Flight Control builds for you.
+- There is one master plan, and it updates itself wherever the work runs.
+- The test copy stays current and in its own workspace, and an empty start is quiet: no red errors, no repeated lines.
+- A session starts with only the connectors a project uses, so a "hi" costs about 43k tokens instead of 60k. Ask for another in plain words.
+
+## 2026-10-25 — FC-034 Connectors load only when needed
+
+A Flight Control session starts with only the connectors that matter for the active project, and anything else is one plain request away. The start costs far fewer tokens, and nobody loses a connector they need.
+
+- Where the tokens go
+- A connector list per project
+- Hold back the rest at start
+- Ask for one in plain words
+- Live check
+
 ## 2026-10-25 — FC-033 Master plan, one truth
 
 There is one master plan: the one on `dev` (for Flight Control) or in the project's workspace (for an app). Starting, finishing and checking work updates it automatically, wherever the work runs, and no copy can disagree with it.
