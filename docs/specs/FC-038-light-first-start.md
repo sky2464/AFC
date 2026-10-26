@@ -74,7 +74,7 @@ start. Changing a project's own list (FC-034) or the no-project hold-back (FC-03
       `claude -p hi` runs in a scratch clone of `dev`, with and without a tracked
       `deniedMcpServers` list, the connector count and token numbers in Decisions, plus one run
       with an `allowedMcpServers` entry showing it wins or not
-- [ ] 2. Ship the list — you'll see it by `git diff` on `.claude/settings.json` showing only
+- [x] 2. Ship the list — you'll see it by `git diff` on `.claude/settings.json` showing only
       `deniedMcpServers` names, and a fresh scratch clone's first `claude -p hi` using at least
       12,000 fewer tokens than without it
 - [ ] 3. Asking for one in plain words — you'll see it by `sh bin/afc connectors add Gmail` in a
@@ -134,5 +134,10 @@ Slice 4:
     an allow entry to release a connector; it should remove the name from the denying list the
     user controls instead, and the tracked list cannot be overridden from `settings.local.json`.
     This needs deciding before slice 3.
+- Slice 2 measurement (2026-10-25): two fresh clones of `dev`, each with an empty workspace, first
+  `claude -p hi`: without the list 73,320 tokens, with the tracked list 56,281 (-17,039, target 12,000).
+  The list (12 names: the ten measured plus Gmail and Slack) lives in `afc-connectors.json`
+  `tracked_deny`; `sh bin/afc check` reports `tracked_deny_differs` if it and `.claude/settings.json`
+  disagree. The welcome's held-back count does not yet include the tracked names (not in this slice).
 
 ## Shipped

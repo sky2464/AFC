@@ -5,5 +5,19 @@
     "vercel_config": "Vercel",
     "netlify_config": "Netlify",
     "linear_mention": "Linear"
-  }
+  },
+  "tracked_deny": [
+    "claude.ai Claude Docs",
+    "claude.ai Adobe for creativity",
+    "claude.ai Excalidraw",
+    "claude.ai Context7",
+    "claude.ai Microsoft Learn",
+    "claude.ai Sentry",
+    "claude.ai Notion",
+    "claude.ai Linear",
+    "claude.ai Figma",
+    "claude.ai Canva",
+    "claude.ai Gmail",
+    "claude.ai Slack"
+  ]
 }

@@ -312,6 +312,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     if with_addons:
         problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
+    problems += _tracked_deny_problems(cli.afc_root())
     wanted = _wanted(reg)
     foreign = foreign_roots_for(home, reg)
     for entry in current:
@@ -384,6 +385,19 @@ def _wanted(reg) -> list[str]:
         return []
     dirs = [Path(active.code_path), Path(active.workspace_path)]
     return [str(d.resolve()) for d in dirs if d.is_dir()]
+
+
+def _tracked_deny_problems(root: Path) -> list[dict]:
+    """The tracked .claude/settings.json list and the data file's list must agree (FC-038)."""
+    from afc import connectors
+
+    want, have = connectors.tracked_names(root), connectors.tracked_in_settings(root)
+    if set(want) == set(have):
+        return []
+    diff = sorted(set(want) ^ set(have))
+    return [_problem("tracked_deny_differs", str(root / ".claude" / "settings.json"), False,
+                     detail="The connectors held back from the first start differ between "
+                            "afc-connectors.json and .claude/settings.json: " + ", ".join(diff) + ".")]
 
 
 def _problem(kind: str, path: str, fixable: bool, detail: str, project: str = "") -> dict:

@@ -59,6 +59,27 @@ def detect(code: Path) -> list[str]:
     return sorted({mapping[f] for f in facts_of(code) if f in mapping})
 
 
+def tracked_names(root: Path | None = None) -> list[str]:
+    """The connector names the tracked .claude/settings.json holds back from the first start
+    (the 'tracked_deny' list in afc-connectors.json)."""
+    try:
+        data = json.loads(((root or afc_root()) / "afc-connectors.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    found = data.get("tracked_deny") if isinstance(data, dict) else None
+    return [n for n in found if isinstance(n, str)] if isinstance(found, list) else []
+
+
+def tracked_in_settings(root: Path | None = None) -> list[str]:
+    """The names in the tracked .claude/settings.json deniedMcpServers (read only)."""
+    try:
+        data = json.loads(((root or afc_root()) / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    found = data.get(DENIED_KEY) if isinstance(data, dict) else None
+    return [n for n in (_entry_name(e) for e in found) if n] if isinstance(found, list) else []
+
+
 def _clean(name: str) -> str:
     name = " ".join(name.split())
     if name.lower().startswith("claude.ai "):
