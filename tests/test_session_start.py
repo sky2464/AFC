@@ -286,6 +286,21 @@ class AfcStartSkillTest(AfcTestCase):
         self.assertIn("sh bin/afc update --skip", text)
         self.assertIn("sh bin/afc update`", text)
 
+    def test_the_first_reply_never_introduces_flight_control_again(self):
+        first = " ".join(self.skill().split("## First reply", 1)[1].split("\n- ", 1)[0].split())
+        self.assertIn("never introduce Flight Control again", first)
+        self.assertIn("hello in a few words", first)
+        self.assertIn("the welcome's question once", first)
+
+    def test_the_welcome_context_forbids_a_second_introduction(self):
+        ctx = build_output(self.home)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("The welcome already introduced Flight Control: do not introduce it again", ctx)
+
+    def test_the_health_note_comes_after_the_question(self):
+        with mock.patch("afc.cli_health.find_problems", return_value=[{"kind": "x"}]):
+            ctx = build_output(self.home)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("After the question, mention it in one line", ctx)
+
     def test_the_update_question_comes_before_the_project_question(self):
         text = self.skill()
         self.assertLess(text.index("newer release"), text.index("**Projects but none active**"))

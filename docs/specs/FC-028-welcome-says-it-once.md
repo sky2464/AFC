@@ -1,6 +1,6 @@
 # FC-028 — Welcome says it once
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-25 · Done: -
 
 Found on 2026-10-25 in an `A-FC-test` session. The welcome introduced Flight Control and offered
 "Type 1 … 2 … or just say hi." The user said "hi", and the first reply introduced Flight Control
@@ -36,7 +36,7 @@ first reply, which already skips the start flow. Answers to 1 or 2, which alread
 
 ## Slices
 
-- [ ] 1. No second introduction — you'll check it by `tests/test_content.py` (or
+- [x] 1. No second introduction — you'll check it by `tests/test_content.py` (or
       `tests/test_fewer_questions.py`) checking that `afc-start` forbids a self-introduction in the
       first reply and asks the welcome's question once, and a live "hi" on a fresh start showing one
       short hello plus the question

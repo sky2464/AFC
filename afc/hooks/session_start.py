@@ -96,8 +96,8 @@ def _health_line(home: Path) -> str:
     if not count:
         return ""
     noun = "problem" if count == 1 else "problems"
-    return (f" Health check: {count} {noun} (sh bin/afc check). After answering the first message, "
-            "mention it in one line and offer to look.")
+    return (f" Health check: {count} {noun} (sh bin/afc check). After the question, mention it "
+            "in one line and offer to look.")
 
 
 def _addons_line(root: Path) -> str:
@@ -218,6 +218,7 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
         else:
             message = f"{INTRO}\n{line}"
             asked = (
+                "The welcome already introduced Flight Control: do not introduce it again. "
                 f"The welcome asked: 1 = {one}, 2 = {two}. "
                 "If the user's first message is 1 or 2, treat it as their answer — do not ask that "
                 "question again. If they said hi or asked something else, answer briefly, then ask "

@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-028 | Welcome says it once | S | [spec](specs/FC-028-welcome-says-it-once.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-028 | Welcome says it once | S | [spec](specs/FC-028-welcome-says-it-once.md) |
 
 ## Done
 
@@ -196,3 +196,4 @@ same day showed the rest.
 | 2026-10-25 | FC-028 added |
 | 2026-10-25 | FC-027 started |
 | 2026-10-25 | FC-027 done |
+| 2026-10-25 | FC-028 started |
