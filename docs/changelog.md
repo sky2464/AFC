@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 — FC-035 Ready for v0.05b
+
+`main` can be released as v0.05b: `VERSION` says `v0.05b`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
+
+- Ready for v0.05b
+
 ## v0.05b
 
 - Tests run only when you ask. Flight Control keeps five on the things that protect your data, and your apps get none unless you ask.
