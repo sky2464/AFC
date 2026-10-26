@@ -116,4 +116,9 @@ Slice 5:
   - Flight Control's own plan: FC-044 and FC-045 both show `ready: true` with no `missing` and no
     `notes` (A6).
 
+- Fix after the build, 2026-10-26: the template's placeholder criterion (`A1. <…>`) and placeholder task
+  (`- <file>: …`) counted as filled, so a bare spec from `plan add` listed only 3 of the 5 gaps.
+  `afc/plan.py` now ignores `<…>` lines, and the bare template gives goal, out of scope, criteria,
+  "you'll see it by" and tasks (A1). The archived FC-041 now reads "no tasks for slice 1", which is true.
+
 ## Shipped

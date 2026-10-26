@@ -239,7 +239,8 @@ def readiness(spec_text: str, fc: bool) -> dict:
             missing.append(what)
     if fc and not section_filled(spec_text, "Reaches the apps"):
         missing.append("no 'Reaches the apps' section filled in")
-    if not _bullets(spec_text, "You'll know it works when"):
+    real_criteria = [b for b in _bullets(spec_text, "You'll know it works when") if not _placeholder(b)]
+    if not real_criteria:
         missing.append("no criteria yet (what you will see when it works)")
     blocks = _slice_blocks(spec_text)
     if not blocks:
@@ -248,8 +249,8 @@ def readiness(spec_text: str, fc: bool) -> dict:
         if not re.search(r"you'll see it by\s+(?!<)\S", block, re.IGNORECASE):
             missing.append(f"slice {n} has no 'you'll see it by'")
     if blocks:
-        tasks = "\n".join(_task_lines(spec_text))
-        absent = [str(n) for n in range(1, len(blocks) + 1) if not re.search(rf"^\s*Slice {n}:", tasks, re.M)]
+        tasks = _task_blocks(spec_text)
+        absent = [str(n) for n in range(1, len(blocks) + 1) if not tasks.get(n)]
         if absent:
             missing.append("no tasks for slice " + ", ".join(absent))
     notes: list[str] = []
@@ -263,7 +264,7 @@ def readiness(spec_text: str, fc: bool) -> dict:
             for crit in ids:
                 if crit not in numbered:
                     missing.append(f"slice {n} says it proves {crit}, which is not in the criteria")
-    elif _bullets(spec_text, "You'll know it works when"):
+    elif real_criteria:
         notes.append("the criteria are not numbered, so they are not linked to slices")
     to_confirm = [text for settled, text in assumptions(spec_text) if not settled and text and not text.startswith("<")]
     return {
@@ -272,6 +273,25 @@ def readiness(spec_text: str, fc: bool) -> dict:
         **({"notes": notes} if notes else {}),
         **({"to_confirm": to_confirm} if to_confirm else {}),
     }
+
+
+def _placeholder(bullet: str) -> bool:
+    """A template line nobody has filled in yet: `<…>` or `A1. <…>`."""
+    return bool(re.match(r"(?:A\d+\.\s*)?<", bullet.strip()))
+
+
+def _task_blocks(spec_text: str) -> dict[int, bool]:
+    """For each `Slice n:` heading under Tasks, whether it lists at least one real (non-template) task."""
+    blocks: dict[int, bool] = {}
+    current = None
+    for line in _task_lines(spec_text):
+        m = re.match(r"\s*Slice (\d+):", line)
+        if m:
+            current = int(m.group(1))
+            blocks[current] = False
+        elif current is not None and line.strip() and not _placeholder(line.strip().lstrip("-* ").strip()):
+            blocks[current] = True
+    return blocks
 
 
 def _task_lines(spec_text: str) -> list[str]:
