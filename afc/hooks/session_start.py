@@ -270,17 +270,19 @@ CHOOSE = "1. Keep working on Flight Control (recommended)  2. Go to your project
 
 
 def _undecided_output() -> dict:
-    """The welcome for a fork or clear that follows recent maintenance work: one question, nothing else."""
+    """The welcome for a session that follows recent maintenance work: one question, nothing else."""
     message = f"{INTRO}\n{CHOOSE}"
     context = (
-        "Flight Control session. Mode: undecided — this session is a fork or a clear, and another "
-        "session was doing maintenance work on Flight Control here less than 12 hours ago. Do not "
-        "read, build or change any project, and ignore the active project, until the user answers. "
-        f"The welcome asked one question: {CHOOSE}. Unless the conversation already ends in a "
-        "question that has its own numbered answers (then ask that one question again and nothing "
-        "more), if the first message is 1, run sh bin/afc maintain on; if it is 2, run sh bin/afc "
-        "maintain off; then say in one plain line which one is on. For anything else, ask that same "
-        "question again and nothing more."
+        "Flight Control session. Mode: undecided — this session follows recent maintenance work: "
+        "another session recently had maintenance mode on for Flight Control here. "
+        "Do not read, build or change any project, and ignore the active project, until the user "
+        f"answers. The welcome asked one question: {CHOOSE}. In this session a bare 1 or 2 answers "
+        "that question and nothing else: 1 means run sh bin/afc maintain on, 2 means run sh bin/afc "
+        "maintain off, then say in one plain line which mode is on. If the conversation above ended "
+        "in a numbered question of its own (for example \"1. Build FC-040  2. Go back\"), do NOT act "
+        "on it: say in that same line that it still needs answering, and repeat that question. Once "
+        "the mode is answered this session is no longer undecided: never ask the mode question "
+        "again. For anything else, ask the mode question again and nothing more."
     )
     return _wrap(message, context)
 
@@ -374,7 +376,7 @@ def _source_in(stdin_text: str) -> str | None:
 def main(stdout=None, stdin_text: str = "") -> int:
     stdout = stdout or sys.stdout
     session = _session_in(stdin_text)
-    _save_session(session)
+    source = _source_in(stdin_text)
     try:
         home = afc_home()
     except Exception:
@@ -382,9 +384,12 @@ def main(stdout=None, stdin_text: str = "") -> int:
     try:
         was_seen = seen(home, session)
         # a session that still has an unanswered question (any source) is asked once more
-        undecided = is_undecided(home, session) or needs_choice(home, session, _source_in(stdin_text), was_seen)
+        undecided = is_undecided(home, session) or needs_choice(home, session, source, was_seen)
     except Exception:  # the welcome must never break
         undecided = False
+    if source == "fork" and not undecided:
+        return 0  # a fork that isn't asked about starts exactly as before FC-041: no welcome, no side effects
+    _save_session(session)
     out = _with_home_note(build_output(home, session, undecided=undecided), home)
     stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
     return 0

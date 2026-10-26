@@ -26,10 +26,9 @@ SESSION_ID = re.compile(r"^[A-Za-z0-9_-]{1,100}$")
 STALE_AFTER = 7 * 86400  # a session's maintenance flag older than this is dropped
 SEEN_AFTER = 30 * 86400  # a session ID's "seen" mark (sessions.d) is dropped after this
 ASK_WITHIN = 12 * 3600  # a fork or clear is asked about when another session's flag is newer than this
-# An unanswered question (maintain.d/<id>.ask) expires after this. _prune never deletes .ask files:
-# the block is lifted only by `maintain on|off` (the answer) or, when the question was never
-# answered, by this expiry, after which the session is plain project work.
-ASK_EXPIRES = 24 * 3600
+# An unanswered question (maintain.d/<id>.ask) never lapses: only `maintain on|off` (the answer)
+# ends it. The one cleanup is dropping an .ask older than SEEN_AFTER (_prune_asks), the age at which
+# the ID counts as unseen again.
 
 
 def valid_session(value: object) -> str | None:
@@ -80,20 +79,15 @@ NO_SESSION = ("Maintenance mode needs this session's ID; open Flight Control in 
 
 def undecided(home: Path, session: str | None = None) -> bool:
     """True while this session was asked "Flight Control or your project?" and hasn't answered
-    (maintain.d/<id>.ask exists and is under ASK_EXPIRES old). A copy on `main` is never undecided."""
+    (maintain.d/<id>.ask exists; it never lapses by time). A copy on `main` is never undecided."""
     session = valid_session(session)
     if not session or on_main():
         return False
     ask = _flags(home) / f"{session}.ask"
     try:
-        if not ask.exists():
-            return False
-        if time.time() - ask.stat().st_mtime >= ASK_EXPIRES:
-            ask.unlink(missing_ok=True)  # never answered for a day: the block is lifted
-            return False
+        return ask.exists()
     except OSError:
         return False
-    return True
 
 
 def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
@@ -117,7 +111,7 @@ def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
 
 
 def _prune(flags: Path, age: float = STALE_AFTER) -> None:
-    """Drop files older than `age`. Never touches .ask files: only an answer or ASK_EXPIRES ends those."""
+    """Drop files older than `age`. Never touches .ask files: see _prune_asks."""
     cutoff = time.time() - age
     for flag in flags.iterdir():
         try:
@@ -125,6 +119,18 @@ def _prune(flags: Path, age: float = STALE_AFTER) -> None:
                 continue
             if flag.stat().st_mtime < cutoff:
                 flag.unlink()
+        except OSError:
+            pass
+
+
+def _prune_asks(flags: Path) -> None:
+    """Drop an unanswered question (.ask) older than SEEN_AFTER, the age at which its ID counts as
+    unseen again (a flag older than ASK_WITHIN never asks). Nothing else ends one but an answer."""
+    cutoff = time.time() - SEEN_AFTER
+    for ask in flags.glob("*.ask"):
+        try:
+            if ask.stat().st_mtime < cutoff:
+                ask.unlink()
         except OSError:
             pass
 
@@ -141,6 +147,8 @@ def seen(home: Path, session: str | None) -> bool:
     try:
         mark = folder / session
         flags = _flags(home)
+        if flags.is_dir():
+            _prune_asks(flags)
         existed = mark.exists() or (flags / session).exists() or (flags / f"{session}.ask").exists()
         folder.mkdir(parents=True, exist_ok=True)
         mark.touch()

@@ -37,18 +37,20 @@ mistake (`afc/hooks/session_start.py`, `afc/hooks/rules_maintenance.py`, `afc/co
 - A new session that starts as `resume`, `fork` or `clear` with a session ID Flight Control hasn't seen
   before, in a copy where some other session turned maintenance mode on less than 12 hours ago,
   opens with one question and nothing else: "1. Keep working on Flight Control (recommended)
-  2. Go to your project". A plain resume or compaction (same ID), a fresh `startup`, a flag older than 12 hours, or
+  2. Go to your project". A plain resume or compaction (same ID, seen in the last 30 days) a fresh `startup`, a flag older than 12 hours, or
   no flag at all never asks.
 - Until the user answers, project work is blocked: project code writes and project git stop with a
   plain "Flight Control blocked: choose Flight Control or your project first" line. Answering 1 runs
   `sh bin/afc maintain on` (this session only); answering 2 runs `sh bin/afc maintain off`. Either
   one lifts the block.
 - A bare 1 or 2 answers the question just asked in the conversation, not the welcome's. If it
-  isn't clear which, `afc-start` asks one question.
+  isn't clear which, `afc-start` asks one question. The one exception is an undecided session,
+  where a bare 1 or 2 answers the undecided question and nothing else.
 - In a live fork of a conversation that ends in a "1. Build … 2. Go back" menu, a bare "1" is
-  answered from that menu, and a scratch project shows no change.
+  taken as the mode answer (`maintain on`), the menu's action is not taken until the user answers
+  it again, and a scratch project shows no change.
 - A project session that is forked or cleared while no maintenance session is recent starts
-  exactly as today.
+  exactly as today (a fork that isn't asked about runs no welcome and none of its side effects).
 
 ## Out of scope
 
@@ -67,10 +69,18 @@ be asked, 2026-10-26).
   The pretool guard reads it before anything else and blocks project code writes and project git
   while it exists; Flight Control's own folder is not blocked, so the session can still run
   `maintain on`/`off` and read the plan.
-- An `.ask` file is never pruned by age with the flags. It ends when `maintain on|off` answers it, or
-  after 24 hours (`ASK_EXPIRES`): the question was never answered, so the block is lifted and the
-  session is plain project work. A session that starts again (any source) while its `.ask` is still
-  there is asked once more. `maintain on|off` with no session ID is an error, not a success.
+- An `.ask` file never lapses by time. It ends when `maintain on|off` answers it. The only cleanup is
+  dropping an `.ask` older than 30 days (`SEEN_AFTER`, the same age as the seen marks), because after
+  that the ID counts as unseen again and a flag older than 12 hours never asks. A session that
+  starts again (any source) while its `.ask` is still there is asked once more. `maintain on|off`
+  with no session ID is an error, not a success.
+- In an undecided session a bare 1 or 2 is the answer to the undecided question and nothing else. If
+  the conversation above ended in a numbered question of its own, it is not acted on: the reply says
+  it still needs answering and repeats it. The context says "this session follows recent maintenance
+  work", the same for a fork, a clear, or a re-ask on resume or compaction.
+- A `fork` start that is not undecided prints no hook output and does none of the welcome's side
+  effects, as before FC-041 (when `fork` matched no hook at all). The seen mark is still written, so
+  a later resume of that fork is not taken for new.
 - The question's text comes from the welcome's context; it is not left to the model. `afc-start`
   has a case for it ("Mode: undecided"): ask the question, nothing else, answer 1 with
   `sh bin/afc maintain on`, 2 with `sh bin/afc maintain off`.
@@ -194,5 +204,36 @@ projects". Step 2: `claude --continue --fork-session -p 1`.
   as the welcome's answer, which contradicts the bare-number rule when the conversation already
   ends in a menu. Neither was changed here. The line "answering from the menu" was seen only with
   no hook (unpatched), not with the ask in place.
+
+Fix 2, 2026-10-26 (a second checker found three breaks; the user decided each):
+
+- A. An unanswered question no longer lapses: `ASK_EXPIRES` and the 24-hour lift are gone from
+  `undecided()`; an `.ask` stays until `maintain on|off`. The only cleanup is `_prune_asks`, run by
+  `seen()`, which drops an `.ask` older than 30 days. Scratch home: an `.ask` 25 days old still gave
+  "Mode: undecided" on a `compact` start; one 40 days old was removed by the next `seen()`.
+- B. In an undecided session a bare 1 or 2 answers the undecided question only. The context line
+  (`_undecided_output`) and the Undecided case of `afc-start` (and its bare-number sentence) now say
+  so, and say that a numbered question of the conversation's own is not acted on but repeated.
+- C. A `fork` start that is not undecided prints nothing and does none of the welcome's side effects
+  (no update note or look, no add-on or connector settings writes, no `_save_session`). Scratch home,
+  real hook: a fork with no flag gave exit 0 and 0 bytes of output, and wrote no line to the env file
+  (a `startup` wrote `export AFC_SESSION=s2`); only the seen mark was written. With a recent flag the
+  same fork asked; the same ID again as `resume` asked again. A-FC's tracked `.claude/settings.json`
+  showed no `git diff` afterwards.
+- D. The undecided context is neutral: "this session follows recent maintenance work".
+- E. Live check again, real hook, no scratch patch (Claude Code 2.1.310; scratch copy of the repo on
+  `dev` with this change applied, in `.../scratchpad/fc041live2`; scratch `AFC_HOME` with one scratch
+  project, a git repo with one commit; a fresh flag `maintain.d/oldsession`; `AFC_SESSION` and
+  `CLAUDE_CODE_SESSION_ID` unset for the child). Step 1 `claude -p` replied "1. Build FC-040  2. Go
+  back to your projects". Step 2 `claude --continue --fork-session -p 1`:
+  - Asked: yes. The event was `SessionStart:fork` and its output was the "Mode: undecided" welcome.
+  - The reply ran `sh bin/afc maintain on` (the only tool call), and said: "Maintenance mode is on,
+    so we're working on Flight Control itself. Your "1" answered that question, so I haven't started
+    anything yet. The earlier question still needs an answer: 1. Build FC-040  2. Go back to your
+    projects".
+  - `maintain on` ran: yes. The new session now has its own flag and no `.ask`.
+  - The menu's action ("Build FC-040") was not taken. The scratch project's `git status --short` was
+    empty and its log is the single `init` commit.
+  - This is one run; the model's wording will vary.
 
 ## Shipped
