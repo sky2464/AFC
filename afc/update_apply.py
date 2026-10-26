@@ -146,11 +146,15 @@ def apply(root: Path, home: Path) -> dict:
     if _git(root, "merge", "--ff-only", "--quiet", "FETCH_HEAD^{commit}") is None:
         _restore()
         return _refuse(current, f"{tag} does not continue from your copy, so nothing was changed.")
+    kept_note = ""
     if hidden:
         try:
             connectors.rehide(root, wanted)
         except Exception:
-            pass  # the new file stays as released; the health check reports the names still listed
+            kept_note = (
+                " Your choice to keep a connector turned off could not be applied to the new settings,"
+                " so the file was left as released; ask me to turn the connector off again."
+            )
     # the update is in: now keep the tag too (its objects are already here)
     _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
     log = _git(root, "log", "--format=%s", f"{before}..HEAD") or ""
@@ -169,7 +173,7 @@ def apply(root: Path, home: Path) -> dict:
     }
     if restart:
         result["restart_how"] = RESTART_HOW
-    result["summary"] = f"Updated Flight Control from {current} to {tag}: {title}."
+    result["summary"] = f"Updated Flight Control from {current} to {tag}: {title}." + kept_note
     result["workspace"] = run_upgrade(root, current)
     ws = result["workspace"]
     if isinstance(ws, dict) and ws.get("summary"):

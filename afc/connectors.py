@@ -398,16 +398,20 @@ def unhide(root: Path) -> str | None:
 
 def rehide(root: Path, wanted: list[str], old: str | None = None) -> None:
     """After an update: take every wanted name out of the (new) tracked file and hide the edit
-    again. If that fails and `old` is given, put the old text back and hide it."""
+    again. If any step fails, put the new file back exactly as released (unhidden, so git sees
+    it clean) and raise. `old` is kept for callers; the undo never needs it."""
+    from afc.session_dirs import _atomic_write
+
+    path = root / ".claude" / "settings.json"
+    released = path.read_text()
     try:
         for full in wanted:
             release_tracked(root, full)
     except Exception:
-        if old is not None:
-            from afc.session_dirs import _atomic_write
-
-            _atomic_write(root / ".claude" / "settings.json", old)
-            _skip_worktree(root, True)
+        try:
+            _atomic_write(path, released)
+        finally:
+            _skip_worktree(root, False)
         raise
 
 
