@@ -152,8 +152,8 @@ def apply(root: Path, home: Path) -> dict:
             connectors.rehide(root, wanted)
         except Exception:
             kept_note = (
-                " Your choice to keep a connector turned off could not be applied to the new settings,"
-                " so the file was left as released; ask me to turn the connector off again."
+                " Your choice to keep a connector turned on could not be applied to the new settings,"
+                " so the file was left as released and the connector may be off again; ask me to turn the connector on again."
             )
     # the update is in: now keep the tag too (its objects are already here)
     _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
