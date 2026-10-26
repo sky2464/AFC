@@ -1,0 +1,107 @@
+# FC-051 — Flight Control works in other AI tools
+
+Size: L · Status: next · Started: - · Done: -
+Area: safety
+
+Asked for on 2026-10-26: changing Flight Control from Cursor, Antigravity, Codex, GitHub Copilot and
+similar tools, not only Claude Code. Scope chosen: the full experience in all four tools.
+
+Why it fails today (seen on 2026-10-26): `/afc mm` run from Cursor refused to turn maintenance mode
+on, because Flight Control ties the switch to the Claude Code session ID (`CLAUDE_CODE_SESSION_ID`,
+FC-036/FC-041) and Cursor gives none. The same is true of everything else Flight Control enforces: the
+guards, the `/afc` command and the `afc-*` skills are Claude Code hooks and features. Another tool
+can edit the files, but nothing blocks a risky edit.
+
+What the other tools offer, checked against each vendor's own docs on 2026-10-26 (slice 1):
+
+| Tool | Instructions | Hooks | Can block before an action |
+|---|---|---|---|
+| Cursor | `AGENTS.md`, `.cursor/rules` | `.cursor/hooks.json` (project), `~/.cursor/hooks.json` | shell, MCP and file reads (`beforeShellExecution`, `beforeMCPExecution`, `beforeReadFile`); file edits only after the fact (`afterFileEdit`); exit code 2 blocks; other failures allow unless `failClosed` |
+| Codex | `AGENTS.md` | `<repo>/.codex/hooks.json` or `config.toml`; project hooks load only when the folder is trusted and each hook is reviewed once | `PreToolUse` covers shell (`Bash`), `apply_patch` edits and MCP; its docs call hooks "a useful guardrail, not a complete enforcement boundary" |
+| Copilot | `.github/copilot-instructions.md` | `.github/hooks/*.json` with `"version": 1`; CLI, cloud agent (fewer events), app, VS Code (public preview) | `preToolUse` can deny |
+| Antigravity | `AGENTS.md` or `GEMINI.md` (workspace, folder and `~/.gemini`), `.agents/rules/*.md`; 24,000 bytes per file | `.agents/hooks.json` (project), `~/.gemini/config/hooks.json` | `PreToolUse` can deny, by JSON on stdout only (no exit codes documented) |
+
+Sources: cursor.com/docs/hooks, learn.chatgpt.com/docs/hooks, docs.github.com (Copilot "About hooks"),
+antigravity.google/docs/hooks, /docs/rules and /docs/plugins.
+
+## Goal
+
+Someone can change Flight Control from Cursor, Codex, GitHub Copilot or Antigravity and get the same
+protection and the same plain-words flow as in Claude Code, with no step they must remember.
+Where a tool cannot block an action, a check at commit time catches it.
+
+## Reaches the apps
+
+Not at first. This is about Flight Control's own repository. Slice 5 decides whether an app's code
+folder gets the same instruction files; until then apps are unchanged.
+
+## You'll know it works when
+
+- A1. One command, `sh bin/afc guard`, decides allow or block for an action given as plain input
+  (a shell command or a file path), using the same rules the Claude Code hooks use today. The Claude
+  Code hooks call it, and give the same answers as before.
+- A2. A git pre-commit check and a CI check refuse a commit that breaks a guard rule (project code in
+  A-FC, a secret in a file, edits to Flight Control while maintenance mode is off), whichever tool
+  made the edit.
+- A3. Maintenance mode needs no session ID: on the `dev` branch it is on, on any other branch it is
+  off, and `sh bin/afc maintain status` says which and why. Claude Code behaves the same way.
+- A4. One file, `AGENTS.md`, is generated from `CLAUDE.md` and kept in step by a check; the Cursor,
+  Copilot and Antigravity files point to it instead of copying it.
+- A5. For each of Cursor, Codex, Copilot and Antigravity, a hook file calls `afc guard` where that
+  tool supports hooks, and the spec records, per tool, what it can and cannot block.
+- A6. The `/afc` flow works from a plain `sh bin/afc` start in any tool, with the same short
+  numbered next steps. Where a tool has no slash commands, the instructions file says what to type.
+- A7. `sh bin/afc check` reports, per tool, which of instructions, hooks and commit check are in
+  place, in plain words.
+
+## Out of scope
+
+- Making Claude-only features (subagent routing from FC-050, skills loading) work in other tools.
+- Any change that weakens a Claude Code guard.
+- Publishing or pushing anything; the user does that.
+
+## Assumptions to confirm
+
+- [x] Codex hooks exist and use `.codex/hooks.json`; they run only after the user trusts them (checked 2026-10-26).
+- [x] Antigravity reads `AGENTS.md` and has hooks that can deny (checked 2026-10-26).
+- [ ] Cursor cannot block a file edit before it happens (only shell, MCP and reads); the commit check must cover edits. Its docs don't say which hooks the CLI fires.
+- [ ] Copilot hooks: public preview in VS Code; other surfaces not labelled preview. Treat as best effort.
+- [ ] A branch-based switch (dev = on) is safe: it cannot be on by accident in a user's app.
+
+## Design notes
+
+- The guard logic lives in one place (`afc guard`). Each tool's hook file is a thin caller, so there
+  is one set of rules, not four.
+- The commit-time check is the one guard that works in every tool, so it is the safety floor; hooks
+  are the faster, earlier layer on top.
+- Maintenance mode by branch was chosen on 2026-10-26 over a file switch: it works the same in every
+  tool and needs no ID.
+
+## Slices
+
+- [x] 1. Confirm what each tool supports — you'll see it by a table of Cursor, Codex, Copilot and
+  Antigravity with source links and what each can block, and the assumptions above ticked or struck
+  (proves A5)
+- [x] 2. One shared guard — you'll see it by `sh bin/afc guard` giving the same answers as today's
+  Claude Code hooks on a set of sample actions (proves A1)
+- [ ] 3. Commit and CI check — you'll see it by a commit that breaks a rule being refused from a plain
+  terminal with no Claude Code (proves A2)
+- [ ] 4. Maintenance mode by branch — you'll see it by `maintain status` saying on in `dev` and off
+  elsewhere, with no session ID set (proves A3)
+- [ ] 5. Instruction files — you'll see it by `AGENTS.md` and the per-tool pointer files matching
+  `CLAUDE.md`, and a check that fails when they drift (proves A4)
+- [ ] 6. Hook adapters — you'll see it by a blocked action in each tool that supports hooks (proves A5)
+- [ ] 7. `/afc` flow and health line — you'll see it by `sh bin/afc check` listing each tool's state
+  (proves A6, A7)
+
+## Tasks
+
+Slice 1:
+- docs/specs/FC-051-flight-control-works-in-other-ai-tools.md: replace the table with checked facts
+
+## Decisions
+
+- 2026-10-26: scope is all four tools and the full experience; maintenance mode follows the git
+  branch.
+
+## Shipped

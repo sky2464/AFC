@@ -10,6 +10,7 @@ from afc import (
     cli_connectors,
     cli_defaults,
     cli_delivery,
+    cli_guard,
     cli_health,
     cli_home,
     cli_index,
@@ -112,6 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     cli_index.register(sub)
     cli_projects.register(sub)
     cli_health.register(sub)
+    cli_guard.register(sub)
     cli_maintain.register(sub)
     cli_tools.register(sub)
     cli_plan.register(sub)
