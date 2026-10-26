@@ -5,13 +5,14 @@ a Space: a project's is `<workspace>/plan/`, Flight Control's own is `docs/`. Th
 either a Space or, as before, a project workspace folder. Standard library only.
 """
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
 MASTER = "master-plan.md"
 DONE_KEEP = 10
-LOG_KEEP = 100
+LOG_KEEP = 20
 _LOG_HEADER = "| Date | Event |\n|---|---|\n"
 _DONE_HEADER = "| ID | Title | Done | Spec | Release | Outcome |\n|---|---|---|---|---|---|\n"
 DONE_COLUMNS = 6  # ID, Title, Done, Spec, Release, Outcome; older rows and archives have only four
@@ -406,6 +407,23 @@ def set_score(text: str, name: str, value: str, keep_before: bool = False) -> tu
                 r[2] = old
             return write_rows(text, "Scoreboard", rows), old
     raise ValueError(f"The Scoreboard has no measure called '{name}'. It has: " + ", ".join(r[0] for r in rows) + ".")
+
+
+def events_path(space) -> Path:
+    """events.jsonl: in the project's workspace, or (for Flight Control's own plan) the home folder."""
+    if space.prefix == "FC":
+        from .config import afc_home
+        return afc_home() / "events.jsonl"
+    return space.base.parent / "events.jsonl"
+
+
+def event(space, date: str, text: str) -> None:
+    """Append one plan event (date, event, spec) to events.jsonl. Never touches the plan."""
+    m = re.match(r"([A-Z]+-\d+)\b", text)
+    path = events_path(space)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({"date": date, "event": text, "spec": m.group(1) if m else ""}) + "\n")
 
 
 def log(text: str, date: str, event: str) -> str:

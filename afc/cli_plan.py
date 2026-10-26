@@ -212,6 +212,12 @@ def _where(project) -> str:
             f"last slice {project.last_slice or 'none yet'}; folder {Path(project.code_path).name}")
 
 
+def _logged(space, text: str, date: str, ev: str) -> str:
+    """A plan row in the Update log, and the same event in events.jsonl."""
+    plan.event(space, date, ev)
+    return plan.log(text, date, ev)
+
+
 def cmd_add(args: argparse.Namespace) -> dict:
     space, _, text = _load(write=True)
     path = space.master
@@ -226,7 +232,7 @@ def cmd_add(args: argparse.Namespace) -> dict:
     body = template.replace("{id}", sid).replace("{title}", title).replace("{size}", args.size)
     target = space.specs / name
     new = plan.write_rows(text, "Next", plan.read_rows(text, "Next") + [[sid, title, args.size, f"[spec](specs/{name})"]])
-    new = plan.log(new, _cli()._today(), f"{sid} added")
+    plan.event(space, _cli()._today(), f"{sid} added")
     target.write_text(body, encoding="utf-8")
     try:
         path.write_text(new, encoding="utf-8")
@@ -245,7 +251,7 @@ def cmd_goal(args: argparse.Namespace) -> dict:
         new = plan.set_goal(text, goal)
     except ValueError as exc:
         raise _error(str(exc)) from None
-    space.master.write_text(plan.log(new, _cli()._today(), "Goal set"), encoding="utf-8")
+    space.master.write_text(_logged(space, new, _cli()._today(), "Goal set"), encoding="utf-8")
     return {"goal": goal}
 
 
@@ -265,7 +271,7 @@ def cmd_rename(args: argparse.Namespace) -> dict:
         raise _error(f"There is already a file called {name}.")
     row = [row[0], title, row[2], f"[spec](specs/{name})", *row[4:]]
     rows = [row if r[0] == sid else r for r in plan.read_rows(text, section)]
-    new = plan.log(plan.write_rows(text, section, rows), _cli()._today(), f"{sid} renamed to {title}")
+    new = _logged(space, plan.write_rows(text, section, rows), _cli()._today(), f"{sid} renamed to {title}")
     body = re.sub(r"\A# [^\n]*", f"# {sid} — {title}", spec_text, count=1)
     old_path.rename(new_path)
     try:
@@ -311,7 +317,7 @@ def cmd_set(args: argparse.Namespace) -> dict:
         fields["depends"] = ", ".join(deps)
         events.append(f"waits for {', '.join(deps)}" if deps else "waits for nothing")
     rows = [[r[0], r[1], args.size or r[2], *r[3:]] if r[0] == sid else r for r in plan.read_rows(text, section)]
-    new = plan.log(plan.write_rows(text, section, rows), _cli()._today(), f"{sid} " + " and ".join(events))
+    new = _logged(space, plan.write_rows(text, section, rows), _cli()._today(), f"{sid} " + " and ".join(events))
     spec_path.write_text(plan.set_header(spec_text, **fields), encoding="utf-8")
     try:
         space.master.write_text(new, encoding="utf-8")
@@ -344,7 +350,7 @@ def cmd_start(args: argparse.Namespace) -> dict:
     today = _cli()._today()
     new = plan.write_rows(text, "Next", [r for r in plan.read_rows(text, "Next") if r[0] != sid])
     new = plan.write_rows(new, "Now", [[sid, row[1], row[2], row[3], today]])
-    new = plan.log(new, today, f"{sid} started")
+    plan.event(space, today, f"{sid} started")
     spec_path.write_text(plan.set_header(spec_text, status="in progress", started=today), encoding="utf-8")
     try:
         path.write_text(new, encoding="utf-8")
@@ -412,7 +418,7 @@ def cmd_drop(args: argparse.Namespace) -> dict:
     done_row = [sid, f"{row[1]} (dropped)", today]
     new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
     new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", "dropped"]] + plan.read_rows(new, "Done"))
-    new = plan.log(new, today, f"{sid} dropped")
+    new = _logged(space, new, today, f"{sid} dropped")
     shutil.move(str(spec_path), str(target))
     try:
         target.write_text(plan.set_header(spec_text, status="dropped", done=today), encoding="utf-8")
@@ -437,7 +443,7 @@ def cmd_move(args: argparse.Namespace) -> dict:
         raise _error(f"Pick a position from 1 to {len(waiting)}.")
     waiting = [r for r in waiting if r[0] != sid]
     waiting.insert(args.to - 1, row)
-    new = plan.log(plan.write_rows(text, "Next", waiting), _cli()._today(), f"{sid} moved to position {args.to}")
+    new = _logged(space, plan.write_rows(text, "Next", waiting), _cli()._today(), f"{sid} moved to position {args.to}")
     space.master.write_text(new, encoding="utf-8")
     return {"moved": sid, "position": args.to, "next": [r[0] for r in waiting]}
 
@@ -471,7 +477,7 @@ def cmd_reopen(args: argparse.Namespace) -> dict:
     size = plan.header_size(spec_text) or "M"
     new = plan.write_rows(text, "Done", [r for r in plan.read_rows(text, "Done") if r[0] != sid])
     new = plan.write_rows(new, "Next", [[sid, title, size, f"[spec](specs/{name})"]] + plan.read_rows(new, "Next"))
-    new = plan.log(new, today, f"{sid} reopened")
+    new = _logged(space, new, today, f"{sid} reopened")
     body = plan.set_header(spec_text, status="next", started="-", done="-")
     index_path = space.archive_dir / "index.md"
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
@@ -545,7 +551,7 @@ def cmd_done(args: argparse.Namespace) -> dict:
     done_row = [sid, row[1], today]
     new = plan.write_rows(text, "Now", [])
     new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", outcome]] + plan.read_rows(new, "Done"))
-    new = plan.log(new, today, f"{sid} done")
+    plan.event(space, today, f"{sid} done")
     body = plan.set_header(spec_text, status="done", done=today)
     body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}. {_criteria_line(spec_text)}")
     changelog = (space.base if space.prefix == "FC" else space.base.parent) / "changelog.md"
@@ -585,6 +591,6 @@ def cmd_score(args: argparse.Namespace) -> dict:
     except ValueError as e:
         raise _error(str(e))
     note = f"Scoreboard: {args.name.strip()} {old} -> {args.value.strip()}" + (" (old value kept as before)" if args.keep_before else "")
-    new = plan.log(new, _cli()._today(), note)
+    new = _logged(space, new, _cli()._today(), note)
     space.master.write_text(new, encoding="utf-8")
     return {"scored": args.name.strip(), "now": args.value.strip(), "was": old, "kept_before": bool(args.keep_before)}
