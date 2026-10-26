@@ -78,7 +78,7 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
 
 - [x] 1. Done needs real architecture notes — you'll see it by a scratch project's `plan done` stopped with
       the bare template and passing once the file has content (proves A1)
-- [ ] 2. Start needs a goal — you'll see it by a scratch project's `plan start` stopped with an empty Goal
+- [x] 2. Start needs a goal — you'll see it by a scratch project's `plan start` stopped with an empty Goal
       and passing with one (proves A2)
 - [ ] 3. Where we are — you'll see it by `sh bin/afc plan` on a scratch active project showing the line
       (proves A3)

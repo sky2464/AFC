@@ -324,6 +324,9 @@ def cmd_start(args: argparse.Namespace) -> dict:
         raise _error(f"{now_rows[0][0]} is still in progress. Finish it first.")
     if section != "Next":
         raise _error(f"{sid} isn't waiting in Next.")
+    if space.prefix != "FC" and not plan.section_filled(text, "Goal"):
+        raise _error(f"{sid} can't start yet: the plan has no goal. "
+                     'Set it first with: plan goal "<one line>"')
     spec_path, spec_text = _read_spec(space, sid, row)
     for dep in plan.depends(spec_text):
         if not _is_done(text, dep):
