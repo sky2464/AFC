@@ -20,7 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-040 | Ready for v0.06b | S | [FC-040](specs/FC-040-ready-for-v0-06b.md) |
+| FC-040 | Ready for v0.06a | S | [FC-040](specs/FC-040-ready-for-v0-06a.md) |
 
 ## Done
 
