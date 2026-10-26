@@ -9,6 +9,7 @@ active project's. Each handler returns one JSON-able dict, like every other Flig
 import argparse
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 from afc import plan
@@ -62,14 +63,48 @@ def _error(message: str) -> Exception:
     return _cli().CliError(message)
 
 
-def _load() -> tuple[plan.Space, str, str]:
+def _plan_root() -> Path:
+    """Flight Control's one plan lives in the main checkout (first `git worktree list` entry), so a
+    worktree or fork reads and writes it through there. Falls back to this folder."""
+    here = afc_root()
+    try:
+        out = subprocess.run(["git", "-C", str(here), "worktree", "list", "--porcelain"],
+                             capture_output=True, text=True, timeout=10, check=True).stdout
+    except (OSError, subprocess.SubprocessError):
+        return here
+    first = out.split("\n\n")[0]
+    for line in first.split("\n"):
+        if line.startswith("worktree "):
+            main = Path(line[len("worktree "):])
+            return main if (main / "docs" / "master-plan.md").is_file() else here
+    return here
+
+
+def _guard_main(main: Path) -> None:
+    """Refuse a write through a worktree when the main checkout is not on dev or has plan edits."""
+    def git(*a: str) -> str:
+        return subprocess.run(["git", "-C", str(main), *a], capture_output=True, text=True).stdout.strip()
+
+    branch = git("rev-parse", "--abbrev-ref", "HEAD")
+    if branch != "dev":
+        raise _error(f"The master plan lives on dev in {main}, but that folder is on {branch or 'another branch'}. "
+                     "Switch it to dev first.")
+    if git("status", "--short", "--", "docs/master-plan.md", "docs/specs"):
+        raise _error(f"The master plan in {main} has changes that are not committed yet. "
+                     "Commit or set them aside there first, so this change does not mix with them.")
+
+
+def _load(write: bool = False) -> tuple[plan.Space, str, str]:
     """(plan space, whose plan, master text): Flight Control's own in maintenance mode, else the
     active project's."""
     from afc.cli import NO_ACTIVE
 
     home = afc_home()
     if maintain_enabled(home, current_session()):
-        space, owner, missing = plan.flight_control_space(afc_root()), "Flight Control", NO_FC_PLAN
+        root = _plan_root()
+        if write and root != afc_root():
+            _guard_main(root)
+        space, owner, missing = plan.flight_control_space(root), "Flight Control", NO_FC_PLAN
     else:
         project = load_registry(home).active()
         if project is None:
@@ -156,7 +191,7 @@ def cmd_plan(args: argparse.Namespace) -> dict:
 
 
 def cmd_add(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     path = space.master
     title = plan.cell(args.title)
     if not title:
@@ -180,7 +215,7 @@ def cmd_add(args: argparse.Namespace) -> dict:
 
 
 def cmd_goal(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     goal = " ".join(args.text.split())
     if not goal:
         raise _error("Give the goal as one line of text.")
@@ -193,7 +228,7 @@ def cmd_goal(args: argparse.Namespace) -> dict:
 
 
 def cmd_rename(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     sid = args.id
     title = plan.cell(args.title)
     if not title:
@@ -222,7 +257,7 @@ def cmd_rename(args: argparse.Namespace) -> dict:
 
 
 def cmd_start(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     path = space.master
     sid = args.id
     section, row = _find(space, text, sid)
@@ -281,7 +316,7 @@ def _waiting(space: plan.Space, text: str, sid: str, verb: str) -> tuple[list[st
 
 
 def cmd_drop(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     sid = args.id
     row, waiting = _waiting(space, text, sid, "dropped")
     spec_path, spec_text = _read_spec(space, sid, row)
@@ -312,7 +347,7 @@ def cmd_drop(args: argparse.Namespace) -> dict:
 
 
 def cmd_move(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     sid = args.id
     row, waiting = _waiting(space, text, sid, "moved")
     if not 1 <= args.to <= len(waiting):
@@ -325,7 +360,7 @@ def cmd_move(args: argparse.Namespace) -> dict:
 
 
 def cmd_done(args: argparse.Namespace) -> dict:
-    space, _, text = _load()
+    space, _, text = _load(write=True)
     path = space.master
     sid = args.id
     section, row = _find(space, text, sid)
