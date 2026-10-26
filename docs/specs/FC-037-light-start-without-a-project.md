@@ -1,6 +1,6 @@
 # FC-037 — Light start without a project
 
-Size: S · Status: next, ready for build
+Size: S · Status: in progress
 
 Found on 2026-10-25 in the same fresh clone as FC-036. "hi" cost 73,197 tokens. FC-034 measured a
 "hi" at 42,818, but only on a second start with an active project. The connector hold-back in
