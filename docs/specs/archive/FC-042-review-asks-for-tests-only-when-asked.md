@@ -1,6 +1,6 @@
 # FC-042 — Review asks for tests only when asked
 
-Size: S · Status: in progress
+Size: S · Status: done
 
 Found on 2026-10-26. In php-vuln-checker, `sh bin/afc review --slice "3 …"` came back `blocked`
 with five critical findings, every one "no test behind: <a line of the spec>". The slice worked in
@@ -92,3 +92,5 @@ Slice 3:
   5 critical findings, the five that stopped the user, so the flag brings the old checks back.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 3.

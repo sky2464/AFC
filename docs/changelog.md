@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-26 — FC-042 Review asks for tests only when asked
+
+The review judges a slice by what it can see without tests (secrets, scans, file size, naming) and never blocks a slice for having no tests. A user who does ask for tests still gets the old checks.
+
+- No test demand by default
+- Tests when asked
+- Live on the app that was blocked
+
 ## 2026-10-26 — FC-039 Welcome counts held-back connectors
 
 The first welcome in a new copy says once, in one plain line, that account connectors are held back and how to get one, so a missing connector is never a surprise.
