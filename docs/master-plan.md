@@ -18,11 +18,14 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-029 | Ready for v0.04a | S | [spec](specs/FC-029-ready-for-v0-04a.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
+| FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 | FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
 | FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
@@ -31,8 +34,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
 | FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
-| FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
-| FC-015 | Ship a finished spec | 2026-10-25 | [FC-015](specs/archive/FC-015-ship-a-finished-spec.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -95,8 +96,24 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | U5 | The installed version was guessed from truncated `git tag` and `git log` output | FC-011 |
 | U6 | "What's new" was told in FC- IDs, branch names and commit subjects, not plain words | FC-011 |
 | U7 | Nothing was verified after the self-update: no tests, no `check`, no workspace backup | FC-011 |
-| U8 | `sh bin/afc maintain` with no argument says `Missing state.` without naming on, off or status | none yet |
-| U9 | The first question was asked twice: the welcome offered 1/2, then `afc-start` asked again | none yet |
+| U8 | `sh bin/afc maintain` with no argument says `Missing state.` without naming on, off or status | FC-023 |
+| U9 | The first question was asked twice: the welcome offered 1/2, then `afc-start` asked again | FC-023 |
+
+## Findings from the v0.03a update test (2026-10-25)
+
+A scratch copy of the previous `main` updated itself from v0.01a to v0.03a in one step, ended clean
+on `main` and passed all 1034 tests. Its summary still read as a failure. An `A-FC-test` session the
+same day showed the rest.
+
+| # | Finding | Spec |
+|---|---|---|
+| R1 | The after-update summary listed 28 account add-ons as "problems to look at"; nothing was wrong | FC-027 |
+| R2 | Add-ons are switched off only on `repair`, which nothing runs, so all 28 load in every Flight Control session; `check` says they were "switched off" | FC-027 |
+| R3 | The welcome said "a health check found 30 problems"; 28 were those add-ons | FC-027 |
+| R4 | The first reply to "hi" used 75,950 tokens, mostly the 28 add-ons loading | FC-027 |
+| R5 | After the welcome, the reply to "hi" introduced Flight Control again and re-asked the same 1/2 question | FC-028 |
+| R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | none; the user moves it forward |
+| R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | none yet |
 
 ## Update log
 
@@ -174,3 +191,11 @@ maintenance mode off, leaving the copy on a detached HEAD.
 | 2026-10-25 | FC-026 added |
 | 2026-10-25 | FC-026 started |
 | 2026-10-25 | FC-026 done |
+| 2026-10-25 | FC-027 added |
+| 2026-10-25 | FC-027 renamed to Add-ons off at start, quiet health check |
+| 2026-10-25 | FC-028 added |
+| 2026-10-25 | FC-027 started |
+| 2026-10-25 | FC-027 done |
+| 2026-10-25 | FC-028 started |
+| 2026-10-25 | FC-028 done |
+| 2026-10-25 | FC-029 added |

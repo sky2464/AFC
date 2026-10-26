@@ -12,6 +12,7 @@ import subprocess
 from pathlib import Path
 
 from afc import update, version
+from afc.cli_health import ADDONS
 
 NOTE = "just_updated.json"  # one-time note in the workspace home for the welcome after a restart
 # What Claude Code reads only at session start: a change to any of these needs a restart.
@@ -148,12 +149,30 @@ def apply(root: Path, home: Path) -> dict:
             " Your workspace upgrade could not be run or read, so check it by running the upgrade again"
             " (sh bin/afc upgrade)."
         )
-    check = result["check"]
-    if isinstance(check, dict) and (check.get("ok") is False or check.get("problems")):
-        problems = check.get("problems") or []
-        details = [str(p.get("detail") or p.get("kind")) for p in problems if isinstance(p, dict)]
-        result["summary"] += (
-            f" The health check after the update found {len(problems)} problem(s) to look at: "
-            + "; ".join(details[:MAX_CHANGES])
-        )
+    said = check_sentence(result["check"])
+    if said:
+        result["summary"] += " " + said
     return result
+
+
+def check_sentence(check: dict | None) -> str:
+    """The health check after an update in one sentence: add-ons counted, never named; other
+    problems counted with the first shown. The full list stays in the JSON."""
+    if not isinstance(check, dict):
+        return ""
+    problems = [p for p in check.get("problems") or [] if isinstance(p, dict)]
+    if not problems:
+        return "Everything checks out." if check.get("ok") is not False else ""
+    addons = sum(1 for p in problems if p.get("kind") in ADDONS)
+    others = [p for p in problems if p.get("kind") not in ADDONS]
+    parts = []
+    if others:
+        first = str(others[0].get("detail") or others[0].get("kind")).split(". ")[0].rstrip(".")
+        if len(others) == 1:
+            parts.append(f"1 thing needs a look: {first}")
+        else:
+            parts.append(f"{len(others)} things need a look, first: {first}, and {len(others) - 1} more")
+    if addons:
+        noun = "add-on" if addons == 1 else "add-ons"
+        parts.append(f"{addons} {noun} will be off in Flight Control sessions from the next start")
+    return "; ".join(parts) + "."

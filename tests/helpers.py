@@ -24,6 +24,7 @@ class AfcTestCase(unittest.TestCase):
     """
 
     offline_updates = True
+    real_addons = False
 
     def setUp(self):
         from afc import update
@@ -36,6 +37,12 @@ class AfcTestCase(unittest.TestCase):
         patcher = mock.patch("afc.update.start_refresh", return_value=None)
         patcher.start()
         self.addCleanup(patcher.stop)
+        # The welcome switches add-ons off in the real A-FC folder's settings; no test may do that
+        # unless it reports add-ons itself.
+        if not self.real_addons:
+            patcher = mock.patch("afc.addons.reported", return_value=([], "tests report no add-ons"))
+            patcher.start()
+            self.addCleanup(patcher.stop)
         if self.offline_updates:
             patcher = mock.patch("afc.update.remote_newest", return_value=None)
             patcher.start()

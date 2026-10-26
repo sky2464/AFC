@@ -1,6 +1,7 @@
 """Tests for FC-011 slice 4: the one-click update (update, fast-forward only)."""
 
 import subprocess
+import unittest
 from unittest import mock
 
 from afc import update, update_apply
@@ -89,6 +90,16 @@ class ApplyTest(RemoteCase):
         self.assertTrue(out["updated"])
         self.assertEqual(out["check"], bad_check)
         self.assertIn("zzqq folder gone", out["summary"])
+
+    def test_add_ons_are_one_counted_phrase_in_the_summary(self):
+        self.release()
+        addons = [{"kind": "addon_not_allowed", "addon": f"a{i}@x", "detail": f"a{i}@x isn't allowed."}
+                  for i in range(28)]
+        with mock.patch("afc.update_apply.run_check", return_value={"ok": False, "problems": addons}):
+            out = update_apply.apply(self.copy, self.home)
+        self.assertIn("28 add-ons will be off in Flight Control sessions from the next start.", out["summary"])
+        self.assertNotIn("a0@x", out["summary"])
+        self.assertEqual(out["check"]["problems"], addons)  # the full list stays in the JSON
 
     def test_fetch_merge_and_log_get_the_long_budget(self):
         self.release()
@@ -227,3 +238,38 @@ if __name__ == "__main__":
     import unittest
 
     unittest.main()
+
+
+class CheckSentenceTest(unittest.TestCase):
+    """What the update summary says about the health check: one sentence, never a list."""
+
+    ADDONS = [{"kind": "addon_not_allowed", "detail": f"a{i}@x isn't allowed."} for i in range(3)]
+    GONE = {"kind": "code_missing", "detail": "demo: its code folder is gone. If it moved, relocate it."}
+    EMPTY = {"kind": "architecture_empty", "detail": "demo: architecture.md is empty."}
+
+    def sentence(self, problems):
+        return update_apply.check_sentence({"ok": not problems, "problems": problems})
+
+    def sentences(self, text):
+        return [s for s in text.replace("? ", ". ").split(". ") if s.strip()]
+
+    def test_a_clean_check(self):
+        self.assertEqual(self.sentence([]), "Everything checks out.")
+
+    def test_no_check_says_nothing(self):
+        self.assertEqual(update_apply.check_sentence(None), "")
+
+    def test_add_ons_only(self):
+        self.assertEqual(self.sentence(self.ADDONS),
+                         "3 add-ons will be off in Flight Control sessions from the next start.")
+        one = update_apply.check_sentence({"ok": False, "problems": self.ADDONS[:1]})
+        self.assertEqual(one, "1 add-on will be off in Flight Control sessions from the next start.")
+
+    def test_other_problems_show_the_first_and_count_the_rest(self):
+        text = self.sentence([self.GONE, self.EMPTY, *self.ADDONS])
+        self.assertEqual(text, "2 things need a look, first: demo: its code folder is gone, and 1 more; "
+                               "3 add-ons will be off in Flight Control sessions from the next start.")
+        self.assertEqual(len(self.sentences(text)), 1)
+
+    def test_one_other_problem(self):
+        self.assertEqual(self.sentence([self.EMPTY]), "1 thing needs a look: demo: architecture.md is empty.")
