@@ -79,7 +79,7 @@ at start).
       starting with those tools blocked, one welcome line, and a second start saying nothing
 - [x] 4. Ask for one in plain words — you'll see it by saying "I need Gmail", seeing it listed and
       unblocked from the next start, with a `/mcp` choice left untouched
-- [ ] 5. Live check — you'll see it by two `claude -p hi` starts on the real `A-FC` folder, before
+- [x] 5. Live check — you'll see it by two `claude -p hi` starts on the real `A-FC` folder, before
       and after, with the token numbers written in Decisions
 
 ## Tasks
