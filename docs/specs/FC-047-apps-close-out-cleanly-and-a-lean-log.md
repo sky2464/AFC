@@ -84,7 +84,7 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
       (proves A3)
 - [x] 4. A short log and an event file — you'll see it by a scratch plan after add, start and done showing no
       new log rows and three lines in `events.jsonl`, and a goal change showing a row (proves A4, A5)
-- [ ] 5. Clean up the log, and keep it clean — you'll see it by `plan tidy --show` and `plan tidy` on a
+- [x] 5. Clean up the log, and keep it clean — you'll see it by `plan tidy --show` and `plan tidy` on a
       scratch copy of Flight Control's plan (rows to `events.jsonl`, fact rows kept, plan shorter,
       counts matching) and `check` flagging a scratch plan padded past 150 lines (proves A7, A8)
 - [ ] 6. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
