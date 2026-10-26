@@ -539,12 +539,30 @@ def _routing_drift_problems(project) -> list[dict]:
     return found
 
 
+# The Components table gained a Key files column in FC-049. Projects created before that still
+# hold the earlier empty template, and that file is empty too.
+_COMPONENTS_NOW = "| Name | Responsibility | Key files | Talks to |\n|---|---|---|---|"
+_COMPONENTS_BEFORE = "| Name | Responsibility | Talks to |\n|---|---|---|"
+
+
+def _same_words(left: str, right: str) -> bool:
+    return " ".join(left.split()) == " ".join(right.split())
+
+
 def architecture_is_bare(path: Path) -> bool:
-    """True when the project's architecture.md is still the empty template (whitespace aside)."""
+    """True when architecture.md is still an empty template, apart from whitespace.
+
+    The current template and the previous one (no Key files column) both count, so a project
+    created before that column still gets the empty-file warning."""
     template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
     if not path.is_file() or not template.is_file():
         return False
-    return " ".join(path.read_text(encoding="utf-8").split()) == " ".join(template.read_text(encoding="utf-8").split())
+    current = template.read_text(encoding="utf-8")
+    have = path.read_text(encoding="utf-8")
+    if _same_words(have, current):
+        return True
+    previous = current.replace(_COMPONENTS_NOW, _COMPONENTS_BEFORE, 1)
+    return previous != current and _same_words(have, previous)
 
 
 def _architecture_problems(project) -> list[dict]:
