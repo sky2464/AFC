@@ -66,7 +66,9 @@ plan's table columns. Merging, pushing or rewriting history.
 - The dirty-plan check runs `git status --short -- docs/master-plan.md docs/specs` and is skipped
   while a spec is in Now with an open slice.
 - The workflow `.claude/workflows/afc-build-spec.js` already calls `plan start` and `plan done`; it
-  adds a commit after each that stages only `docs/master-plan.md` and `docs/specs`.
+  adds a commit after each that stages only the plan's own files: `docs/master-plan.md` and
+  `docs/specs`, plus `docs/changelog.md` for the commit after `plan done` (`plan done` writes the
+  changelog, so leaving it out would leave the tree dirty).
 - No test change: Flight Control keeps five tests on guards (FC-030).
 
 ## Slices
@@ -99,7 +101,8 @@ Slice 3:
 - `afc/cli_plan.py`: `set`, `reopen`; `cmd_start` refuses an open dependency.
 
 Slice 4:
-- `.claude/workflows/afc-build-spec.js`: commit after `plan start` and after `plan done`.
+- `.claude/workflows/afc-build-spec.js`: commit after `plan start` (stages the plan and specs) and after `plan done` (stages the plan, specs
+  and `docs/changelog.md`).
 
 Slice 5:
 - `docs/superpowers/README.md`; the folder is skipped in the check.
