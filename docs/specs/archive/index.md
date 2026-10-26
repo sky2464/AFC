@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-028 | Welcome says it once | 2026-10-25 | FC-028-welcome-says-it-once.md |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | FC-027-add-ons-off-at-start-quiet-health-check.md |
 | FC-026 | Release check and v0.03a | 2026-10-25 | FC-026-release-check-and-v0-03a.md |
 | FC-025 | Token usage cost by model | 2026-10-25 | FC-025-token-usage-by-model.md |

@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-028 | Welcome says it once | S | [spec](specs/FC-028-welcome-says-it-once.md) | 2026-10-25 |
 
 ## Next
 
@@ -24,6 +23,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 | FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
@@ -33,7 +33,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
 | FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
-| FC-019 | Checks only when needed | 2026-10-25 | [FC-019](specs/archive/FC-019-checks-only-when-needed.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -197,3 +196,4 @@ same day showed the rest.
 | 2026-10-25 | FC-027 started |
 | 2026-10-25 | FC-027 done |
 | 2026-10-25 | FC-028 started |
+| 2026-10-25 | FC-028 done |

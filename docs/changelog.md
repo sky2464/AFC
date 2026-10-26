@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 — FC-028 Welcome says it once
+
+After the welcome, the first reply never repeats it. A greeting gets a short hello and the welcome's own question, without a second introduction.
+
+- No second introduction
+
 ## 2026-10-25 — FC-027 Add-ons off at start, quiet health check
 
 Add-ons that aren't on Flight Control's allowed list are really switched off in its sessions, without the user running anything. The health check, the welcome and the update summary speak up only about what needs the user, in a line or two.
