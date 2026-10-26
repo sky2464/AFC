@@ -64,6 +64,9 @@ def register(sub) -> None:
     q = psub.add_parser("tidy", help="move routine Update log rows to events.jsonl (--show lists them first)")
     q.add_argument("--show", action="store_true", help="only list what would move; change nothing")
     q.set_defaults(handler=cmd_tidy)
+    q = psub.add_parser("find", help="add a finding with the next F-NNN id in state open")
+    q.add_argument("text")
+    q.set_defaults(handler=cmd_find)
     q = psub.add_parser("score", help="update one Scoreboard measure and log it")
     q.add_argument("name")
     q.add_argument("value")
@@ -588,6 +591,25 @@ def cmd_done(args: argparse.Namespace) -> dict:
 def cmd_tidy(args: argparse.Namespace) -> dict:
     space, _, _ = _load(write=not args.show)
     return plan.tidy(space, apply=not args.show)
+
+
+def cmd_find(args: argparse.Namespace) -> dict:
+    space, _, _ = _load(write=True)
+    text_in = args.text.strip()
+    if not text_in:
+        raise _error("Give the finding as one line of text.")
+    fpath = plan.findings_path(space)
+    template_path = _cli().afc_root() / "templates" / "workspace" / "plan" / "findings.md"
+    existing = fpath.read_text(encoding="utf-8") if fpath.is_file() else (
+        template_path.read_text(encoding="utf-8") if template_path.is_file() else
+        "# Findings\n\n## All findings\n\n" + plan._FINDING_HEADER
+    )
+    fid = plan.next_finding_id(existing)
+    today = _cli()._today()
+    new_text = plan.add_finding(existing, fid, text_in, today)
+    fpath.write_text(new_text, encoding="utf-8")
+    plan.event(space, today, f"{fid} found: {text_in[:60]}")
+    return {"finding": fid, "state": "open", "text": text_in}
 
 
 def cmd_score(args: argparse.Namespace) -> dict:

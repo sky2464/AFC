@@ -417,6 +417,39 @@ def events_path(space) -> Path:
     return space.base.parent / "events.jsonl"
 
 
+def findings_path(space) -> Path:
+    """findings.md: in docs/ for Flight Control's own plan, in plan/ for a project."""
+    return space.base / "findings.md"
+
+
+_FINDING_ID = re.compile(r"\bF-(\d+)\b")
+_FINDING_HEADER = "| ID | Finding | State | Found |\n|---|---|---|---|\n"
+
+
+def next_finding_id(findings_text: str) -> str:
+    """Next F-NNN id from the table rows (lines starting with |); F-001 when none exist yet."""
+    table_lines = [ln for ln in findings_text.split("\n") if ln.lstrip().startswith("|")]
+    nums = [int(m) for ln in table_lines for m in _FINDING_ID.findall(ln)]
+    return f"F-{max(nums, default=0) + 1:03d}"
+
+
+def add_finding(findings_text: str, fid: str, text: str, found: str) -> str:
+    """Append one finding row to the All findings table; create the section if absent."""
+    new_row = f"| {fid} | {cell(text)} | open | {cell(found)} |"
+    lines = findings_text.split("\n")
+    try:
+        start, end = _section_span(lines, "All findings")
+        # find last table row (after header+divider) and insert after it
+        table = [i for i in range(start, end) if lines[i].lstrip().startswith("|")]
+        if len(table) < 2:
+            lines.insert(end, new_row)
+        else:
+            lines.insert(table[-1] + 1, new_row)
+    except ValueError:
+        lines += ["", "## All findings", "", *_FINDING_HEADER.splitlines(), new_row, ""]
+    return "\n".join(lines)
+
+
 def event(space, date: str, text: str) -> None:
     """Append one plan event (date, event, spec) to events.jsonl. Never touches the plan."""
     m = re.match(r"([A-Z]+-\d+)\b", text)
