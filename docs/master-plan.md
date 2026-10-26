@@ -2,7 +2,7 @@
 
 Flight Control's own master plan, kept in the same shape it gives every project. Specs live in
 `docs/specs/`; finished ones move to `docs/specs/archive/`. Build each spec on `dev`, one commit
-per slice, with maintenance mode on while editing and the full suite passing.
+per slice, with maintenance mode on while editing.
 
 ## Goal
 

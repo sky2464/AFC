@@ -51,6 +51,7 @@ project.
 - Never list commands, skills, rule modules or workflows unless the user asks.
 - Plain words, no jargon by default; technical detail only on request.
 - `/afc` is the only command the user needs to remember.
+- Never mention tests or test counts unless the user asked for a run, or a run they asked for failed.
 
 ## Where to go (situation → skill)
 

@@ -10,14 +10,12 @@ from pathlib import Path
 
 from afc.config import afc_root
 
-NAMES = ("test", "ci", "gate")
+NAMES = ("test", "gate")
 
 
 def register(sub) -> None:
     p = sub.add_parser("test", help="run the core tests")
     p.set_defaults(handler=cmd_test)
-    c = sub.add_parser("ci", help="show how the last test run on GitHub went")
-    c.set_defaults(handler=cmd_ci)
     g = sub.add_parser("gate", help="the build workflow's quick gate for one built slice")
     g.add_argument("--spec", required=True)
     g.add_argument("--slice", required=True, type=int)
@@ -44,12 +42,6 @@ def cmd_test(args: argparse.Namespace) -> dict:
         out["failure"] = "\n".join(text.strip().splitlines()[-15:])
     out["exit_code"] = 1 if bad else 0
     return out
-
-
-def cmd_ci(args: argparse.Namespace) -> dict:
-    from afc import ci_status
-
-    return ci_status.last_run(Path(afc_root()))
 
 
 def cmd_gate(args: argparse.Namespace) -> dict:

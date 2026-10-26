@@ -13,7 +13,6 @@ What does this change do, and why?
 ## Checklist
 
 - [ ] I read [CONTRIBUTING.md](../CONTRIBUTING.md) (developer copy, maintenance mode for A-FC edits, branch from `dev` for ongoing work).
-- [ ] Tests pass locally: `python3 -m unittest discover -s tests -t .`
 - [ ] No secrets, personal paths, or private project data in the diff.
 - [ ] If this changes user-visible behavior, the README or skills were updated when needed.
 

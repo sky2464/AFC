@@ -86,7 +86,7 @@ Changing what the guards, secret check or path rules do. Adding a new test tool.
       few seconds, with the rest of `tests/` gone
 - [x] 2. Building runs no tests — you'll see it by a build of a one-line FC slice finishing with no
       test run in its log, and no test count in its summary
-- [ ] 3. Quiet replies and CI — you'll see it by `/afc` in maintenance mode showing no GitHub test
+- [x] 3. Quiet replies and CI — you'll see it by `/afc` in maintenance mode showing no GitHub test
       line, and GitHub running only the five on a pull request to `main`
 - [ ] 4. Projects test only when asked — you'll see it by a live slice in a test project that
       shows a working change with no test written, and delivers it without a test command
