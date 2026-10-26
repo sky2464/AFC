@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-044 | The plan can't drift | L | [spec](specs/FC-044-the-plan-can-t-drift.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-044 | The plan can't drift | L | [spec](specs/FC-044-the-plan-can-t-drift.md) |
 | FC-045 | Releases and results from the plan | M | [spec](specs/FC-045-releases-and-results-from-the-plan.md) |
 | FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
 | FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |
@@ -224,3 +224,4 @@ same day showed the rest.
 | 2026-10-26 | FC-048 added |
 | 2026-10-26 | FC-048 started |
 | 2026-10-26 | FC-048 done |
+| 2026-10-26 | FC-044 started |
