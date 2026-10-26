@@ -41,8 +41,9 @@ to every session in the Flight Control folder, so the lighter session carries in
 - A fresh clone of `dev` started with `claude -p hi` uses at least 12,000 fewer tokens than the
   same clone without the list (FC-034 measured about 17,400 for 10 connectors), both numbers in
   Decisions, measured with `docs/measurements/token_usage.py`.
-- A connector the user turned on in `/mcp` before the update, or asks for in plain words, loads from
-  the next start, and Flight Control never writes over a choice made in `/mcp`.
+- A connector the user asks for in plain words ("I need Gmail") loads from the next start, stays on
+  through updates, and leaves `git status` clean. Flight Control never writes over a choice made in
+  `/mcp`.
 - The welcome says nothing new on the first start. Its existing connector line (FC-034) still says
   how many were held back, counting the tracked ones.
 - Updating to this release is enough: no new README step, and no change to the two-command install.
@@ -60,9 +61,10 @@ start. Changing a project's own list (FC-034) or the no-project hold-back (FC-03
   code share one list.
 - `.claude/settings.json` is tracked and shared, so it must not hold anything user-specific: names
   only.
-- The hook's `deniedMcpServers` write in `settings.local.json` and the tracked list add together; the
-  hook never removes a tracked entry, only adds a connector to `allowedMcpServers` when a user asks
-  for it.
+- The hook's `deniedMcpServers` write in `settings.local.json` and the tracked list add together.
+  A denial in either place wins, and an allow entry doesn't undo it (slice 1), so turning one back
+  on means taking it out of the tracked file. Updates refuse any change in the folder, so that
+  edit is hidden from git with `skip-worktree`, and the update step puts it back (slice 4).
 - Anything touching the guard or maintenance mode needs the daily folder updated first (see
   CONTRIBUTING): this edits `.claude/settings.json`, so the build is in maintenance mode on `dev`.
 
@@ -75,9 +77,13 @@ start. Changing a project's own list (FC-034) or the no-project hold-back (FC-03
 - [ ] 2. Ship the list — you'll see it by `git diff` on `.claude/settings.json` showing only
       `deniedMcpServers` names, and a fresh scratch clone's first `claude -p hi` using at least
       12,000 fewer tokens than without it
-- [ ] 3. Asking for one still works — you'll see it by `sh bin/afc connectors add Gmail` in a
-      scratch home putting Gmail in the allow entry and the next start's connector list including
-      it, with a connector turned on in `/mcp` left alone
+- [ ] 3. Asking for one in plain words — you'll see it by `sh bin/afc connectors add Gmail` in a
+      scratch clone and home taking `claude.ai Gmail` out of the tracked `deniedMcpServers`, listing
+      it in the workspace's `connectors.json`, leaving `git status` clean, and the next `claude -p
+      hi` listing Gmail
+- [ ] 4. Updates keep the choice — you'll see it by a scratch clone with Gmail asked for, updated by
+      `workspace_upgrade`'s release path to a newer commit that changes `.claude/settings.json`,
+      ending with the new file, Gmail still out of the list, `git status` clean and no refusal
 
 ## Tasks
 
@@ -92,10 +98,23 @@ Slice 2:
   from it. A short check in `sh bin/afc check` that the tracked list and the data file agree.
 
 Slice 3:
-- `afc/connectors.py` `release`: also add the name to `allowedMcpServers` when it is in the tracked
-  list. `afc/cli_connectors.py` reports it.
+- `afc/connectors.py` `release`: when the name is in the tracked `deniedMcpServers`, remove it from
+  `.claude/settings.json` and mark that file `git update-index --skip-worktree`, so `git status`
+  stays clean and updates are not refused. Also keep the name in the workspace's `connectors.json`.
+  The allow entry is not used (slice 1: it switches every other server off).
+- `afc/cli_connectors.py`: report "from the next start" as today.
+
+Slice 4:
+- `afc/update_apply.py`: before fetching and merging a release, clear `skip-worktree` and restore
+  `.claude/settings.json`; after the merge, re-remove every name in the workspace's list from the
+  new file and mark it again. If any step fails, undo it and leave the file as it was.
+- `sh bin/afc check`: report a tracked list that still holds a name the workspace says is wanted.
 
 ## Decisions
+
+- 2026-10-25: after slice 1, the user chose to ship the list. Turning a blocked connector back on is
+  done by taking it out of the tracked list (slice 3) and keeping it out through updates (slice 4),
+  because an allow entry doesn't override a deny.
 
 - Slice 1 measurement (2026-10-25): fresh clones of `dev` at 3af3853, each with its own empty
   workspace (`AFC_HOME`), one `claude -p hi` each (first start), first prompt counted as in
