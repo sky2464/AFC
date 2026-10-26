@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-26 — FC-043 Ready means ready
+
+`afc plan` says, for every spec in Next, in Flight Control's plan and in a project's, whether it is ready for build and, when it is not, what is missing in plain words. A criterion with no slice behind it is caught before the build, without any test. Guesses a spec rests on are listed, not hidden.
+
+- Say what is missing
+- Criteria tied to slices
+- Assumptions
+- New specs and Shipped
+- Live on both plans
+
 ## 2026-10-26 — FC-040 Ready for v0.06a
 
 `main` can be released as v0.06a: `VERSION` says `v0.06a`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
