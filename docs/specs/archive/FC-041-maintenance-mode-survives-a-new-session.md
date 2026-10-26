@@ -1,6 +1,6 @@
 # FC-041 — Maintenance mode survives a new session
 
-Size: M · Status: in progress
+Size: M · Status: done
 
 Found on 2026-10-26. The user was in maintenance mode, working on FC-040 (session `f79266d7…`).
 Claude Code then started a new session in the same folder (`10701c43…`, a fork that kept the whole
@@ -296,3 +296,5 @@ as the recent flag, `maintain.d/sess1.ask` for the session, events sent from the
 Fix 3, 2026-10-26 (a final checker; real pretool hook and CLI in scratch home `.../scratchpad/s6`, `sess1.ask` present): (1) `sh <abs>/bin/afc plan` allowed, and `plan add|start|done|goal|rename|drop|move|--help` blocked with the "choose first" line (plan is on the list only with no subcommand and no further words); (2) `sort` is allowed only as clusters of `r n u f b h V s c` plus file operands: `sort -r`, `ls | sort -rn`, `sort -r a.txt` allowed; `--outp=F`, `--out=F`, `--ou=F`, `--outp F`, `--output=F`, `-o F`, `-ro F`, `-T d`, `-rT d`, `-S 1M`, `-k1`, `--compress-program=x`, `-- -oF` blocked, no file F created; (3) with a project folder as the working directory `sh /abs/A-FC/bin/afc maintain status|on|off` and `plan` are allowed, and the relative `sh bin/afc ...` from a project folder is deliberately blocked ("couldn't read this command safely": that path is the project's own bin/afc, so it must not run), with or without an `.ask`; (4) `maintain on` and `maintain off` with no session ID now raise the CLI's `CliError`: `{"error": "Maintenance mode needs this session's ID; ..."}` and exit 1 for both; (5) `python3 -m afc ...` is off the undecided safe list (`-m` puts the working folder on the import path, so a project could stand in for Flight Control); nothing in the skills, commands, hooks or CONTRIBUTING uses that form (they all use `sh bin/afc`), and it is now blocked; (6) the ordinary welcome context now says a bare 1 or 2 answers a question with its own numbered answers when the conversation holds one (same words as `afc-start`); (7) `current_session()` prefers `CLAUDE_CODE_SESSION_ID`, then `AFC_SESSION`: with `AFC_SESSION=stale CLAUDE_CODE_SESSION_ID=sess5` and `sess5.ask`, `maintain on` wrote `maintain.d/sess5` and removed `sess5.ask`, `maintain off` removed the flag, and with only `AFC_SESSION=sess7` it still wrote `sess7`; the hooks read the event's `session_id` (not `AFC_SESSION`), so nothing depended on `AFC_SESSION` winning.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 5.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-26 — FC-041 Maintenance mode survives a new session
+
+A new session never guesses which world the user is in. When a fork or /clear follows recent maintenance work, it asks one question first and shields every project until the user answers. A bare number always answers the question just asked.
+
+- See what a restart sends
+- Ask when a fork or clear follows maintenance work
+- Nothing touches a project until answered
+- A bare number answers the last question
+- Only a safe list of shell commands until answered
+
 ## 2026-10-26 — FC-042 Review asks for tests only when asked
 
 The review judges a slice by what it can see without tests (secrets, scans, file size, naming) and never blocks a slice for having no tests. A user who does ask for tests still gets the old checks.

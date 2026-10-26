@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-041 | Maintenance mode survives a new session | 2026-10-26 | FC-041-maintenance-mode-survives-a-new-session.md |
 | FC-042 | Review asks for tests only when asked | 2026-10-26 | FC-042-review-asks-for-tests-only-when-asked.md |
 | FC-039 | Welcome counts held-back connectors | 2026-10-26 | FC-039-welcome-counts-held-back-connectors.md |
 | FC-038 | Light first start | 2026-10-25 | FC-038-light-first-start.md |

@@ -7,3 +7,10 @@
 | 2026-10-24 | FC-010 started |
 | 2026-10-24 | Flight Control's specs renamed FC-001 to FC-010; S- stays for project specs |
 | 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
+| 2026-10-24 | FC-010 done |
+| 2026-10-24 | FC-011 One-click updates specced and sliced (7 slices); queued in Next |
+| 2026-10-24 | FC-012 added |
+| 2026-10-24 | FC-012 specced and sliced (5 slices) from the update session's findings; queued last in Next |
+| 2026-10-24 | FC-001 started |
+| 2026-10-24 | FC-001 done |
+| 2026-10-24 | FC-002 started |
