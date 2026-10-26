@@ -24,6 +24,7 @@ def afc_root() -> Path:
 
 SESSION_ID = re.compile(r"^[A-Za-z0-9_-]{1,100}$")
 STALE_AFTER = 7 * 86400  # a session's maintenance flag older than this is dropped
+ASK_WITHIN = 12 * 3600  # a fork or clear is asked about when another session's flag is newer than this
 
 
 def valid_session(value: object) -> str | None:
@@ -97,3 +98,49 @@ def _prune(flags: Path) -> None:
                 flag.unlink()
         except OSError:
             pass
+
+
+def seen(home: Path, session: str | None) -> bool:
+    """Note that Flight Control has started this session ID, and say whether it already had.
+    Records live in sessions.d and are pruned like the maintenance flags. No usable ID counts as seen."""
+    session = valid_session(session)
+    if not session:
+        return True
+    folder = home / "sessions.d"
+    try:
+        mark = folder / session
+        existed = mark.exists()
+        folder.mkdir(parents=True, exist_ok=True)
+        mark.touch()
+        _prune(folder)
+        return existed
+    except OSError:
+        return True  # never ask because of a file problem
+
+
+def needs_choice(home: Path, session: str | None, source: object, was_seen: bool,
+                 now: float | None = None) -> bool:
+    """True when this start is a fork or clear: source resume or clear, an ID not seen before
+    (`was_seen` is what `seen` returned), no flag for this session, and another session's flag
+    under ASK_WITHIN old. Then maintain.d/<id>.ask is written: undecided until `maintain on` or
+    `maintain off`. Never raises."""
+    session = valid_session(session)
+    if not session or was_seen or source not in ("resume", "clear"):
+        return False
+    try:
+        if on_main():
+            return False
+        flags = _flags(home)
+        if (flags / session).exists():
+            return False
+        now = time.time() if now is None else now
+        recent = any(
+            flag.name != session and valid_session(flag.name) and now - flag.stat().st_mtime < ASK_WITHIN
+            for flag in flags.iterdir() if flag.is_file()
+        )
+        if not recent:
+            return False
+        (flags / f"{session}.ask").touch()
+        return True
+    except OSError:
+        return False

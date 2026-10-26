@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-041 | Maintenance mode survives a new session | M | [FC-041](specs/FC-041-maintenance-mode-survives-a-new-session.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-041 | Maintenance mode survives a new session | M | [FC-041](specs/FC-041-maintenance-mode-survives-a-new-session.md) |
 | FC-040 | Ready for v0.06a | S | [FC-040](specs/FC-040-ready-for-v0-06a.md) |
 
 ## Done
@@ -222,3 +222,4 @@ same day showed the rest.
 | 2026-10-26 | FC-039 done |
 | 2026-10-26 | FC-042 started |
 | 2026-10-26 | FC-042 done |
+| 2026-10-26 | FC-041 started |
