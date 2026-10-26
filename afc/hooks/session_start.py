@@ -98,7 +98,7 @@ def _health_line(home: Path) -> str:
     extra = ""
     if behind:
         extra = (" This test copy is behind dev: say so once, in one plain line, and offer to bring "
-                 "it up to date as step 1" + (" (sh bin/afc repair)." if behind[0]["fixable"] else
+                 "it up to date as step 1" + (" (sh bin/afc repair; it needs maintenance mode, so offer /afc mm first if it is off)." if behind[0]["fixable"] else
                                               ", though it has its own changes so ask the user first."))
     if not count:
         return extra

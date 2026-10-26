@@ -12,7 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from afc import addons, tools
-from afc.config import afc_home
+from afc.config import afc_home, current_session, maintain_enabled
 from afc.registry import load_registry, save_registry
 from afc.session_dirs import (GrantError, block_addons, blocked_addons, check_settings, drop_dirs, grant_dirs,
                               granted_now, settings_path)
@@ -73,7 +73,12 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
         elif p["kind"] == "test_copy_behind" and p["fixable"]:
-            if _git(cli.afc_root(), "checkout", "--detach", "dev") is not None:
+            # Changing git in the A-FC folder needs maintenance mode, as it does when typed. The copy
+            # is already detached and clean, so reset moves it without a new detach.
+            if not maintain_enabled(home, current_session()):
+                repaired.append("This test copy is behind dev; bringing it up to date changes Flight "
+                                "Control's own folder, so it needs maintenance mode (/afc mm).")
+            elif _git(cli.afc_root(), "reset", "--hard", "dev") is not None:
                 repaired.append("Brought this test copy up to date with dev.")
         elif p["kind"] == "root_detached" and p["fixable"]:
             if _git(cli.afc_root(), "switch", "main") is not None:
