@@ -77,7 +77,7 @@ at start).
       list, filled from what the project shows, and adding one by name
 - [x] 3. Hold back the rest at start — you'll see it by a session on a project with no connectors
       starting with those tools blocked, one welcome line, and a second start saying nothing
-- [ ] 4. Ask for one in plain words — you'll see it by saying "I need Gmail", seeing it listed and
+- [x] 4. Ask for one in plain words — you'll see it by saying "I need Gmail", seeing it listed and
       unblocked from the next start, with a `/mcp` choice left untouched
 - [ ] 5. Live check — you'll see it by two `claude -p hi` starts on the real `A-FC` folder, before
       and after, with the token numbers written in Decisions

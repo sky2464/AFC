@@ -238,3 +238,29 @@ def hold_for(root: Path, workspace: Path, code: Path) -> tuple[int, int]:
     except BaseException:
         undo.rollback()
         raise
+
+
+def release(root: Path, name: str) -> bool:
+    """Unblock one connector Flight Control held here, so it loads from the next start. Only
+    entries Flight Control wrote are removed; the user's own entries and choices stay."""
+    from afc.session_dirs import _atomic_write, _read_settings, settings_path
+
+    full = PREFIX + _clean(name)
+    path = settings_path(root)
+    settings = _read_settings(path)
+    mine = settings.get(HELD_KEY, [])
+    mine = [n for n in mine if isinstance(n, str)] if isinstance(mine, list) else []
+    hit = [n for n in mine if n.lower() == full.lower()]
+    if not hit:
+        return False
+    denied = settings.get(DENIED_KEY, [])
+    denied = denied if isinstance(denied, list) else []
+    left = [e for e in denied if _entry_name(e) not in hit]
+    rest = [n for n in mine if n not in hit]
+    for key, val in ((DENIED_KEY, left), (HELD_KEY, rest)):
+        if val:
+            settings[key] = val
+        else:
+            settings.pop(key, None)
+    _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+    return True

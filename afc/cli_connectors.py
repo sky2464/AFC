@@ -8,7 +8,7 @@ import argparse
 from pathlib import Path
 
 from afc import connectors
-from afc.config import afc_home
+from afc.config import afc_home, afc_root
 from afc.registry import load_registry
 
 NAMES = ("connectors",)
@@ -33,8 +33,14 @@ def cmd_connectors(args: argparse.Namespace) -> dict:
             data, new = connectors.add(ws, " ".join(args.name))
         except ValueError as exc:
             raise CliError(str(exc)) from exc
+        released = False
+        try:
+            released = connectors.release(afc_root(), " ".join(args.name))
+        except Exception:  # the list is saved; the block is then lifted by the next start
+            pass
         return {"project": project.name, "connectors": connectors.names(data), "added": new,
-                "applies": "from the next start"}
+                "unblocked": released, "applies": "from the next start",
+                "now": "or right away from /mcp"}
     if args.name:
         raise CliError("Use `connectors` to show the list or `connectors add <name>`.")
     data = connectors.refresh(ws, code)
