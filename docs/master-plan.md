@@ -18,6 +18,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-030 | Tests only when asked | M | [FC-030](specs/FC-030-tests-only-when-asked.md) |
 | FC-031 | Test copy stays current and separate | M | [FC-031](specs/FC-031-test-copy-stays-current-and-separate.md) |
 
 ## Done
