@@ -1,6 +1,6 @@
 # FC-045 — Releases and results from the plan
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose Done rows carry the version and links
 to the review and the evidence.
@@ -114,3 +114,5 @@ Slice 4:
 - `prepare` since the last tag lists FC-040 too, because `v0.06a` is prepared but not tagged yet.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 4. Criteria: 0 of 5 proven.

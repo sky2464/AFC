@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-26 — FC-045 Releases and results from the plan
+
+A release is made from the plan, not from a spec. `sh bin/afc release prepare <version>` lists what is done since the last release, drafts the `## <version>` section (10 lines or fewer, plain words) from each spec's goal, and sets VERSION. Each Done row says which release it went out in and what it reached (met, partly, not met), and a small Scoreboard shows the few numbers the goal depends on.
+
+- Draft the release
+- Releases table and Release column
+- Outcome on Done rows
+- Scoreboard
+
 ## 2026-10-26 — FC-044 The plan can't drift
 
 Anything wrong in the plan is found by `sh bin/afc check` in a plain sentence, on Flight Control's plan and on every project's plan; what needs no decision is fixed by `repair`; every plan change has a command, so hand editing is never needed; and a build never leaves the plan uncommitted.
