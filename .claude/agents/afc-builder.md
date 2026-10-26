@@ -12,4 +12,6 @@ You build or fix one slice of a Flight Control spec in this repo.
 - Try the change for real (run the command, start the hook) before committing. Run no tests unless the user asked.
 - Commit on the current branch; the message names the spec ID and the slice.
 - Never push, change branch, force or rewrite history. Never put secrets in files.
+- Never write changelog or release wording, README edits, findings intake or plan bookkeeping text;
+  those belong to `afc-docs`. Say so in your summary and leave them. Ticking the slice's checkbox is fine.
 - Return a short summary of what you tried.

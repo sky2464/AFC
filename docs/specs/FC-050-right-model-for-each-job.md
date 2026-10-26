@@ -122,7 +122,7 @@ and Vertex.
 - [x] 2. Architecture goes to the architect — you'll see it by the skill sentences, and a scratch
       slice that changes structure ending with its `architecture.md` row written by `afc-architect`
       (proves A3, A4)
-- [ ] 3. Documents go to Haiku — you'll see it by a scratch changelog request answered by `afc-docs`
+- [x] 3. Documents go to Haiku — you'll see it by a scratch changelog request answered by `afc-docs`
       and the builder instructions refusing to write it (proves A5)
 - [ ] 4. Opus by default, one place to overrule — you'll see it by `.claude/settings.json` setting
       the model, `agents` printing where to change it, and a `model` line in
@@ -179,5 +179,9 @@ Slice 6:
   note before those slices and the architecture update after them (FC's workflow also after any slice that leaves
   `architecture_unmapped`). Scratch run: a session told about a new outside-call module called `afc-architect`
   with no model argument; it ran on claude-opus-5-5 at effort high and wrote the `src/payments.py` row itself.
+- 2026-10-26 (slice 3): `afc-slice`, `afc-deliver`, `afc-builder` and the project `afc-build` route changelog, README,
+  findings and plan text to `afc-docs`; ticking the slice box stays with the builder. Scratch run: a changelog
+  request went to `afc-docs` on claude-haiku-5-5 at effort low and wrote the line; `afc-build` given the same task
+  refused it and named `afc-docs`.
 
 ## Shipped

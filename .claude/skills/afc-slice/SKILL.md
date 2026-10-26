@@ -52,6 +52,8 @@ Elevation of privilege.
 ## checkpoint 2 — while building
 
 - Try the change for real as you build. Write or run tests only when the user asks.
+- Changelog and release wording, README edits, findings intake and plan bookkeeping text go to the
+  `afc-docs` agent, never the builder.
 - Code goes only into the active project's code path. If a guard blocks you
   ("Flight Control blocked …"), fix the cause or say so; never work around it.
   A guard that should have fired is a full stop.
