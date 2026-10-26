@@ -20,6 +20,7 @@ from afc.profile import PROFILES, modules_for
 from afc import (
     cli_agents,
     cli_awake,
+    cli_connectors,
     cli_context,
     cli_defaults,
     cli_delivery,
@@ -63,6 +64,7 @@ COMMAND_NAMES = (
     "scan",
     *cli_defaults.NAMES,
     *cli_agents.NAMES,
+    *cli_connectors.NAMES,
     *cli_context.NAMES,
     *cli_delivery.NAMES,
     *cli_home.NAMES,

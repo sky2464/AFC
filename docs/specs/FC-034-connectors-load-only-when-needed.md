@@ -73,7 +73,7 @@ at start).
 
 - [x] 1. Where the tokens go — you'll see it by a written breakdown of a "hi" start by part, and a
       restart showing a `deniedMcpServers` entry really removes that connector's tools
-- [ ] 2. A connector list per project — you'll see it by `sh bin/afc` showing a project's connector
+- [x] 2. A connector list per project — you'll see it by `sh bin/afc` showing a project's connector
       list, filled from what the project shows, and adding one by name
 - [ ] 3. Hold back the rest at start — you'll see it by a session on a project with no connectors
       starting with those tools blocked, one welcome line, and a second start saying nothing

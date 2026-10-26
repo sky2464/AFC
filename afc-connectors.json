@@ -1,0 +1,9 @@
+{
+  "facts": {
+    "github_remote": "GitHub",
+    "figma_files": "Figma",
+    "vercel_config": "Vercel",
+    "netlify_config": "Netlify",
+    "linear_mention": "Linear"
+  }
+}

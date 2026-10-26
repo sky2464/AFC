@@ -7,6 +7,7 @@ from afc import (
     cli_agents,
     cli_awake,
     cli_context,
+    cli_connectors,
     cli_defaults,
     cli_delivery,
     cli_health,
@@ -105,6 +106,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(handler=cli.cmd_scan)
 
     cli_agents.register(sub)
+    cli_connectors.register(sub)
     cli_context.register(sub)
     cli_delivery.register(sub)
     cli_index.register(sub)
