@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-043 | Ready means ready | M | [spec](specs/FC-043-ready-means-ready.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-043 | Ready means ready | M | [spec](specs/FC-043-ready-means-ready.md) |
 | FC-044 | The plan can't drift | L | [spec](specs/FC-044-the-plan-can-t-drift.md) |
 | FC-045 | Releases and results from the plan | M | [spec](specs/FC-045-releases-and-results-from-the-plan.md) |
 | FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
@@ -225,3 +225,4 @@ same day showed the rest.
 | 2026-10-26 | FC-041 done |
 | 2026-10-26 | FC-040 started |
 | 2026-10-26 | FC-040 done |
+| 2026-10-26 | FC-043 started |
