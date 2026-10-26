@@ -22,6 +22,7 @@ from afc.workspace import create_workspace
 NAMES = ("check", "repair", "relocate")
 ACCESS = ("stale_access", "gone_access", "missing_access", "foreign_access")
 ADDONS = ("addon_not_allowed", "addon_unblock")
+PLAN_KINDS = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs")
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
@@ -90,6 +91,7 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             path = Path(p["path"])
             path.write_text(path.read_text(encoding="utf-8").rstrip("\n") + "\n" + LOG_SECTION, encoding="utf-8")
             repaired.append(f"Added a Log section to {p['project']}'s decisions.")
+    repaired += _repair_plan(home, [p for p in find_problems(home) if p["kind"] in PLAN_KINDS])
     access = [p for p in find_problems(home) if p["kind"] in ACCESS]
     if access:
         undo = cli._settings_undo()
@@ -125,6 +127,69 @@ def cmd_repair(args: argparse.Namespace) -> dict:
     if on:
         repaired.append("Switched back on add-ons that are now allowed; this applies from the next start.")
     return {"repaired": repaired, "left": find_problems(home)}
+
+
+def plan_problems(home: Path) -> list[dict]:
+    """Flight Control's plan gone stale: a Now row with every slice ticked, a built spec still in Next,
+    or a worktree's own copy of the plan that differs from the one on dev. Reads only."""
+    from afc import cli_plan, plan
+
+    root = cli_plan._plan_root()
+    master = root / "docs" / "master-plan.md"
+    if not master.is_file():
+        return []
+    space = plan.flight_control_space(root)
+    text = master.read_text(encoding="utf-8")
+    found: list[dict] = []
+    for section, kind, how in (
+            ("Now", "plan_all_ticked_in_now", "is in Now with every slice ticked"),
+            ("Next", "plan_built_in_next", "is built (every slice ticked) but still in Next")):
+        for row in plan.read_rows(text, section):
+            spec = cli_plan._spec_path(space, row)
+            slices = plan.all_slices(spec.read_text(encoding="utf-8")) if spec.is_file() else []
+            if slices and all(done for done, _ in slices):
+                found.append(_problem(kind, str(master), True, project=row[0],
+                                      detail=f"{row[0]} {how}; repair closes it in the plan "
+                                             "(needs maintenance mode)."))
+    here = _cli().afc_root() / "docs" / "master-plan.md"
+    if root.resolve() != _cli().afc_root().resolve() and here.is_file() and \
+            here.read_text(encoding="utf-8") != text:
+        clean = _git(_cli().afc_root(), "status", "--short", "--", "docs/master-plan.md") == ""
+        found.append(_problem("plan_copy_differs", str(here), clean,
+                              detail="This worktree's own copy of the master plan differs from the one on dev; "
+                                     + ("repair replaces it with dev's." if clean else
+                                        "it has uncommitted edits, so repair leaves it alone.")))
+    return found
+
+
+def _repair_plan(home: Path, found: list[dict]) -> list[str]:
+    from argparse import Namespace
+
+    from afc import cli_plan
+
+    cli = _cli()
+    out: list[str] = []
+    if not found:
+        return out
+    ordered = sorted(found, key=lambda p: p["kind"] != "plan_all_ticked_in_now")
+    for p in ordered:
+        if p["kind"] == "plan_copy_differs":
+            src = cli_plan._plan_root() / "docs" / "master-plan.md"
+            Path(p["path"]).write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            out.append("Replaced this worktree's copy of the master plan with the one on dev.")
+            continue
+        if not maintain_enabled(home, current_session()):
+            out.append(f"{p['project']} is out of date in the plan; closing it changes Flight Control's "
+                       "own plan, so it needs maintenance mode (/afc mm).")
+            continue
+        try:
+            if p["kind"] == "plan_built_in_next":
+                cli_plan.cmd_start(Namespace(id=p["project"]))
+            cli_plan.cmd_done(Namespace(id=p["project"]))
+            out.append(f"Closed {p['project']} in the master plan.")
+        except cli.CliError as exc:
+            out.append(f"Could not close {p['project']} in the plan: {exc}")
+    return out
 
 
 def switch_addons(root: Path, found: list[dict]) -> tuple[int, int]:
@@ -203,6 +268,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     reg = load_registry(home)
     problems: list[dict] = root_problems(cli.afc_root()) if not is_test_copy(cli.afc_root(), home) else []
     problems += behind_problems(cli.afc_root(), home)
+    problems += plan_problems(home)
     owned: set[Path] = set()
     for p in reg.projects.values():
         owned.add(Path(p.workspace_path).resolve())

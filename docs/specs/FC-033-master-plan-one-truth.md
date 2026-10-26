@@ -62,7 +62,7 @@ written.
       to Now at the start and to Done at the end with no manual call
 - [x] 3. One plan wherever you stand — you'll see it by `sh bin/afc plan` run in a worktree showing
       `dev`'s plan, and `plan start` there changing `dev`'s file
-- [ ] 4. A stale plan is found and fixed — you'll see it by `sh bin/afc check` listing a built spec
+- [x] 4. A stale plan is found and fixed — you'll see it by `sh bin/afc check` listing a built spec
       still in Next as fixable, and `repair` moving it
 - [ ] 5. Apps stay current — you'll see it by a slice finished in a test project leaving its plan
       with the right Now/Done rows with no extra step
