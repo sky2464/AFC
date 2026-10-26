@@ -473,14 +473,19 @@ def _decisions_problems(project) -> list[dict]:
                             "decisions stop landing under the always/never rules.")]
 
 
+def architecture_is_bare(path: Path) -> bool:
+    """True when the project's architecture.md is still the empty template (whitespace aside)."""
+    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
+    if not path.is_file() or not template.is_file():
+        return False
+    return " ".join(path.read_text(encoding="utf-8").split()) == " ".join(template.read_text(encoding="utf-8").split())
+
+
 def _architecture_problems(project) -> list[dict]:
     """A project with a done slice whose architecture.md is still the bare template (whitespace
     aside). Claude fills it from the code, so it is reported, never auto-fixed."""
     path = Path(project.workspace_path) / "plan" / "architecture.md"
-    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
-    if not project.last_slice or not path.is_file() or not template.is_file():
-        return []
-    if " ".join(path.read_text(encoding="utf-8").split()) != " ".join(template.read_text(encoding="utf-8").split()):
+    if not project.last_slice or not architecture_is_bare(path):
         return []
     return [_problem("architecture_empty", str(path), False, project=project.name,
                      detail=f"{project.name}: slices are done but architecture.md is still the empty "

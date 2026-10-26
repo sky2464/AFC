@@ -516,6 +516,12 @@ def cmd_done(args: argparse.Namespace) -> dict:
     if not gate["ready"]:
         lines = "\n".join(f"- {m}" for m in gate["missing"])
         raise _error(f"{sid} is not ready to finish yet:\n{lines}\nNext: {gate['next']}")
+    if space.prefix != "FC":
+        from afc.cli_health import architecture_is_bare
+
+        if architecture_is_bare(space.base / "architecture.md"):
+            raise _error(f"{sid} can't be finished yet: architecture.md is still the empty template, "
+                         "so fill it in from the code first.")
     slices = plan.all_slices(spec_text)
     today = _cli()._today()
     name = spec_path.name

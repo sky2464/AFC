@@ -1,6 +1,6 @@
 # FC-047 — Apps close out cleanly, and a lean log
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-26 · Done: -
 
 Found on 2026-10-26, comparing this plan with AgToosa's and running `sh bin/afc check`.
 
@@ -76,7 +76,7 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
 
 ## Slices
 
-- [ ] 1. Done needs real architecture notes — you'll see it by a scratch project's `plan done` stopped with
+- [x] 1. Done needs real architecture notes — you'll see it by a scratch project's `plan done` stopped with
       the bare template and passing once the file has content (proves A1)
 - [ ] 2. Start needs a goal — you'll see it by a scratch project's `plan start` stopped with an empty Goal
       and passing with one (proves A2)
