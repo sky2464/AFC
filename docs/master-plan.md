@@ -22,6 +22,11 @@ Every change must reach the apps Flight Control builds for users.
 | ID | Title | Size | Spec |
 |---|---|---|---|
 | FC-040 | Ready for v0.06a | S | [FC-040](specs/FC-040-ready-for-v0-06a.md) |
+| FC-043 | Ready means ready | M | [spec](specs/FC-043-ready-means-ready.md) |
+| FC-044 | The plan can't drift | L | [spec](specs/FC-044-the-plan-can-t-drift.md) |
+| FC-045 | Releases and results from the plan | M | [spec](specs/FC-045-releases-and-results-from-the-plan.md) |
+| FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
+| FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |
 
 ## Done
 
@@ -223,3 +228,8 @@ same day showed the rest.
 | 2026-10-26 | FC-042 started |
 | 2026-10-26 | FC-042 done |
 | 2026-10-26 | FC-041 started |
+| 2026-10-26 | FC-043 added |
+| 2026-10-26 | FC-044 added |
+| 2026-10-26 | FC-045 added |
+| 2026-10-26 | FC-046 added |
+| 2026-10-26 | FC-047 added |
