@@ -82,7 +82,7 @@ Changing what the guards, secret check or path rules do. Adding a new test tool.
 
 ## Slices
 
-- [ ] 1. Five core tests — you'll see it by `sh bin/afc test` running five tests and passing in a
+- [x] 1. Five core tests — you'll see it by `sh bin/afc test` running five tests and passing in a
       few seconds, with the rest of `tests/` gone
 - [ ] 2. Building runs no tests — you'll see it by a build of a one-line FC slice finishing with no
       test run in its log, and no test count in its summary

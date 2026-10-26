@@ -8,7 +8,6 @@ import re
 import subprocess
 from pathlib import Path
 
-from afc import testrun
 
 SECRET_PATTERNS = [
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
@@ -45,11 +44,6 @@ def quick_gate(root: Path, spec: Path, number: int, base: str) -> dict:
     text = Path(spec).read_text(encoding="utf-8") if Path(spec).is_file() else ""
     if not re.search(rf"^- \[x\] {number}\.", text, re.M):
         add(f"slice {number}'s checkbox is not ticked in {spec}", "checkbox ticked")
-
-    picked = testrun.pick_tests(files, root, root / "tests")
-    run = testrun.run_files(root, root / "tests", picked)
-    if run["failed"]:
-        add("the slice's tests fail: " + "; ".join(run["failures"][:3]), "the slice's tests pass")
 
     diff = _git(root, "diff", base, "HEAD").stdout
     added = [l for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++")]
