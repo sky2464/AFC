@@ -1,6 +1,6 @@
 # FC-036 — Maintenance mode never sticks
 
-Size: S · Status: in progress
+Size: S · Status: done
 
 Found on 2026-10-25 in a fresh clone of `main` (`~/Documents/Code/AFC-Test/A-FC`, v0.04a). Nobody
 typed `/afc mm`, yet the first start said "🔧 Maintenance: working on Flight Control itself · A-FC ·
@@ -109,3 +109,5 @@ Slice 4:
 Live check (fresh `git clone --depth 1` of `dev`, switched to branch `main`, `claude -p hi` with a home holding a `maintain` file): the welcome began "Hi! Are you starting a new project, or working on one that already exists on this computer?" with options 1. Start a new project (recommended) / 2. Bring in one that already exists, and no maintenance line. The leftover `maintain` file was ignored, not deleted; the health check flagged it as one fixable problem.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 4.
