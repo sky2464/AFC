@@ -45,7 +45,7 @@ Any new feature.
 
 ## Slices
 
-- [ ] 1. Ready for v0.05b — you'll see it by `sh bin/afc version` printing `v0.05b`, a `## v0.05b`
+- [x] 1. Ready for v0.05b — you'll see it by `sh bin/afc version` printing `v0.05b`, a `## v0.05b`
       changelog section of 10 lines or fewer, and `sh bin/afc release check` on `dev` reporting only
       "not on main"
 
