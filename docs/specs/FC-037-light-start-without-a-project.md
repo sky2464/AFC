@@ -65,7 +65,7 @@ step to the README's two-command install, so it needs its own decision.
 - [x] 1. Hold back with no project — you'll see it by a start in a scratch copy with an empty
       workspace writing `deniedMcpServers` for every claude.ai connector, and the welcome saying so
       in one line
-- [ ] 2. Ask for one with no project — you'll see it by "I need Gmail" with no active project putting
+- [x] 2. Ask for one with no project — you'll see it by "I need Gmail" with no active project putting
       Gmail in `~/.A-FC/connectors.json` (scratch home) and taking it out of `deniedMcpServers`
 - [ ] 3. Live check — you'll see it by two `claude -p hi` starts in a scratch copy of `dev` with an
       empty workspace, the second at or under 45,000 tokens, both numbers in Decisions

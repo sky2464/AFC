@@ -22,12 +22,19 @@ def register(sub) -> None:
 
 
 def cmd_connectors(args: argparse.Namespace) -> dict:
-    from afc.cli import CliError, NO_ACTIVE
+    from afc.cli import CliError
 
     project = load_registry(afc_home()).active()
-    if project is None:
-        raise CliError(NO_ACTIVE)
-    ws, code = Path(project.workspace_path), Path(project.code_path)
+    if project is None:  # no project yet: the workspace-wide list in ~/.A-FC
+        if args.action != "add":
+            if args.name:
+                raise CliError("Use `connectors` to show the list or `connectors add <name>`.")
+            data = connectors.load(afc_home())
+            return {"project": None, "connectors": connectors.names(data),
+                    "found": data.get("found", []), "named": data.get("named", [])}
+        ws, code = afc_home(), None
+    else:
+        ws, code = Path(project.workspace_path), Path(project.code_path)
     if args.action == "add":
         try:
             data, new = connectors.add(ws, " ".join(args.name))
@@ -38,7 +45,8 @@ def cmd_connectors(args: argparse.Namespace) -> dict:
             released = connectors.release(afc_root(), " ".join(args.name))
         except Exception:  # the list is saved; the block is then lifted by the next start
             pass
-        return {"project": project.name, "connectors": connectors.names(data), "added": new,
+        return {"project": project.name if project else None,
+                "connectors": connectors.names(data), "added": new,
                 "unblocked": released, "applies": "from the next start",
                 "now": "or right away from /mcp"}
     if args.name:
