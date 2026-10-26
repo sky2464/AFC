@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-25 — FC-038 Light first start
+
+The very first "hi" in a new copy costs clearly fewer tokens, with no extra step for the user and nothing taken away from a connector they use.
+
+- Does a tracked list work on the first start?
+- Ship the list
+- Asking for one in plain words
+- Updates keep the choice
+
 ## 2026-10-25 — FC-037 Light start without a project
 
 With no active project, a start still holds back every claude.ai connector, so the second and every later start costs about the same as FC-034's project start.
