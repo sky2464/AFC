@@ -1,6 +1,6 @@
 # FC-044 — The plan can't drift
 
-Size: L · Status: next · Started: - · Done: -
+Size: L · Status: in progress · Started: 2026-10-26 · Done: -
 
 Found on 2026-10-26, comparing this plan with AgToosa's and looking at our own history.
 
@@ -71,7 +71,7 @@ plan's table columns. Merging, pushing or rewriting history.
 
 ## Slices
 
-- [ ] 1. Find more, on both plans — you'll see it by a scratch Flight Control plan broken five ways and a
+- [x] 1. Find more, on both plans — you'll see it by a scratch Flight Control plan broken five ways and a
       scratch project plan broken the same ways, `check` naming each in one sentence (proves A1, A5)
 - [ ] 2. Fix what needs no decision — you'll see it by `repair` adding the missing archive file to the
       index and saying why it left the other problems (proves A2)
