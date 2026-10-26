@@ -1,6 +1,6 @@
 # FC-040 — Ready for v0.06a
 
-Size: S · Status: next, ready for build
+Size: S · Status: in progress
 
 Asked for on 2026-10-26. Four specs reached `dev` after v0.05b (FC-036 to FC-039), all from the
 fresh-clone review: a stuck maintenance switch and heavy starts for new users. Same shape as FC-035.
