@@ -83,7 +83,7 @@ plan's table columns. Merging, pushing or rewriting history.
 - [x] 4. A build leaves a clean tree — you'll see it by the workflow building a one-slice scratch spec
       on a scratch clone and ending with an empty `git status --short` and the two `docs:` commits
       (proves A4)
-- [ ] 5. Old history labelled — you'll see it by `docs/superpowers/README.md` and `check` on the real
+- [x] 5. Old history labelled — you'll see it by `docs/superpowers/README.md` and `check` on the real
       repo showing no problem from that folder (proves A6)
 
 ## Tasks
