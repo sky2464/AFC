@@ -12,6 +12,10 @@ Found on 2026-10-26, comparing this plan with AgToosa's and running `sh bin/afc 
 - A project's plan does not say, in one line, where the project stands (profile, remote, last slice).
 - The Update log is about 105 of the plan's 225 lines, mostly "started" and "done" pairs that repeat
   the Done table and the spec header. `LOG_KEEP` in `afc/plan.py` is 100, so the plan is always long.
+- A few rows do carry what exists nowhere else: "FC-009 closed, target not met (46,010 against
+  24,490)", "FC-018 done: helpers 7.0→2.0". They sit among the noise, so they are hard to find, and
+  FC-045's Outcome column will hold that kind of fact from now on.
+- Nothing limits how long a plan can grow, so the fix would slowly wear off.
 
 ## Goal
 
@@ -38,6 +42,13 @@ what `afc plan` shows, and how long a project's master plan grows (`afc/cli_plan
 - A5. Every plan event, including the ones no longer in the log, is appended to `events.jsonl` in the
   project's workspace (for Flight Control's own plan, in the Flight Control home folder, outside the
   repository). Each line is one JSON object: date, event, spec.
+- A7. A one-time cleanup of Flight Control's own log: every "started"/"done"/"added" row is written to
+  `events.jsonl` first, then removed from the plan; rows that carry a number or a reason are kept
+  (and, once FC-045 is done, copied into that spec's Outcome). The log ends under 30 rows and the
+  plan under 140 lines, with nothing lost: the count of events in the file equals the rows removed.
+- A8. `sh bin/afc check` says when a plan is over 150 lines or its Update log over 30 rows, names the
+  longest section in one plain sentence, and offers `plan tidy`, which does what A7 did to that plan
+  and nothing else.
 - A6. On a scratch copy of php-vuln-checker, `check` stops reporting `architecture_empty` once the file
   is filled, and its `plan` shows the `where` line.
 
@@ -56,6 +67,11 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
 - `log()` in `afc/plan.py` splits into `event(...)` (writes `events.jsonl`) and `log(...)` (the plan row);
   `cmd_add`, `cmd_start`, `cmd_done` call `event` only.
 - The older rows already in the log stay; compaction moves them to the yearly archive as today.
+- What counts as "carries a fact": a row with a digit run of 3 or more, an arrow, "target", "closed",
+  "renamed" or "dropped". Everything else is routine. The list is shown with `plan tidy --show` before
+  anything is removed.
+- Order of writes in `plan tidy`: append to `events.jsonl`, then rewrite the plan, with the plan's
+  undo record from `compact` so a failure leaves both as they were.
 - No test change: Flight Control keeps five tests on guards (FC-030).
 
 ## Slices
@@ -68,7 +84,10 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
       (proves A3)
 - [ ] 4. A short log and an event file — you'll see it by a scratch plan after add, start and done showing no
       new log rows and three lines in `events.jsonl`, and a goal change showing a row (proves A4, A5)
-- [ ] 5. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
+- [ ] 5. Clean up the log, and keep it clean — you'll see it by `plan tidy --show` and `plan tidy` on a
+      scratch copy of Flight Control's plan (rows to `events.jsonl`, fact rows kept, plan shorter,
+      counts matching) and `check` flagging a scratch plan padded past 150 lines (proves A7, A8)
+- [ ] 6. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
       (own registry and workspace) with its health problem gone after the file is filled (proves A6)
 
 ## Tasks
@@ -87,6 +106,10 @@ Slice 4:
 - `afc/plan.py`: `event(...)`, `LOG_KEEP = 20`; `afc/cli_plan.py`: use `event` in add/start/done.
 
 Slice 5:
+- `afc/cli_plan.py`: `tidy` (with `--show`); `afc/cli_health.py`: `plan_too_long`.
+- Run it on `docs/master-plan.md` last, in a commit of its own.
+
+Slice 6:
 - Copy php-vuln-checker's plan into a scratch workspace, fill the file, run `check`, write the result in
   Decisions. Never use the real project.
 

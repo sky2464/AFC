@@ -23,6 +23,7 @@ Every change must reach the apps Flight Control builds for users.
 | FC-045 | Releases and results from the plan | M | [spec](specs/FC-045-releases-and-results-from-the-plan.md) |
 | FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
 | FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |
+| FC-049 | Architecture memory for Flight Control | M | [spec](specs/FC-049-architecture-memory-for-flight-control.md) |
 
 ## Done
 
