@@ -79,7 +79,7 @@ State. Rewriting specs to add an area (only the ones in Next).
 
 ## Slices
 
-- [ ] 1. Findings leave the plan — you'll see it by `docs/findings.md` holding the 47 with their State
+- [x] 1. Findings leave the plan — you'll see it by `docs/findings.md` holding the 47 with their State
       and `docs/master-plan.md` shrinking by about 80 lines (proves A1)
 - [ ] 2. Take a finding in with one command — you'll see it by `plan find` on Flight Control's plan and a
       scratch project (proves A2)

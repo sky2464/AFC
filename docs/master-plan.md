@@ -48,85 +48,9 @@ Every change must reach the apps Flight Control builds for users.
 | Tokens per slice | 0.25M | 7.5M | FC-018 |
 | Full-suite runs per slice | 5.0 | 8.7 | FC-018 |
 
-## Findings from the first live run (2026-10-23)
+## Findings
 
-The php-vuln-checker test session surfaced 21 findings. Each maps to a spec:
-
-| # | Finding | Spec |
-|---|---|---|
-| 1 | Test copy wrote into the real `~/.A-FC` because `AFC_HOME` was left off | FC-001 |
-| 2 | Nine questions before any building; folder asked before what to build | FC-002 |
-| 3 | First slice was a skeleton with no tests; tests saved for a last slice | FC-003 |
-| 4 | The master plan's Goal stays empty | FC-004 |
-| 5 | Decisions appended under Standing Corrections | FC-006 |
-| 6 | `architecture.md` never filled after the first slice | FC-006 |
-| 7 | Reshaping the plan was done by hand (`mv`, Python on tables) | FC-004 |
-| 8 | `npm audit` can't read a Bun project | FC-007 |
-| 9 | `pkill -f "next dev"` could stop other people's servers | FC-005 |
-| 10 | Recommended parent folder syncs to iCloud | FC-002 |
-| 11 | Team question asked on a brand-new personal repo | FC-002 |
-| 12 | Spec file names cut mid-word | FC-004 |
-| 13 | Next.js wrote an `AGENTS.md` with agent instructions; committed silently | FC-008 |
-| 14 | About 101k tokens of context for one slice | FC-009 |
-| 15 | An abandoned first session and blank launches (settings and add-ons, already fixed) | none; no change needed |
-| 16 | Rule files dumped on screen; Claude guessed where rules live | FC-005 |
-| 17 | Files written through shell heredocs instead of file tools | FC-005 |
-| 18 | Claude kept changing folders and losing its place | FC-005 |
-| 19 | Slices written without checkboxes, so `plan` saw none | FC-003 |
-| 20 | Team question asked although `detect-team` had already decided | FC-002 |
-| 21 | Dev server log left in `/tmp`; broad process kill | FC-005 |
-
-## Findings from the maintenance mix-up (2026-10-24)
-
-Asked to build Flight Control's own specs ("build S-001", "build S-002 on dev"), a session built the
-php-vuln-checker app three times instead. All of these map to FC-010:
-
-| # | Must change |
-|---|---|
-| M1 | Maintenance mode changes who the work is for, not just what may be edited |
-| M2 | A real `/afc mm` switch instead of a convention Claude must remember |
-| M3 | The guard blocks project writes and project git while in maintenance mode |
-| M4 | Different IDs: `FC-…` for Flight Control's specs, `S-…` for projects |
-| M5 | An unknown spec ID or branch means ask, never guess |
-| M6 | Never create a branch in an app without asking |
-| M7 | Separate places: daily folder on `main`, developer copy on `dev`, test copy with its own home |
-| M8 | The welcome always shows which world you're in |
-| M9 | Maintenance work ends up on `dev`, or says where it is |
-| M10 | Undo is verified with `git status`, not assumed |
-
-## Findings from the update session (2026-10-24)
-
-Asked "is there any afc update?", a session on an older copy answered from raw `git tag` and
-`git log` output, then updated Flight Control with a hand `git merge --ff-only v0.02a` — with
-maintenance mode off, leaving the copy on a detached HEAD.
-
-| # | Finding | Spec |
-|---|---|---|
-| U1 | Git that changes the `A-FC` folder ran with maintenance mode off; no guard saw it | FC-012 |
-| U2 | The copy was left on a detached HEAD, which FC-011 would then always refuse to update | FC-012 |
-| U3 | `sh bin/afc check` has no check for the `A-FC` folder's own git state | FC-012 |
-| U4 | A rule was seen to be broken ("updated without a maintenance-mode prompt") and the work carried on | FC-012 |
-| U5 | The installed version was guessed from truncated `git tag` and `git log` output | FC-011 |
-| U6 | "What's new" was told in FC- IDs, branch names and commit subjects, not plain words | FC-011 |
-| U7 | Nothing was verified after the self-update: no tests, no `check`, no workspace backup | FC-011 |
-| U8 | `sh bin/afc maintain` with no argument says `Missing state.` without naming on, off or status | FC-023 |
-| U9 | The first question was asked twice: the welcome offered 1/2, then `afc-start` asked again | FC-023 |
-
-## Findings from the v0.03a update test (2026-10-25)
-
-A scratch copy of the previous `main` updated itself from v0.01a to v0.03a in one step, ended clean
-on `main` and passed all 1034 tests. Its summary still read as a failure. An `A-FC-test` session the
-same day showed the rest.
-
-| # | Finding | Spec |
-|---|---|---|
-| R1 | The after-update summary listed 28 account add-ons as "problems to look at"; nothing was wrong | FC-027 |
-| R2 | Add-ons are switched off only on `repair`, which nothing runs, so all 28 load in every Flight Control session; `check` says they were "switched off" | FC-027 |
-| R3 | The welcome said "a health check found 30 problems"; 28 were those add-ons | FC-027 |
-| R4 | The first reply to "hi" used 75,950 tokens, mostly the 28 add-ons loading | FC-027 |
-| R5 | After the welcome, the reply to "hi" introduced Flight Control again and re-asked the same 1/2 question | FC-028 |
-| R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | none; the user moves it forward |
-| R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | FC-034 |
+Findings: 1 open (R6 waiting on you). Full list and history in [docs/findings.md](findings.md).
 
 ## Update log
 
