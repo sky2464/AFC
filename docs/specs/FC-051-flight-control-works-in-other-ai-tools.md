@@ -84,7 +84,7 @@ folder gets the same instruction files; until then apps are unchanged.
   (proves A5)
 - [x] 2. One shared guard — you'll see it by `sh bin/afc guard` giving the same answers as today's
   Claude Code hooks on a set of sample actions (proves A1)
-- [ ] 3. Commit and CI check — you'll see it by a commit that breaks a rule being refused from a plain
+- [x] 3. Commit and CI check — you'll see it by a commit that breaks a rule being refused from a plain
   terminal with no Claude Code (proves A2)
 - [ ] 4. Maintenance mode by branch — you'll see it by `maintain status` saying on in `dev` and off
   elsewhere, with no session ID set (proves A3)
@@ -105,3 +105,9 @@ Slice 1:
   branch.
 
 ## Shipped
+
+- Slice 3 (2026-10-26): `sh bin/afc guard --staged` and `--since REF` run the secret rule over changed
+  files; `.githooks/pre-commit` (turn on with `git config core.hooksPath .githooks`) and a CI step in
+  `tests.yml` call them. Only the secret rule is covered so far: "project code in A-FC" has no
+  commit-time form yet, and "editing Flight Control while maintenance is off" waits for slice 4, when
+  maintenance follows the branch. A2 is not fully met until then.
