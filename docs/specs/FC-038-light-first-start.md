@@ -81,7 +81,7 @@ start. Changing a project's own list (FC-034) or the no-project hold-back (FC-03
       scratch clone and home taking `claude.ai Gmail` out of the tracked `deniedMcpServers`, listing
       it in the workspace's `connectors.json`, leaving `git status` clean, and the next `claude -p
       hi` listing Gmail
-- [ ] 4. Updates keep the choice — you'll see it by a scratch clone with Gmail asked for, updated by
+- [x] 4. Updates keep the choice — you'll see it by a scratch clone with Gmail asked for, updated by
       `workspace_upgrade`'s release path to a newer commit that changes `.claude/settings.json`,
       ending with the new file, Gmail still out of the list, `git status` clean and no refusal
 
@@ -139,5 +139,9 @@ Slice 4:
   The list (12 names: the ten measured plus Gmail and Slack) lives in `afc-connectors.json`
   `tracked_deny`; `sh bin/afc check` reports `tracked_deny_differs` if it and `.claude/settings.json`
   disagree. The welcome's held-back count does not yet include the tracked names (not in this slice).
+- Slice 4 try (2026-10-25): scratch origin with tags v0.05b and v0.06a (the newer one adds a name to
+  `.claude/settings.json`), a clone with Gmail asked for; `sh bin/afc update` ended on v0.06a with the new
+  name in the file, Gmail still out, `git status` clean, skip-worktree set again and no refusal.
+  The update path is `update_apply.apply` (not `workspace_upgrade`).
 
 ## Shipped

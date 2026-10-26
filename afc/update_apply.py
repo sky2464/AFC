@@ -11,7 +11,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from afc import update, version
+from afc import connectors, update, version
 from afc.cli_health import ADDONS
 
 NOTE = "just_updated.json"  # one-time note in the workspace home for the welcome after a restart
@@ -89,6 +89,18 @@ def take_note(home: Path) -> str | None:
     return tag if isinstance(tag, str) else None
 
 
+def _asked(home: Path) -> list[str]:
+    ws = None
+    try:
+        from afc.registry import load_registry
+
+        project = load_registry(home).active()
+        ws = Path(project.workspace_path) if project else None
+    except Exception:
+        pass
+    return connectors.asked_full(home, ws)
+
+
 def _title(root: Path, tag: str) -> str:
     out = _git(root, "tag", "-l", "--format=%(contents:subject)", tag)
     title = (out or "").strip()
@@ -116,11 +128,29 @@ def apply(root: Path, home: Path) -> dict:
     if not version.is_newer(tag, current):
         return {"updated": False, "current": current, "reason": f"You already have the newest release, {current}."}
     before = (_git(root, "rev-parse", "HEAD") or "").strip()
+    wanted = _asked(home)
+    old_settings = connectors.unhide(root)  # a plain-words connector choice is put back after the merge
+    hidden = old_settings is not None
+
+    def _restore() -> None:
+        if hidden:
+            try:
+                connectors.restore_hidden(root, old_settings)
+            except Exception:
+                pass
+
     # fetched without a local tag (it lands in FETCH_HEAD only), so a refused update leaves no trace
     if not before or _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}") is None:
+        _restore()
         return _refuse(current, f"The release {tag} could not be fetched, so nothing was changed.")
     if _git(root, "merge", "--ff-only", "--quiet", "FETCH_HEAD^{commit}") is None:
+        _restore()
         return _refuse(current, f"{tag} does not continue from your copy, so nothing was changed.")
+    if hidden:
+        try:
+            connectors.rehide(root, wanted)
+        except Exception:
+            pass  # the new file stays as released; the health check reports the names still listed
     # the update is in: now keep the tag too (its objects are already here)
     _git(root, "fetch", "--quiet", "--no-tags", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
     log = _git(root, "log", "--format=%s", f"{before}..HEAD") or ""

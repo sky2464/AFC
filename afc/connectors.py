@@ -336,3 +336,84 @@ def release_tracked(root: Path, full: str) -> bool:
         _atomic_write(path, old)
         raise
     return True
+
+
+def asked_full(home: Path, project_ws: Path | None = None) -> list[str]:
+    """Full names ('claude.ai Gmail') of the connectors the user asked for, from the workspace's
+    list (and the active project's list when given)."""
+    out: list[str] = []
+    for ws in (home, project_ws):
+        if ws is not None:
+            out += [PREFIX + n for n in names(load(ws))]
+    return list(dict.fromkeys(out))
+
+
+def _skip_worktree(root: Path, on: bool) -> bool:
+    import subprocess
+
+    flag = "--skip-worktree" if on else "--no-skip-worktree"
+    try:
+        subprocess.run(["git", "-C", str(root), "update-index", flag, ".claude/settings.json"],
+                       check=True, capture_output=True, timeout=20)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def is_hidden(root: Path) -> bool:
+    """True when .claude/settings.json is marked skip-worktree (a plain-words choice is applied)."""
+    import subprocess
+
+    try:
+        out = subprocess.run(["git", "-C", str(root), "ls-files", "-v", ".claude/settings.json"],
+                             capture_output=True, text=True, timeout=20).stdout
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return out.startswith("S")
+
+
+def unhide(root: Path) -> str | None:
+    """Before an update: clear skip-worktree and restore the tracked .claude/settings.json.
+    Returns the file's previous text (for undo), or None when nothing was hidden or it failed
+    (then the file is left as it was)."""
+    import subprocess
+
+    if not is_hidden(root):
+        return None
+    path = root / ".claude" / "settings.json"
+    try:
+        old = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if not _skip_worktree(root, False):
+        return None
+    try:
+        subprocess.run(["git", "-C", str(root), "checkout", "--", ".claude/settings.json"],
+                       check=True, capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        _skip_worktree(root, True)
+        return None
+    return old
+
+
+def rehide(root: Path, wanted: list[str], old: str | None = None) -> None:
+    """After an update: take every wanted name out of the (new) tracked file and hide the edit
+    again. If that fails and `old` is given, put the old text back and hide it."""
+    try:
+        for full in wanted:
+            release_tracked(root, full)
+    except Exception:
+        if old is not None:
+            from afc.session_dirs import _atomic_write
+
+            _atomic_write(root / ".claude" / "settings.json", old)
+            _skip_worktree(root, True)
+        raise
+
+
+def restore_hidden(root: Path, old: str) -> None:
+    """Undo `unhide`: put the old text back and hide the file from git again."""
+    from afc.session_dirs import _atomic_write
+
+    _atomic_write(root / ".claude" / "settings.json", old)
+    _skip_worktree(root, True)

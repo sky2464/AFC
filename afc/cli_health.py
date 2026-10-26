@@ -397,6 +397,12 @@ def _tracked_deny_problems(root: Path) -> list[dict]:
         asked = {connectors.PREFIX + n for n in connectors.names(connectors.load(afc_home()))}
     except Exception:
         asked = set()
+    still = sorted(set(have) & asked)
+    if still:  # an update or edit put a wanted name back in the tracked list
+        return [_problem("tracked_deny_wanted", str(root / ".claude" / "settings.json"), False,
+                         detail="The connectors held back from the first start still list "
+                                + ", ".join(still) + ", which you asked for. Ask for it again "
+                                "(sh bin/afc connectors add) to turn it back on.")]
     if set(want) - asked == set(have) - asked:
         return []
     diff = sorted((set(want) ^ set(have)) - asked)
