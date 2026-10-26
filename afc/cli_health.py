@@ -72,6 +72,9 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             dest.mkdir(parents=True)
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
+        elif p["kind"] == "test_copy_behind" and p["fixable"]:
+            if _git(cli.afc_root(), "checkout", "--detach", "dev") is not None:
+                repaired.append("Brought this test copy up to date with dev.")
         elif p["kind"] == "root_detached" and p["fixable"]:
             if _git(cli.afc_root(), "switch", "main") is not None:
                 repaired.append("Put Flight Control's own copy back on main.")
@@ -193,7 +196,8 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     the add-on part, which the welcome handles itself."""
     cli = _cli()
     reg = load_registry(home)
-    problems: list[dict] = root_problems(cli.afc_root())
+    problems: list[dict] = root_problems(cli.afc_root()) if not is_test_copy(cli.afc_root(), home) else []
+    problems += behind_problems(cli.afc_root(), home)
     owned: set[Path] = set()
     for p in reg.projects.values():
         owned.add(Path(p.workspace_path).resolve())
@@ -330,6 +334,41 @@ def root_problems(root: Path, git: Callable[..., str | None] | None = None) -> l
             detail="Flight Control's own copy has no origin remote, so it has nowhere to fetch "
                    "updates from."))
     return found
+
+
+def is_test_copy(root: Path, home: Path) -> bool:
+    """A test copy is a linked git worktree of A-FC whose workspace is not the real ~/.A-FC."""
+    try:
+        if home == (Path.home() / ".A-FC").resolve():
+            return False
+    except (OSError, RuntimeError):
+        return False
+    git_dir = _git(root, "rev-parse", "--absolute-git-dir")
+    common = _git(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    return bool(git_dir and common and Path(git_dir.strip()).resolve() != Path(common.strip()).resolve())
+
+
+def behind_problems(root: Path, home: Path) -> list[dict]:
+    """A test copy whose commit is an older commit of dev. Reads only. Fixable when the copy is a
+    detached HEAD with no uncommitted changes: repair then moves it to the tip of dev."""
+    if not is_test_copy(root, home):
+        return []
+    head = _git(root, "rev-parse", "HEAD")
+    tip = _git(root, "rev-parse", "--verify", "-q", "dev")
+    if not head or not tip or head.strip() == tip.strip():
+        return []
+    if _git(root, "merge-base", "--is-ancestor", "HEAD", "dev") is None:
+        return []  # not simply behind dev: nothing is guessed
+    count = (_git(root, "rev-list", "--count", "HEAD..dev") or "?").strip()
+    status = _git(root, "status", "--porcelain=v2", "--branch")
+    detached = status is not None and _head_branch(status) == "(detached)"
+    clean = status is not None and not any(not l.startswith("#") for l in status.splitlines())
+    fixable = detached and clean
+    return [_problem(
+        "test_copy_behind", str(root), fixable,
+        detail=f"This test copy is {count} commits behind dev, so testing it says nothing about today's "
+               + ("build. Repair moves it to the tip of dev." if fixable else
+                  "build. It has its own changes or a branch, so repair leaves it alone."))]
 
 
 def root_git_note() -> str | None:

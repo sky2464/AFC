@@ -90,14 +90,21 @@ def _health_line(home: Path) -> str:
     try:
         from afc.cli_health import find_problems
 
-        count = len(find_problems(home, with_addons=False))  # the welcome handles add-ons itself
+        found = find_problems(home, with_addons=False)  # the welcome handles add-ons itself
     except Exception:  # the welcome must never break over a health check
         return ""
+    behind = [p for p in found if p["kind"] == "test_copy_behind"]
+    count = len(found) - len(behind)
+    extra = ""
+    if behind:
+        extra = (" This test copy is behind dev: say so once, in one plain line, and offer to bring "
+                 "it up to date as step 1" + (" (sh bin/afc repair)." if behind[0]["fixable"] else
+                                              ", though it has its own changes so ask the user first."))
     if not count:
-        return ""
+        return extra
     noun = "problem" if count == 1 else "problems"
     return (f" Health check: {count} {noun} (sh bin/afc check). After the question, mention it "
-            "in one line and offer to look.")
+            "in one line and offer to look." + extra)
 
 
 def _addons_line(root: Path) -> str:
