@@ -59,7 +59,7 @@ behavior. Naming each connector in the welcome.
 
 ## ## Slices
 
-- [ ] 1. Say it once per copy — you'll see it by three scratch clones sharing one empty `AFC_HOME`:
+- [x] 1. Say it once per copy — you'll see it by three scratch clones sharing one empty `AFC_HOME`:
       each one's first start showing the line with 12, and its second start showing no connector
       line
 - [ ] 2. Say it again when it grows, and count down when asked — you'll see it by
