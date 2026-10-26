@@ -86,7 +86,7 @@ be asked, 2026-10-26).
       scratch home with the `.ask` file present, blocking a Write into the project's code folder and
       a `git status` there with the "choose first" line, `maintain on` or `maintain off` removing
       the file, and the same Write then allowed after `maintain off`
-- [ ] 4. A bare number answers the last question — you'll see it by `afc-start` carrying the
+- [x] 4. A bare number answers the last question — you'll see it by `afc-start` carrying the
       "undecided" case and the bare-number rule, and a live `claude --continue --fork-session -p 1`
       on a conversation that ends in a "Build / Go back" menu answering from the menu, with a
       scratch project showing no change
@@ -155,5 +155,37 @@ with a git folder, `maintain.d/other` as the recent flag, `maintain.d/sess1.ask`
   "couldn't read this command safely" (by `check_paths`, with or without an `.ask` file). The
   session runs the maintain commands from the A-FC folder, as `afc-start` does, so this does not
   get in the way.
+
+Slice 4, tried 2026-10-26 with Claude Code 2.1.310. `afc-start` now has the "Mode: undecided" case
+(ask the one question; 1 runs `maintain on`, 2 runs `maintain off`; no project touched until
+answered) and one sentence on the bare number (a question with numbered answers already in the
+conversation is what a bare 1 or 2 answers; if unclear, ask one question). 40 lines to 45, limit 500.
+Live check in `/private/tmp/claude-501/.../scratchpad/fc041live` (a scratch copy of this repo on
+`dev`, a scratch `AFC_HOME` with one scratch project and a 0-minute-old flag `maintain.d/oldsession`;
+`AFC_SESSION` and `CLAUDE_CODE_SESSION_ID` unset for the child, so it could not inherit this
+session's ID). Step 1: `claude -p` with a prompt to reply only "1. Build FC-040 / 2. Go back to your
+projects". Step 2: `claude --continue --fork-session -p 1`.
+
+- As shipped, the fork gets no hook at all. 2.1.310 sends `source: "fork"` for
+  `--continue --fork-session -p` (measured with an empty matcher and a hook that logged its input;
+  new ID `7f44d4e7`), not `resume` as slice 1 recorded. The settings.json matcher
+  `startup|resume|clear|compact` does not match it, so no SessionStart ran, no sessions.d or
+  `.ask` file was written, and there was no "Mode: undecided". The reply answered from the menu
+  ("FC-040 is work on Flight Control itself, maintenance mode is off ... turn it on, then build"), did
+  not build, and the scratch project showed `git status --short` empty and only the `init` commit.
+  This run happened three times with the same result.
+- With a scratch-only patch (matcher `""`, and `fork` added to the sources in `needs_choice`) the hook
+  asked: `SessionStart:fork` gave "Mode: undecided" and a `.ask` file; the model, following the
+  context line ("if the first message is 1, run sh bin/afc maintain on"), ran `maintain on` (flag
+  written, `.ask` gone) and replied "Maintenance mode is on ... 1. Build FC-040 (recommended) 2. Look at
+  the plan first". It built nothing. The scratch project: `git status --short` empty, one commit.
+  Here the 1 was taken as the undecided question's 1, which coincides with the menu's "Build"; the
+  run cannot tell the two apart, and no run was made where they differ.
+- So the slice 4 skill text is in place, but two things are not met and are left for the next
+  slice or spec change: (a) the `fork` source must be handled (matcher and `needs_choice`), or a
+  real fork never asks; (b) the undecided context line tells the model to treat a first-message 1
+  as the welcome's answer, which contradicts the bare-number rule when the conversation already
+  ends in a menu. Neither was changed here. The line "answering from the menu" was seen only with
+  no hook (unpatched), not with the ask in place.
 
 ## Shipped
