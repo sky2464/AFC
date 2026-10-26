@@ -38,6 +38,9 @@ Any new feature.
 
 ## Design notes
 
+- FC-041 and FC-042 are queued ahead of this release. When they are done first, their changes
+  (maintenance mode kept across a restart, review no longer demands tests) get a bullet each in
+  the v0.06a notes; the 10-line limit then drops the smallest bullet.
 - Edit `VERSION` and `docs/changelog.md` only. The `## v0.05b` section stays as it is.
 - Numbers come from the Decisions of FC-037 (42,241 on the second start) and FC-038 (56,247 on the
   first, down from 73,310).
