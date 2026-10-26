@@ -1,6 +1,6 @@
 # FC-030 — Tests only when asked
 
-Size: M · Status: next, ready for build
+Size: M · Status: in progress
 
 Asked for on 2026-10-25. FC-013 (right-sized tests) and FC-019 (checks only when needed) made the
 suite cheaper to run, but it kept growing, and test talk still fills every reply. Where it stands

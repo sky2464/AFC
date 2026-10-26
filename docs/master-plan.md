@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-030 | Tests only when asked | M | [FC-030](specs/FC-030-tests-only-when-asked.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-030 | Tests only when asked | M | [FC-030](specs/FC-030-tests-only-when-asked.md) |
 | FC-032 | Every spec reaches the apps | S | [FC-032](specs/FC-032-every-spec-reaches-the-apps.md) |
 | FC-033 | Master plan, one truth | M | [FC-033](specs/FC-033-master-plan-one-truth.md) |
 | FC-031 | Test copy stays current and separate | M | [FC-031](specs/FC-031-test-copy-stays-current-and-separate.md) |
@@ -206,3 +206,4 @@ same day showed the rest.
 | 2026-10-25 | FC-029 added |
 | 2026-10-25 | FC-029 started |
 | 2026-10-25 | FC-029 done |
+| 2026-10-25 | FC-030 started |
