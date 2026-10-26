@@ -130,5 +130,11 @@ Slice 5:
   about 2,200 tokens for one connector. The entry works by connector name and takes effect at the
   next start. Note the entry is an object with `serverName`, not a bare string. Not yet tried from
   `.claude/settings.local.json` itself (slice 3 does it).
+- 2026-10-25 (slice 5): Live, in a scratch copy of `dev` with a new project that uses no
+  connectors, two `claude -p hi` starts. First: 64,892 tokens, 340 tools, 113 of them connector
+  tools, 28 add-on servers listed; it wrote `deniedMcpServers` for the 10 claude.ai connectors and
+  switched 28 add-ons off. Second: 42,818 tokens, 28 tools, no servers. That is 22,000 fewer tokens
+  than the first start (-34%) and 17,500 fewer than the 60,291 measured before (-29%). The second
+  start's welcome says nothing about connectors.
 
 ## Shipped
