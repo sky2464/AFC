@@ -15,13 +15,13 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
 | FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
-| FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |
 | FC-049 | Architecture memory for Flight Control | M | [spec](specs/FC-049-architecture-memory-for-flight-control.md) |
 | FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) |
 
@@ -232,3 +232,4 @@ same day showed the rest.
 | 2026-10-26 | FC-044 done |
 | 2026-10-26 | FC-045 started |
 | 2026-10-26 | FC-045 done |
+| 2026-10-26 | FC-047 started |
