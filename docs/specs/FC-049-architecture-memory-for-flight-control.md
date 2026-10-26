@@ -1,6 +1,7 @@
 # FC-049 — Architecture memory for Flight Control
 
 Size: M · Status: next, ready for build · Started: - · Done: -
+Area: flow
 
 Found on 2026-10-26, comparing this repository with AgToosa's `docs/Master-Architecture.md`, a single
 file that says what the solution is made of, which files own what, and how each claim is checked.

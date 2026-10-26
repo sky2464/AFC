@@ -1,6 +1,7 @@
 # FC-046 — Findings, parked and waiting in one place
 
 Size: M · Status: next · Started: - · Done: -
+Area: flow
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose roadmap index says every item must end
 as shipped, a manual task, a backlog spec, or an explicit parked or rejected decision.
@@ -79,18 +80,18 @@ State. Rewriting specs to add an area (only the ones in Next).
 
 ## Slices
 
-- [ ] 1. Findings leave the plan — you'll see it by `docs/findings.md` holding the 47 with their State
+- [x] 1. Findings leave the plan — you'll see it by `docs/findings.md` holding the 47 with their State
       and `docs/master-plan.md` shrinking by about 80 lines (proves A1)
-- [ ] 2. Take a finding in with one command — you'll see it by `plan find` on Flight Control's plan and a
+- [x] 2. Take a finding in with one command — you'll see it by `plan find` on Flight Control's plan and a
       scratch project (proves A2)
-- [ ] 3. Parked and waiting — you'll see it by a scratch spec parked and brought back, a drop no longer
+- [x] 3. Parked and waiting — you'll see it by a scratch spec parked and brought back, a drop no longer
       landing in Done, and R6 and the FC-040 steps in Waiting on you (proves A3, A4)
-- [ ] 4. The check — you'll see it by a scratch findings file with one stateless finding and one false
+- [x] 4. The check — you'll see it by a scratch findings file with one stateless finding and one false
       "fixed in" giving both sentences in `check` (proves A5)
-- [ ] 5. Findings close themselves — you'll see it by a scratch spec with `Fixes: F-001` moving the
+- [x] 5. Findings close themselves — you'll see it by a scratch spec with `Fixes: F-001` moving the
       finding to in progress on `plan start` and to fixed on `plan done`, `plan` showing the
       one-line count and the unplanned ones, and a typo ID refused (proves A7, A8, A9)
-- [ ] 6. Areas — you'll see it by the four rows with their Scoreboard numbers and the Next specs naming
+- [x] 6. Areas — you'll see it by the four rows with their Scoreboard numbers and the Next specs naming
       their area (proves A6)
 
 ## Tasks

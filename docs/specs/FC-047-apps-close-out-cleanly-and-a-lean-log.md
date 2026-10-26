@@ -1,6 +1,6 @@
 # FC-047 — Apps close out cleanly, and a lean log
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-26 · Done: -
 
 Found on 2026-10-26, comparing this plan with AgToosa's and running `sh bin/afc check`.
 
@@ -76,18 +76,18 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
 
 ## Slices
 
-- [ ] 1. Done needs real architecture notes — you'll see it by a scratch project's `plan done` stopped with
+- [x] 1. Done needs real architecture notes — you'll see it by a scratch project's `plan done` stopped with
       the bare template and passing once the file has content (proves A1)
-- [ ] 2. Start needs a goal — you'll see it by a scratch project's `plan start` stopped with an empty Goal
+- [x] 2. Start needs a goal — you'll see it by a scratch project's `plan start` stopped with an empty Goal
       and passing with one (proves A2)
-- [ ] 3. Where we are — you'll see it by `sh bin/afc plan` on a scratch active project showing the line
+- [x] 3. Where we are — you'll see it by `sh bin/afc plan` on a scratch active project showing the line
       (proves A3)
-- [ ] 4. A short log and an event file — you'll see it by a scratch plan after add, start and done showing no
+- [x] 4. A short log and an event file — you'll see it by a scratch plan after add, start and done showing no
       new log rows and three lines in `events.jsonl`, and a goal change showing a row (proves A4, A5)
-- [ ] 5. Clean up the log, and keep it clean — you'll see it by `plan tidy --show` and `plan tidy` on a
+- [x] 5. Clean up the log, and keep it clean — you'll see it by `plan tidy --show` and `plan tidy` on a
       scratch copy of Flight Control's plan (rows to `events.jsonl`, fact rows kept, plan shorter,
       counts matching) and `check` flagging a scratch plan padded past 150 lines (proves A7, A8)
-- [ ] 6. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
+- [x] 6. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
       (own registry and workspace) with its health problem gone after the file is filled (proves A6)
 
 ## Tasks
@@ -114,5 +114,10 @@ Slice 6:
   Decisions. Never use the real project.
 
 ## Decisions
+
+- Slice 6 (2026-10-26): on a scratch copy of php-vuln-checker (own registry and workspace, last slice set to
+  "2 address input page" as in the real registry), `check` reported `architecture_empty` while the file was the
+  bare template; after real content was added it no longer did, and `plan` showed the line "profile unknown;
+  remote none; last slice 2 address input page; folder php-vuln-checker". The real project was not touched.
 
 ## Shipped

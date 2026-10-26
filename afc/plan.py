@@ -5,13 +5,14 @@ a Space: a project's is `<workspace>/plan/`, Flight Control's own is `docs/`. Th
 either a Space or, as before, a project workspace folder. Standard library only.
 """
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
 MASTER = "master-plan.md"
 DONE_KEEP = 10
-LOG_KEEP = 100
+LOG_KEEP = 20
 _LOG_HEADER = "| Date | Event |\n|---|---|\n"
 _DONE_HEADER = "| ID | Title | Done | Spec | Release | Outcome |\n|---|---|---|---|---|---|\n"
 DONE_COLUMNS = 6  # ID, Title, Done, Spec, Release, Outcome; older rows and archives have only four
@@ -408,11 +409,218 @@ def set_score(text: str, name: str, value: str, keep_before: bool = False) -> tu
     raise ValueError(f"The Scoreboard has no measure called '{name}'. It has: " + ", ".join(r[0] for r in rows) + ".")
 
 
+def events_path(space) -> Path:
+    """events.jsonl: in the project's workspace, or (for Flight Control's own plan) the home folder."""
+    if space.prefix == "FC":
+        from .config import afc_home
+        return afc_home() / "events.jsonl"
+    return space.base.parent / "events.jsonl"
+
+
+def findings_path(space) -> Path:
+    """findings.md: in docs/ for Flight Control's own plan, in plan/ for a project."""
+    return space.base / "findings.md"
+
+
+_FIXES_LINE = re.compile(r"^Fixes:\s*(.+)", re.IGNORECASE)
+_FINDING_ID = re.compile(r"\bF-(\d+)\b")
+_FINDING_HEADER = "| ID | Finding | State | Found |\n|---|---|---|---|\n"
+
+
+def next_finding_id(findings_text: str) -> str:
+    """Next F-NNN id from the table rows (lines starting with |); F-001 when none exist yet."""
+    table_lines = [ln for ln in findings_text.split("\n") if ln.lstrip().startswith("|")]
+    nums = [int(m) for ln in table_lines for m in _FINDING_ID.findall(ln)]
+    return f"F-{max(nums, default=0) + 1:03d}"
+
+
+_PARKED_HEADER = "| ID | Title | Size | Why | Revisit |\n|---|---|---|---|---|\n"
+_WAITING_HEADER = "| # | Step | Added |\n|---|---|---|\n"
+
+
+def _ensure_section(text: str, heading: str, header: str, after: str) -> str:
+    """Add `## heading` with its table header after `## after` when absent; return text unchanged when present."""
+    lines = text.split("\n")
+    try:
+        _section_span(lines, heading)
+        return text  # already there
+    except ValueError:
+        pass
+    try:
+        _, end = _section_span(lines, after)
+    except ValueError:
+        end = len(lines)
+    lines[end:end] = ["", f"## {heading}", ""] + header.splitlines() + [""]
+    return "\n".join(lines)
+
+
+def add_parked(text: str, sid: str, title: str, size: str, why: str, revisit: str) -> str:
+    """Add a row to the Parked table (creating the section after Next if absent)."""
+    text = _ensure_section(text, "Parked", _PARKED_HEADER, "Next")
+    rows = read_rows(text, "Parked")
+    rows.append([sid, title, size, why, revisit])
+    return write_rows(text, "Parked", rows)
+
+
+def remove_parked(text: str, sid: str) -> tuple[str, list[str]]:
+    """Remove the Parked row for sid; return (new text, removed row) or ValueError if absent."""
+    rows = read_rows(text, "Parked")
+    row = next((r for r in rows if r and r[0] == sid), None)
+    if row is None:
+        raise ValueError(f"{sid} is not in Parked.")
+    return write_rows(text, "Parked", [r for r in rows if r[0] != sid]), row
+
+
+def add_waiting(text: str, step: str, date: str) -> tuple[str, int]:
+    """Add a row to Waiting on you (creating the section after Next if absent); return (text, number)."""
+    text = _ensure_section(text, "Waiting on you", _WAITING_HEADER, "Next")
+    rows = read_rows(text, "Waiting on you")
+    n = max((int(r[0]) for r in rows if r and r[0].isdigit()), default=0) + 1
+    rows.append([str(n), step, date])
+    return write_rows(text, "Waiting on you", rows), n
+
+
+def remove_waiting(text: str, n: int) -> str:
+    """Remove row number n from Waiting on you; ValueError if absent."""
+    rows = read_rows(text, "Waiting on you")
+    kept = [r for r in rows if not (r and r[0] == str(n))]
+    if len(kept) == len(rows):
+        raise ValueError(f"No waiting step number {n}.")
+    return write_rows(text, "Waiting on you", kept)
+
+
+def fixes(spec_text: str) -> list[str]:
+    """Finding IDs named in a `Fixes: F-001, R6` line in the first block of spec header lines.
+    Reads lines until the first blank line or a `## ` heading."""
+    for line in spec_text.split("\n"):
+        if not line.strip() or line.startswith("## "):
+            break
+        m = _FIXES_LINE.match(line.strip())
+        if m:
+            return [t.strip() for t in m.group(1).split(",") if t.strip()]
+    return []
+
+
+def set_finding_state(findings_text: str, fid: str, state: str) -> str:
+    """Update the State cell of finding fid in the All findings table; no-op when fid is absent."""
+    lines = findings_text.split("\n")
+    try:
+        start, end = _section_span(lines, "All findings")
+    except ValueError:
+        return findings_text
+    for i in range(start, end):
+        if lines[i].lstrip().startswith("|"):
+            cells = [c.strip() for c in lines[i].strip().strip("|").split("|")]
+            if cells and cells[0] == fid:
+                cells = cells + [""] * (4 - len(cells))
+                cells[2] = state
+                lines[i] = "| " + " | ".join(cell(c) for c in cells) + " |"
+                break
+    return "\n".join(lines)
+
+
+def all_findings(findings_text: str) -> list[list[str]]:
+    """All rows from the All findings table."""
+    try:
+        return read_rows(findings_text, "All findings")
+    except ValueError:
+        return []
+
+
+def add_finding(findings_text: str, fid: str, text: str, found: str) -> str:
+    """Append one finding row to the All findings table; create the section if absent."""
+    new_row = f"| {fid} | {cell(text)} | open | {cell(found)} |"
+    lines = findings_text.split("\n")
+    try:
+        start, end = _section_span(lines, "All findings")
+        # find last table row (after header+divider) and insert after it
+        table = [i for i in range(start, end) if lines[i].lstrip().startswith("|")]
+        if len(table) < 2:
+            lines.insert(end, new_row)
+        else:
+            lines.insert(table[-1] + 1, new_row)
+    except ValueError:
+        lines += ["", "## All findings", "", *_FINDING_HEADER.splitlines(), new_row, ""]
+    return "\n".join(lines)
+
+
+def event(space, date: str, text: str) -> None:
+    """Append one plan event (date, event, spec) to events.jsonl. Never touches the plan."""
+    m = re.match(r"([A-Z]+-\d+)\b", text)
+    path = events_path(space)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({"date": date, "event": text, "spec": m.group(1) if m else ""}) + "\n")
+
+
 def log(text: str, date: str, event: str) -> str:
     """Append a row to the Update log (oldest first)."""
     rows = read_rows(text, "Update log")
     rows.append([date, event])
     return write_rows(text, "Update log", rows)
+
+
+_ROUTINE = re.compile(r"\b(started|done|added)\b")
+_FACT = re.compile(r"\d{3,}|→|->|target|closed|renamed|dropped", re.IGNORECASE)
+
+
+def is_routine(event_text: str) -> bool:
+    """A started/done/added row that carries no number or reason (spec IDs do not count as numbers)."""
+    bare = re.sub(r"[A-Z]+-\d+", "", event_text)
+    return bool(_ROUTINE.search(event_text)) and not _FACT.search(bare)
+
+
+def tidy_split(rows: list[list[str]]) -> tuple[list[list[str]], list[list[str]]]:
+    """(routine rows to move to events.jsonl, rows to keep), each in log order."""
+    routine = [r for r in rows if len(r) > 1 and is_routine(r[1])]
+    kept = [r for r in rows if not (len(r) > 1 and is_routine(r[1]))]
+    return routine, kept
+
+
+def tidy(where, apply: bool = True) -> dict:
+    """Move routine Update log rows to events.jsonl, then rewrite the plan without them.
+
+    The events are appended first; if the plan cannot be written, events.jsonl is cut back to its
+    earlier size, so both are left as they were. With apply=False nothing is written."""
+    space = _space(where)
+    text = space.master.read_text(encoding="utf-8")
+    rows = read_rows(text, "Update log")
+    routine, kept = tidy_split(rows)
+    out = {"routine": [f"{r[0]} {r[1]}" for r in routine], "kept": [f"{r[0]} {r[1]}" for r in kept if len(r) > 1],
+           "lines_before": len(text.split("\n")), "log_before": len(rows), "log_after": len(kept)}
+    if not apply or not routine:
+        out.update(applied=False, events_written=0, lines_after=out["lines_before"], log_after=len(kept) if apply else len(rows))
+        if not apply:
+            out["log_after"] = len(kept)
+        return out
+    path = events_path(space)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    size = path.stat().st_size if path.is_file() else None
+    try:
+        for r in routine:
+            event(space, r[0], r[1])
+        new = write_rows(text, "Update log", kept)
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        if size is None:
+            path.unlink(missing_ok=True)
+        else:
+            with path.open("r+b") as f:
+                f.truncate(size)
+        raise
+    out.update(applied=True, events_written=len(routine), lines_after=len(new.split("\n")))
+    return out
+
+
+def longest_section(text: str) -> tuple[str, int]:
+    """(heading, line count) of the plan's longest `## ` section."""
+    lines = text.split("\n")
+    marks = [i for i, ln in enumerate(lines) if ln.startswith("## ")] + [len(lines)]
+    best = ("", 0)
+    for a, b in zip(marks, marks[1:]):
+        if b - a > best[1]:
+            best = (lines[a][3:].strip(), b - a)
+    return best
 
 
 def _archive_rows(space, prefix: str, heading: str, header: str, by_year: dict, undo: dict) -> None:

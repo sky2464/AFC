@@ -34,6 +34,8 @@ PLAN_WHY_LEFT = {
     "plan_table_broken": "a row with the wrong number of cells could lose text if it were guessed at",
     "plan_uncommitted": "committing is yours to approve",
 }
+PLAN_MAX_LINES = 150
+PLAN_MAX_LOG = 30
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
@@ -202,6 +204,13 @@ def plan_problems(space, owner: str = "") -> list[dict]:
                 found.append(_problem(kind, str(master), True, project=row[0],
                                       detail=f"{row[0]} {how}; repair closes it in the plan "
                                              "(needs maintenance mode)."))
+    log_rows = len(rows.get("Update log", []))
+    lines = len(text.split("\n"))
+    if lines > PLAN_MAX_LINES or log_rows > PLAN_MAX_LOG:
+        name, size = plan.longest_section(text)
+        add("plan_too_long", master,
+            f"the plan is {lines} lines with {log_rows} Update log rows; the longest part is {name} ({size} lines). "
+            "`plan tidy --show` lists what can move out, and `plan tidy` moves it.")
     index = space.archive_dir / "index.md"
     indexed = index.read_text(encoding="utf-8") if index.is_file() else ""
     if space.archive_dir.is_dir():
@@ -394,10 +403,14 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     problems += behind_problems(cli.afc_root(), home)
     from afc import cli_plan, plan
 
-    problems += plan_problems(plan.flight_control_space(cli_plan._plan_root()))
+    fc_space = plan.flight_control_space(cli_plan._plan_root())
+    problems += plan_problems(fc_space)
+    problems += _findings_problems(fc_space)
     for p in reg.projects.values():
         if Path(p.workspace_path).is_dir():
-            problems += plan_problems(plan.project_space(Path(p.workspace_path)), p.name)
+            proj_space = plan.project_space(Path(p.workspace_path))
+            problems += plan_problems(proj_space, p.name)
+            problems += _findings_problems(proj_space)
     if (home / "maintain").exists():
         problems.append(_problem("stale_maintain", str(home / "maintain"), True,
                                  detail="An old global maintenance switch is left over; it is ignored, "
@@ -473,18 +486,67 @@ def _decisions_problems(project) -> list[dict]:
                             "decisions stop landing under the always/never rules.")]
 
 
+def architecture_is_bare(path: Path) -> bool:
+    """True when the project's architecture.md is still the empty template (whitespace aside)."""
+    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
+    if not path.is_file() or not template.is_file():
+        return False
+    return " ".join(path.read_text(encoding="utf-8").split()) == " ".join(template.read_text(encoding="utf-8").split())
+
+
 def _architecture_problems(project) -> list[dict]:
     """A project with a done slice whose architecture.md is still the bare template (whitespace
     aside). Claude fills it from the code, so it is reported, never auto-fixed."""
     path = Path(project.workspace_path) / "plan" / "architecture.md"
-    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
-    if not project.last_slice or not path.is_file() or not template.is_file():
-        return []
-    if " ".join(path.read_text(encoding="utf-8").split()) != " ".join(template.read_text(encoding="utf-8").split()):
+    if not project.last_slice or not architecture_is_bare(path):
         return []
     return [_problem("architecture_empty", str(path), False, project=project.name,
                      detail=f"{project.name}: slices are done but architecture.md is still the empty "
                             "template; Claude fills it in from the code.")]
+
+
+def _findings_problems(space) -> list[dict]:
+    """Check findings.md for rows with no State, or claiming fixed in a spec that is not done."""
+    from afc import plan
+    fpath = plan.findings_path(space)
+    if not fpath.is_file():
+        return []
+    try:
+        text = fpath.read_text(encoding="utf-8")
+        rows = plan.read_rows(text, "All findings")
+    except Exception:
+        return []
+    # Build a set of done spec IDs from the archive index and archive directory
+    done_ids: set[str] = set()
+    archive = space.archive_dir
+    if archive.is_dir():
+        for f in archive.iterdir():
+            m = re.match(rf"({re.escape(space.prefix)}-\d+)", f.name)
+            if m:
+                done_ids.add(m.group(1))
+    index = archive / "index.md"
+    if index.is_file():
+        for ln in index.read_text(encoding="utf-8").split("\n"):
+            if ln.lstrip().startswith("|"):
+                cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+                if cells and re.match(rf"{re.escape(space.prefix)}-\d+$", cells[0]):
+                    done_ids.add(cells[0])
+
+    found = []
+    for row in rows:
+        fid = row[0] if row else ""
+        state = row[2].strip() if len(row) > 2 else ""
+        if not state:
+            found.append(_problem("finding_no_state", str(fpath), False,
+                                  detail=f"Finding {fid} has no State; set it to open, fixed, "
+                                         "waiting on you, parked, or no change needed."))
+        elif state.startswith("fixed in "):
+            spec_id = state[len("fixed in "):].strip().split()[0] if state[len("fixed in "):].strip() else ""
+            if spec_id and spec_id not in done_ids:
+                found.append(_problem("finding_fixed_not_done", str(fpath), False,
+                                      detail=f"Finding {fid} says fixed in {spec_id}, but {spec_id} "
+                                             "is not in the archive; update the State or finish the spec."))
+    return found
 
 
 def foreign_roots_for(home: Path, reg) -> list[Path]:
