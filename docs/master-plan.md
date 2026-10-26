@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-033 | Master plan, one truth | M | [FC-033](specs/FC-033-master-plan-one-truth.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-033 | Master plan, one truth | M | [FC-033](specs/FC-033-master-plan-one-truth.md) |
 
 ## Done
 
@@ -209,3 +209,4 @@ same day showed the rest.
 | 2026-10-25 | FC-031 done |
 | 2026-10-25 | FC-032 started |
 | 2026-10-25 | FC-032 done |
+| 2026-10-25 | FC-033 started |

@@ -1,6 +1,6 @@
 # FC-033 — Master plan, one truth
 
-Size: M · Status: next, ready for build
+Size: M · Status: in progress
 
 Asked for on 2026-10-25: the master plan must always be synced and be the only source of truth,
 whatever branch, fork or worktree the work runs on. Today it isn't. What showed:
