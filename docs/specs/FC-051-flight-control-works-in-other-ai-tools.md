@@ -43,8 +43,10 @@ folder gets the same instruction files; until then apps are unchanged.
 - A2. A git pre-commit check and a CI check refuse a commit that breaks a guard rule (project code in
   A-FC, a secret in a file, edits to Flight Control while maintenance mode is off), whichever tool
   made the edit.
-- A3. Maintenance mode needs no session ID: on the `dev` branch it is on, on any other branch it is
-  off, and `sh bin/afc maintain status` says which and why. Claude Code behaves the same way.
+- A3. Maintenance mode needs no session ID: with none, `maintain on|off` switches it for the copy's
+  current branch (never `main`), and `sh bin/afc maintain status` says `branch`. Claude Code sessions
+  keep their own per-session switch, unchanged. (Changed on 2026-10-26 from "on in `dev`, off
+  elsewhere", which would have turned it off in worktrees and on for every session in a dev copy.)
 - A4. One file, `AGENTS.md`, is generated from `CLAUDE.md` and kept in step by a check; the Cursor,
   Copilot and Antigravity files point to it instead of copying it.
 - A5. For each of Cursor, Codex, Copilot and Antigravity, a hook file calls `afc guard` where that
@@ -75,7 +77,7 @@ folder gets the same instruction files; until then apps are unchanged.
 - The commit-time check is the one guard that works in every tool, so it is the safety floor; hooks
   are the faster, earlier layer on top.
 - Maintenance mode by branch was chosen on 2026-10-26 over a file switch: it works the same in every
-  tool and needs no ID.
+  tool and needs no ID. Refined the same day to a fallback used only when no session ID exists.
 
 ## Slices
 
@@ -86,7 +88,7 @@ folder gets the same instruction files; until then apps are unchanged.
   Claude Code hooks on a set of sample actions (proves A1)
 - [x] 3. Commit and CI check — you'll see it by a commit that breaks a rule being refused from a plain
   terminal with no Claude Code (proves A2)
-- [ ] 4. Maintenance mode by branch — you'll see it by `maintain status` saying on in `dev` and off
+- [x] 4. Maintenance mode by branch — you'll see it by `maintain status` saying on in `dev` and off
   elsewhere, with no session ID set (proves A3)
 - [ ] 5. Instruction files — you'll see it by `AGENTS.md` and the per-tool pointer files matching
   `CLAUDE.md`, and a check that fails when they drift (proves A4)
@@ -106,6 +108,10 @@ Slice 1:
 
 ## Shipped
 
+- Slice 4 (2026-10-26): with no session ID, `maintain on|off` uses `maintain.branch.d/<branch>`
+  (never on for `main`, expires after 7 days); a session with an ID never reads it. The guard now
+  blocks A-FC edits from other tools when it is off and allows them when it is on. The commit check
+  does not enforce this: CI has no maintenance state and would fail every pull request.
 - Slice 3 (2026-10-26): `sh bin/afc guard --staged` and `--since REF` run the secret rule over changed
   files; `.githooks/pre-commit` (turn on with `git config core.hooksPath .githooks`) and a CI step in
   `tests.yml` call them. Only the secret rule is covered so far: "project code in A-FC" has no
