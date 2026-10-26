@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 — FC-029 Ready for v0.04a
+
+`main` can be released as v0.04a: `VERSION` says `v0.04a`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
+
+- Ready for v0.04a
+
 ## v0.04a
 
 - Add-ons that aren't on Flight Control's list are now really switched off in its sessions, so a start costs about a fifth fewer tokens (measured with 28 add-ons).

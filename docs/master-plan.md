@@ -13,7 +13,6 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-029 | Ready for v0.04a | S | [spec](specs/FC-029-ready-for-v0-04a.md) | 2026-10-25 |
 
 ## Next
 
@@ -24,6 +23,7 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-029 | Ready for v0.04a | 2026-10-25 | [FC-029](specs/archive/FC-029-ready-for-v0-04a.md) |
 | FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 | FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
@@ -33,7 +33,6 @@ safe slices, with as few questions and as little noise as possible.
 | FC-022 | Project role agents, workflow and init | 2026-10-25 | [FC-022](specs/archive/FC-022-project-role-agents-and-workflow.md) |
 | FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
 | FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
-| FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -200,3 +199,4 @@ same day showed the rest.
 | 2026-10-25 | FC-028 done |
 | 2026-10-25 | FC-029 added |
 | 2026-10-25 | FC-029 started |
+| 2026-10-25 | FC-029 done |
