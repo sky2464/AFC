@@ -80,7 +80,7 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
       the bare template and passing once the file has content (proves A1)
 - [x] 2. Start needs a goal — you'll see it by a scratch project's `plan start` stopped with an empty Goal
       and passing with one (proves A2)
-- [ ] 3. Where we are — you'll see it by `sh bin/afc plan` on a scratch active project showing the line
+- [x] 3. Where we are — you'll see it by `sh bin/afc plan` on a scratch active project showing the line
       (proves A3)
 - [ ] 4. A short log and an event file — you'll see it by a scratch plan after add, start and done showing no
       new log rows and three lines in `events.jsonl`, and a goal change showing a row (proves A4, A5)

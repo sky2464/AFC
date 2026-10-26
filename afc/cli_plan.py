@@ -199,8 +199,17 @@ def cmd_plan(args: argparse.Namespace) -> dict:
         if plan.unreadable_slices(spec_text):
             now["slices"] = UNREADABLE
     nxt = [{"id": r[0], "title": r[1], "size": r[2], **_ready(space, r)} for r in plan.read_rows(text, "Next")[:2]]
-    return {"for": owner, "goal": _goal(text), "now": now, "next": nxt,
-            "done_count": len(plan.read_rows(text, "Done"))}
+    out = {"for": owner, "goal": _goal(text), "now": now, "next": nxt,
+           "done_count": len(plan.read_rows(text, "Done"))}
+    if not maintain_enabled(home, current_session()):
+        out["where"] = _where(load_registry(home).active())
+    return out
+
+
+def _where(project) -> str:
+    """One line from the registry: profile, remote, last slice, code folder."""
+    return (f"profile {project.profile or 'unknown'}; remote {project.remote or 'none'}; "
+            f"last slice {project.last_slice or 'none yet'}; folder {Path(project.code_path).name}")
 
 
 def cmd_add(args: argparse.Namespace) -> dict:
