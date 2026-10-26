@@ -1,6 +1,6 @@
 # FC-041 — Maintenance mode survives a new session
 
-Size: M · Status: next, ready for build
+Size: M · Status: in progress
 
 Found on 2026-10-26. The user was in maintenance mode, working on FC-040 (session `f79266d7…`).
 Claude Code then started a new session in the same folder (`10701c43…`, the instruction files were
@@ -68,7 +68,7 @@ project session has no switch to carry.
 
 ## Slices
 
-- [ ] 1. See what a restart sends — you'll see it by a scratch copy whose hook writes each event's
+- [x] 1. See what a restart sends — you'll see it by a scratch copy whose hook writes each event's
       `source` and `session_id` to a scratch file for a real startup, `--continue` (resume), /clear
       and compaction, written in Decisions
 - [ ] 2. Carry the switch over — you'll see it by `sh bin/afc hook session_start` run with a
@@ -108,5 +108,22 @@ Slice 4:
 - Run the live check and write the result in Decisions.
 
 ## Decisions
+
+Slice 1, measured 2026-10-26 with Claude Code 2.1.310 in a scratch folder (a SessionStart hook that
+only wrote `source` and `session_id`; run with `claude -p`, so no typed /clear; the folder is
+discarded, nothing landed on `dev`):
+
+- startup: `source: startup`, new ID (`5c170ff2`).
+- `--continue` (resume): `source: resume`, the SAME ID (`5c170ff2`). `--resume <id>` the same.
+- compaction (`/compact`): `source: compact`, the SAME ID.
+- `/clear`: `source: clear`, a NEW ID (`56dc4aa8`).
+- `--continue --fork-session`: `source: resume`, a NEW ID (`c70a583f`).
+
+So `source` is always sent, but the ID changes only on /clear and on a fork, not on a plain resume or
+compaction. Slice 2 as written (carry on resume, clear, compact) is still safe, but a plain resume
+or compact needs no carrying because `maintain.d/<id>` is already there; the carry matters for
+`clear` and for a forked resume. This does not explain the 2026-10-26 incident (new ID `10701c43`,
+source unknown): the spec is adjusted before slice 2 is built, and the first adjustment to check
+is what source the incident's session sent. Stopped here as the slice says.
 
 ## Shipped
