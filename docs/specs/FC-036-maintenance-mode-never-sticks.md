@@ -77,7 +77,7 @@ maintenance mode allows once it is on. The guard rules themselves.
       and a backup made
 - [x] 3. Never on main — you'll see it by `sh bin/afc maintain on` on a scratch clone of `main`
       refusing in one line, while on `dev` it prints `"scope": "session"`
-- [ ] 4. Live check — you'll see it by a fresh `git clone --depth 1` of `dev` into a scratch folder,
+- [x] 4. Live check — you'll see it by a fresh `git clone --depth 1` of `dev` into a scratch folder,
       switched to a branch named `main`, starting with `claude -p hi` against a home that has a
       `maintain` file, and showing the 1/2 welcome with no 🔧 line
 
@@ -105,5 +105,7 @@ Slice 4:
 - Run the live check and write the welcome's first lines in Decisions.
 
 ## Decisions
+
+Live check (fresh `git clone --depth 1` of `dev`, switched to branch `main`, `claude -p hi` with a home holding a `maintain` file): the welcome began "Hi! Are you starting a new project, or working on one that already exists on this computer?" with options 1. Start a new project (recommended) / 2. Bring in one that already exists, and no maintenance line. The leftover `maintain` file was ignored, not deleted; the health check flagged it as one fixable problem.
 
 ## Shipped
