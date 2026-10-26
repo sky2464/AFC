@@ -102,9 +102,18 @@ def _health_line(home: Path) -> str:
                                               ", though it has its own changes so ask the user first."))
     if not count:
         return extra
-    noun = "problem" if count == 1 else "problems"
-    return (f" Health check: {count} {noun} (sh bin/afc check). After the question, mention it "
-            "in one line and offer to look." + extra)
+    rest = [p for p in found if p["kind"] != "test_copy_behind"]
+    access = [p for p in rest if p["kind"] in ("gone_access", "foreign_access", "stale_access", "missing_access")]
+    parts = []
+    if access:
+        parts.append(f"{len(access)} leftover folder permission{'' if len(access) == 1 else 's'} from an old project")
+    if len(rest) > len(access):
+        n = len(rest) - len(access)
+        parts.append(f"{n} other problem{'' if n == 1 else 's'} (sh bin/afc check)")
+    fix = (" Every one is fixable: offer 'fix it' as step 1 (sh bin/afc repair; nothing is deleted)."
+           if all(p["fixable"] for p in rest) else " Offer to look at them (sh bin/afc check).")
+    return (f" Health check: {' and '.join(parts)}. After the question, say this in one plain line, once "
+            "this session; a later /afc must not repeat it unless it changed." + fix + extra)
 
 
 def _addons_line(root: Path) -> str:

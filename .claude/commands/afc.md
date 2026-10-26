@@ -24,7 +24,10 @@ Maintenance mode means working on Flight Control itself, with every project set 
 
 ## Normal summary
 
-Run `sh bin/afc status` from the A-FC folder. For the normal summary also run `sh bin/afc plan`.
+Run `sh bin/afc status` from the A-FC folder. Run `sh bin/afc plan` only after it, and only when
+`status` shows an active project (never in the same call, so an empty start shows no error). If this
+is not the first `/afc` of the session and nothing changed, answer in one short line plus the same
+two steps, and do not repeat the health line.
 
 - If it returns `"active": null` with a `projects` list (projects exist, none is active), say so in
   one line and offer up to two of those projects to switch to, as numbered steps

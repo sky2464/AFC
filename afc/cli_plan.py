@@ -137,6 +137,9 @@ def _ready(space: plan.Space, row: list[str]) -> dict:
 
 
 def cmd_plan(args: argparse.Namespace) -> dict:
+    home = afc_home()
+    if not maintain_enabled(home, current_session()) and load_registry(home).active() is None:
+        return {"for": None, "active": None, "now": None, "next": [], "message": "No active project, so there is no plan to show."}
     space, owner, text = _load()
     now_rows = plan.read_rows(text, "Now")
     now = None
