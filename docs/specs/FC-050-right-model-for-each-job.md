@@ -124,7 +124,7 @@ and Vertex.
       (proves A3, A4)
 - [x] 3. Documents go to Haiku — you'll see it by a scratch changelog request answered by `afc-docs`
       and the builder instructions refusing to write it (proves A5)
-- [ ] 4. Opus by default, one place to overrule — you'll see it by `.claude/settings.json` setting
+- [x] 4. Opus by default, one place to overrule — you'll see it by `.claude/settings.json` setting
       the model, `agents` printing where to change it, and a `model` line in
       `.claude/settings.local.json` winning in a scratch start (proves A6)
 - [ ] 5. Nothing silently defeats it — you'll see it by `check` reporting `routing_overridden` with
@@ -183,5 +183,8 @@ Slice 6:
   findings and plan text to `afc-docs`; ticking the slice box stays with the builder. Scratch run: a changelog
   request went to `afc-docs` on claude-haiku-5-5 at effort low and wrote the line; `afc-build` given the same task
   refused it and named `afc-docs`.
+- 2026-10-26 (slice 4): tracked `.claude/settings.json` sets `"model": "opus"`; `agents` prints `main_session`
+  (model, the file or `ANTHROPIC_MODEL` that sets it, and how to change it). Scratch start: `settings.json` opus
+  alone ran claude-opus-5-5; adding `{"model": "haiku"}` in `settings.local.json` ran claude-haiku-5-5.
 
 ## Shipped

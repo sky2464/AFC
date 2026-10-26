@@ -1,4 +1,5 @@
-{"hooks": {
+{"model": "opus",
+ "hooks": {
   "SessionStart": [{"matcher": "startup|resume|fork|clear|compact", "hooks": [{"type": "command",
      "command": "sh \"${CLAUDE_PROJECT_DIR}/bin/afc\" hook session_start"}]}],
   "PreToolUse": [{"matcher": "Write|Edit|NotebookEdit|Bash|Read|Glob|Grep|LS", "hooks": [{"type": "command",
