@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-035 | Ready for v0.05b | S | [FC-035](specs/FC-035-ready-for-v0-05b.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-035 | Ready for v0.05b | S | [FC-035](specs/FC-035-ready-for-v0-05b.md) |
 
 ## Done
 
@@ -214,3 +214,4 @@ same day showed the rest.
 | 2026-10-25 | FC-034 added and specced (5 slices): connectors load only when needed, per project |
 | 2026-10-25 | FC-034 started |
 | 2026-10-25 | FC-034 done |
+| 2026-10-25 | FC-035 started |

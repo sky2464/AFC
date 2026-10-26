@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.05b
+
+- Tests run only when you ask. Flight Control keeps five on the things that protect your data, and your apps get none unless you ask.
+- Every spec now says how it reaches the apps Flight Control builds for you.
+- There is one master plan, and it updates itself wherever the work runs.
+- The test copy stays current and in its own workspace, and an empty start is quiet: no red errors, no repeated lines.
+- A session starts with only the connectors a project uses, so a "hi" costs about 43k tokens instead of 60k. Ask for another in plain words.
+
 ## 2026-10-25 — FC-034 Connectors load only when needed
 
 A Flight Control session starts with only the connectors that matter for the active project, and anything else is one plain request away. The start costs far fewer tokens, and nobody loses a connector they need.

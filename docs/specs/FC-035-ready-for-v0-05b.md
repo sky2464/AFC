@@ -1,6 +1,6 @@
 # FC-035 — Ready for v0.05b
 
-Size: S · Status: next
+Size: S · Status: in progress
 
 Asked for on 2026-10-25. Five specs reached `dev` after v0.04a (FC-030 to FC-034), and every one
 changes what users and their apps get. Same shape as FC-029.
