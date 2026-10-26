@@ -34,6 +34,8 @@ PLAN_WHY_LEFT = {
     "plan_table_broken": "a row with the wrong number of cells could lose text if it were guessed at",
     "plan_uncommitted": "committing is yours to approve",
 }
+PLAN_MAX_LINES = 150
+PLAN_MAX_LOG = 30
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
@@ -202,6 +204,13 @@ def plan_problems(space, owner: str = "") -> list[dict]:
                 found.append(_problem(kind, str(master), True, project=row[0],
                                       detail=f"{row[0]} {how}; repair closes it in the plan "
                                              "(needs maintenance mode)."))
+    log_rows = len(rows.get("Update log", []))
+    lines = len(text.split("\n"))
+    if lines > PLAN_MAX_LINES or log_rows > PLAN_MAX_LOG:
+        name, size = plan.longest_section(text)
+        add("plan_too_long", master,
+            f"the plan is {lines} lines with {log_rows} Update log rows; the longest part is {name} ({size} lines). "
+            "`plan tidy --show` lists what can move out, and `plan tidy` moves it.")
     index = space.archive_dir / "index.md"
     indexed = index.read_text(encoding="utf-8") if index.is_file() else ""
     if space.archive_dir.is_dir():

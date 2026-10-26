@@ -433,6 +433,113 @@ def log(text: str, date: str, event: str) -> str:
     return write_rows(text, "Update log", rows)
 
 
+_ROUTINE = re.compile(r"\b(started|done|added)\b")
+_FACT = re.compile(r"\d{3,}|→|->|target|closed|renamed|dropped", re.IGNORECASE)
+
+
+def is_routine(event_text: str) -> bool:
+    """A started/done/added row that carries no number or reason (spec IDs do not count as numbers)."""
+    bare = re.sub(r"[A-Z]+-\d+", "", event_text)
+    return bool(_ROUTINE.search(event_text)) and not _FACT.search(bare)
+
+
+def tidy_split(rows: list[list[str]]) -> tuple[list[list[str]], list[list[str]]]:
+    """(routine rows to move to events.jsonl, rows to keep), each in log order."""
+    routine = [r for r in rows if len(r) > 1 and is_routine(r[1])]
+    kept = [r for r in rows if not (len(r) > 1 and is_routine(r[1]))]
+    return routine, kept
+
+
+def tidy(where, apply: bool = True) -> dict:
+    """Move routine Update log rows to events.jsonl, then rewrite the plan without them.
+
+    The events are appended first; if the plan cannot be written, events.jsonl is cut back to its
+    earlier size, so both are left as they were. With apply=False nothing is written."""
+    space = _space(where)
+    text = space.master.read_text(encoding="utf-8")
+    rows = read_rows(text, "Update log")
+    routine, kept = tidy_split(rows)
+    out = {"routine": [f"{r[0]} {r[1]}" for r in routine], "kept": [f"{r[0]} {r[1]}" for r in kept if len(r) > 1],
+           "lines_before": len(text.split("\n")), "log_before": len(rows), "log_after": len(kept)}
+    if not apply or not routine:
+        out.update(applied=False, events_written=0, lines_after=out["lines_before"])
+        return out
+    path = events_path(space)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({"date": date, "event": text, "spec": m.group(1) if m else ""}) + "\n")
+
+
+def log(text: str, date: str, event: str) -> str:
+    """Append a row to the Update log (oldest first)."""
+    rows = read_rows(text, "Update log")
+    rows.append([date, event])
+    return write_rows(text, "Update log", rows)
+
+
+_ROUTINE = re.compile(r"\b(started|done|added)\b")
+_FACT = re.compile(r"\d{3,}|→|->|target|closed|renamed|dropped", re.IGNORECASE)
+
+
+def is_routine(event_text: str) -> bool:
+    """A started/done/added row that carries no number or reason (spec IDs do not count as numbers)."""
+    bare = re.sub(r"[A-Z]+-\d+", "", event_text)
+    return bool(_ROUTINE.search(event_text)) and not _FACT.search(bare)
+
+
+def tidy_split(rows: list[list[str]]) -> tuple[list[list[str]], list[list[str]]]:
+    """(routine rows to move to events.jsonl, rows to keep), each in log order."""
+    routine = [r for r in rows if len(r) > 1 and is_routine(r[1])]
+    kept = [r for r in rows if not (len(r) > 1 and is_routine(r[1]))]
+    return routine, kept
+
+
+def tidy(where, apply: bool = True) -> dict:
+    """Move routine Update log rows to events.jsonl, then rewrite the plan without them.
+
+    The events are appended first; if the plan cannot be written, events.jsonl is cut back to its
+    earlier size, so both are left as they were. With apply=False nothing is written."""
+    space = _space(where)
+    text = space.master.read_text(encoding="utf-8")
+    rows = read_rows(text, "Update log")
+    routine, kept = tidy_split(rows)
+    out = {"routine": [f"{r[0]} {r[1]}" for r in routine], "kept": [f"{r[0]} {r[1]}" for r in kept if len(r) > 1],
+           "lines_before": len(text.split("\n")), "log_before": len(rows), "log_after": len(kept)}
+    if not apply or not routine:
+        out.update(applied=False, events_written=0, lines_after=out["lines_before"], log_after=len(kept) if apply else len(rows))
+        if not apply:
+            out["log_after"] = len(kept)
+        return out
+    path = events_path(space)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    size = path.stat().st_size if path.is_file() else None
+    try:
+        for r in routine:
+            event(space, r[0], r[1])
+        new = write_rows(text, "Update log", kept)
+        space.master.write_text(new, encoding="utf-8")
+    except BaseException:
+        if size is None:
+            path.unlink(missing_ok=True)
+        else:
+            with path.open("r+b") as f:
+                f.truncate(size)
+        raise
+    out.update(applied=True, events_written=len(routine), lines_after=len(new.split("\n")))
+    return out
+
+
+def longest_section(text: str) -> tuple[str, int]:
+    """(heading, line count) of the plan's longest `## ` section."""
+    lines = text.split("\n")
+    marks = [i for i, ln in enumerate(lines) if ln.startswith("## ")] + [len(lines)]
+    best = ("", 0)
+    for a, b in zip(marks, marks[1:]):
+        if b - a > best[1]:
+            best = (lines[a][3:].strip(), b - a)
+    return best
+
+
 def _archive_rows(space, prefix: str, heading: str, header: str, by_year: dict, undo: dict) -> None:
     """Append rows to archive/<prefix>-<year>.md, creating it with a heading; never replaces a file.
 
