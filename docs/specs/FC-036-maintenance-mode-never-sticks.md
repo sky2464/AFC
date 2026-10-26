@@ -72,7 +72,7 @@ maintenance mode allows once it is on. The guard rules themselves.
       `CLAUDE_CODE_SESSION_ID` unset printing the refusal and creating no file, and a touched
       `~/.A-FC/maintain` (in a scratch `AFC_HOME`) reading as off, listed by `check` and removed by
       `repair`
-- [ ] 2. Cleared by the update — you'll see it by `workspace_upgrade.upgrade` (what an update runs)
+- [x] 2. Cleared by the update — you'll see it by `workspace_upgrade.upgrade` (what an update runs)
       taking a scratch workspace at layout 0 with a `maintain` file to layout 1, with the file gone
       and a backup made
 - [ ] 3. Never on main — you'll see it by `sh bin/afc maintain on` on a scratch clone of `main`
