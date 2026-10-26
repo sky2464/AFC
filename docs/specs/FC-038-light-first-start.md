@@ -77,7 +77,7 @@ start. Changing a project's own list (FC-034) or the no-project hold-back (FC-03
 - [x] 2. Ship the list — you'll see it by `git diff` on `.claude/settings.json` showing only
       `deniedMcpServers` names, and a fresh scratch clone's first `claude -p hi` using at least
       12,000 fewer tokens than without it
-- [ ] 3. Asking for one in plain words — you'll see it by `sh bin/afc connectors add Gmail` in a
+- [x] 3. Asking for one in plain words — you'll see it by `sh bin/afc connectors add Gmail` in a
       scratch clone and home taking `claude.ai Gmail` out of the tracked `deniedMcpServers`, listing
       it in the workspace's `connectors.json`, leaving `git status` clean, and the next `claude -p
       hi` listing Gmail

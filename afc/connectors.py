@@ -290,7 +290,7 @@ def release(root: Path, name: str) -> bool:
     mine = [n for n in mine if isinstance(n, str)] if isinstance(mine, list) else []
     hit = [n for n in mine if n.lower() == full.lower()]
     if not hit:
-        return False
+        return release_tracked(root, full)
     denied = settings.get(DENIED_KEY, [])
     denied = denied if isinstance(denied, list) else []
     left = [e for e in denied if _entry_name(e) not in hit]
@@ -301,4 +301,38 @@ def release(root: Path, name: str) -> bool:
         else:
             settings.pop(key, None)
     _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+    return True
+
+
+def release_tracked(root: Path, full: str) -> bool:
+    """Take one name out of the tracked .claude/settings.json deniedMcpServers (FC-038 slice 3) and
+    hide that edit from git with skip-worktree, so `git status` stays clean and updates are not
+    refused. Only that name is removed; every other key stays. Put back as it was on any error."""
+    import subprocess
+
+    from afc.session_dirs import _atomic_write
+
+    path = root / ".claude" / "settings.json"
+    try:
+        old = path.read_text(encoding="utf-8")
+        settings = json.loads(old)
+    except (OSError, ValueError):
+        return False
+    denied = settings.get(DENIED_KEY) if isinstance(settings, dict) else None
+    if not isinstance(denied, list):
+        return False
+    left = [e for e in denied if (_entry_name(e) or "").lower() != full.lower()]
+    if len(left) == len(denied):
+        return False
+    if left:
+        settings[DENIED_KEY] = left
+    else:
+        settings.pop(DENIED_KEY, None)
+    _atomic_write(path, json.dumps(settings, indent=1) + "\n")
+    try:
+        subprocess.run(["git", "-C", str(root), "update-index", "--skip-worktree",
+                        ".claude/settings.json"], check=True, capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        _atomic_write(path, old)
+        raise
     return True

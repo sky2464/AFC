@@ -392,9 +392,14 @@ def _tracked_deny_problems(root: Path) -> list[dict]:
     from afc import connectors
 
     want, have = connectors.tracked_names(root), connectors.tracked_in_settings(root)
-    if set(want) == set(have):
+    try:  # names the user asked for in plain words are taken out of the tracked file (slice 3)
+        from afc.config import afc_home
+        asked = {connectors.PREFIX + n for n in connectors.names(connectors.load(afc_home()))}
+    except Exception:
+        asked = set()
+    if set(want) - asked == set(have) - asked:
         return []
-    diff = sorted(set(want) ^ set(have))
+    diff = sorted((set(want) ^ set(have)) - asked)
     return [_problem("tracked_deny_differs", str(root / ".claude" / "settings.json"), False,
                      detail="The connectors held back from the first start differ between "
                             "afc-connectors.json and .claude/settings.json: " + ", ".join(diff) + ".")]
