@@ -95,3 +95,5 @@ Slice 3:
   printed the warning that the 10 claude.ai connectors were held back.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 3.

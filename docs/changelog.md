@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-25 — FC-037 Light start without a project
+
+With no active project, a start still holds back every claude.ai connector, so the second and every later start costs about the same as FC-034's project start.
+
+- Hold back with no project
+- Ask for one with no project
+- Live check
+
 ## 2026-10-25 — FC-036 Maintenance mode never sticks
 
 Maintenance mode is only ever on in the one session that turned it on, and never in a copy on `main`. A new or daily copy always starts with your projects.

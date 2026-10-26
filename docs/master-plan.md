@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-037 | Light start without a project | S | [FC-037](specs/FC-037-light-start-without-a-project.md) | 2026-10-25 |
 
 ## Next
 
@@ -27,6 +26,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |
 | FC-036 | Maintenance mode never sticks | 2026-10-25 | [FC-036](specs/archive/FC-036-maintenance-mode-never-sticks.md) |
 | FC-035 | Ready for v0.05b | 2026-10-25 | [FC-035](specs/archive/FC-035-ready-for-v0-05b.md) |
 | FC-034 | Connectors load only when needed | 2026-10-25 | [FC-034](specs/archive/FC-034-connectors-load-only-when-needed.md) |
@@ -36,7 +36,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-030 | Tests only when asked | 2026-10-25 | [FC-030](specs/archive/FC-030-tests-only-when-asked.md) |
 | FC-029 | Ready for v0.04a | 2026-10-25 | [FC-029](specs/archive/FC-029-ready-for-v0-04a.md) |
 | FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
-| FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -220,3 +219,4 @@ same day showed the rest.
 | 2026-10-25 | FC-036 started |
 | 2026-10-25 | FC-036 done |
 | 2026-10-25 | FC-037 started |
+| 2026-10-25 | FC-037 done |
