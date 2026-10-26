@@ -16,3 +16,8 @@
 | 2026-10-24 | FC-002 started |
 | 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
 | 2026-10-24 | FC-002 done |
+| 2026-10-24 | FC-014 added |
+| 2026-10-24 | FC-015 added |
+| 2026-10-24 | FC-014 and FC-015 specced and sliced (5 slices each): review folded into building a slice, ship folded into finishing a spec; deploys and history rewrites left as the user's own actions |
+| 2026-10-24 | FC-003 started |
+| 2026-10-24 | FC-003 done |

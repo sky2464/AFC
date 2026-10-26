@@ -1,6 +1,6 @@
 # FC-043 — Ready means ready
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26, comparing this plan with AgToosa's. "Ready for build" is the gate for the rule
 *spec, then slices, then tasks, then queue*, but it checks almost nothing:
@@ -122,3 +122,5 @@ Slice 5:
   "you'll see it by" and tasks (A1). The archived FC-041 now reads "no tasks for slice 1", which is true.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 5. Criteria: 0 of 6 proven.
