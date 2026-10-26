@@ -1,6 +1,6 @@
 # FC-049 — Architecture memory for Flight Control
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 Area: flow
 
 Found on 2026-10-26, comparing this repository with AgToosa's `docs/Master-Architecture.md`, a single
@@ -113,3 +113,5 @@ Slice 4:
     "docs/architecture.md has 1 problem(s)" when a module was unmapped; it never blocked.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 4. Criteria: 0 of 6 proven.

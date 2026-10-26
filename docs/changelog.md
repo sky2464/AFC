@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-26 — FC-049 Architecture memory for Flight Control
+
+Flight Control has its own architecture memory, in the same shape it gives every app. Each part is tied to the files that hold it, and `sh bin/afc check` says when a pointer is dead or a module has no home in the notes.
+
+- Write the file
+- Template and skill
+- The check
+- Wired into the flow
+
 ## 2026-10-26 — FC-046 Findings, parked and waiting in one place
 
 One findings file with a State for every item, a "Waiting on you" list and a "Parked" list (with a reason and when to look again) in every plan, one command to take a finding in, states that follow the specs on their own, and a few Areas that say where the work is going, each with a target.
