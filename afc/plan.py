@@ -265,7 +265,7 @@ def readiness(spec_text: str, fc: bool) -> dict:
                     missing.append(f"slice {n} says it proves {crit}, which is not in the criteria")
     elif _bullets(spec_text, "You'll know it works when"):
         notes.append("the criteria are not numbered, so they are not linked to slices")
-    to_confirm = [text for settled, text in assumptions(spec_text) if not settled and text]
+    to_confirm = [text for settled, text in assumptions(spec_text) if not settled and text and not text.startswith("<")]
     return {
         "ready": not missing,
         **({"missing": missing} if missing else {}),

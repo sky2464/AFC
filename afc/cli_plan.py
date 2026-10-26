@@ -291,6 +291,15 @@ def _shipped(spec_text: str, line: str) -> str:
     return "\n".join(lines[:start] + ["", line, ""] + lines[end:])
 
 
+def _criteria_line(spec_text: str) -> str:
+    numbered = plan.criteria(spec_text)
+    if not numbered:
+        return "Criteria: not numbered."
+    named = {c for _, label in plan.all_slices(spec_text) for c in plan.proofs(label)}
+    proven = sum(1 for c in numbered if c in named)
+    return f"Criteria: {proven} of {len(numbered)} proven."
+
+
 def _archive_index(current: str, row: list[str]) -> str:
     text = current if current.strip() else ARCHIVE_INDEX
     new = "| " + " | ".join(plan.cell(c) for c in row) + " |"
@@ -384,7 +393,7 @@ def cmd_done(args: argparse.Namespace) -> dict:
     new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})"]] + plan.read_rows(new, "Done"))
     new = plan.log(new, today, f"{sid} done")
     body = plan.set_header(spec_text, status="done", done=today)
-    body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}.")
+    body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}. {_criteria_line(spec_text)}")
     changelog = (space.base if space.prefix == "FC" else space.base.parent) / "changelog.md"
     old_changelog = changelog.read_text(encoding="utf-8") if changelog.is_file() else None
     entry = ship.changelog_entry(spec_text, sid, row[1], today)
