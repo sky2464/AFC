@@ -73,7 +73,7 @@ Rewriting older specs to the new shape. Any test.
 - [x] 1. Say what is missing — you'll see it by a scratch project plan with a bare spec in Next giving
       `ready: false` and the list, the filled-in spec giving `ready: true`, and an `S-` spec answering
       too (proves A1)
-- [ ] 2. Criteria tied to slices — you'll see it by a scratch spec whose A3 has no slice and whose
+- [x] 2. Criteria tied to slices — you'll see it by a scratch spec whose A3 has no slice and whose
       slice 2 names A9 giving both messages, and an older unnumbered spec giving only the note
       (proves A2)
 - [ ] 3. Assumptions — you'll see it by a scratch spec with one open assumption showing it under

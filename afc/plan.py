@@ -193,8 +193,25 @@ def _bullets(spec_text: str, section: str) -> list[str]:
     return [m.group(1).strip() for ln in lines[start:end] if (m := re.match(r"\s*[-*]\s+(.*)$", ln))]
 
 
+def criteria(spec_text: str) -> list[str]:
+    """Ids ('A1', 'A2', ...) of the numbered bullets under "You'll know it works when"."""
+    found = []
+    for bullet in _bullets(spec_text, "You'll know it works when"):
+        m = re.match(r"(A\d+)\.", bullet)
+        if m:
+            found.append(m.group(1))
+    return found
+
+
+def proofs(label: str) -> list[str]:
+    """Criterion ids a slice names with `(proves A1, A2)` at its end."""
+    m = re.search(r"\(proves\s+([^)]*)\)\s*$", label.strip(), re.IGNORECASE)
+    return re.findall(r"A\d+", m.group(1)) if m else []
+
+
 def readiness(spec_text: str, fc: bool) -> dict:
-    """Is a spec ready for build? {'ready': bool} plus 'missing' (plain words) when it is not.
+    """Is a spec ready for build? {'ready': bool} plus 'missing' (plain words) when it is not,
+    and 'notes' (never a block) for older specs whose criteria are not numbered.
 
     Checks Goal, Out of scope, criteria, slices (each with "you'll see it by"), Tasks (a `Slice n:`
     line per slice) and, for Flight Control's own specs, "Reaches the apps"."""
@@ -217,7 +234,20 @@ def readiness(spec_text: str, fc: bool) -> dict:
         absent = [str(n) for n in range(1, len(blocks) + 1) if not re.search(rf"^\s*Slice {n}:", tasks, re.M)]
         if absent:
             missing.append("no tasks for slice " + ", ".join(absent))
-    return {"ready": not missing, **({"missing": missing} if missing else {})}
+    notes: list[str] = []
+    numbered = criteria(spec_text)
+    named = [proofs(b) for b in blocks]
+    if numbered or any(named):
+        for crit in numbered:
+            if not any(crit in ids for ids in named):
+                missing.append(f"{crit} has no slice that proves it")
+        for n, ids in enumerate(named, 1):
+            for crit in ids:
+                if crit not in numbered:
+                    missing.append(f"slice {n} says it proves {crit}, which is not in the criteria")
+    elif _bullets(spec_text, "You'll know it works when"):
+        notes.append("the criteria are not numbered, so they are not linked to slices")
+    return {"ready": not missing, **({"missing": missing} if missing else {}), **({"notes": notes} if notes else {})}
 
 
 def _task_lines(spec_text: str) -> list[str]:
