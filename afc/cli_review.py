@@ -18,6 +18,8 @@ NAMES = ("review",)
 def register(sub) -> None:
     p = sub.add_parser("review", help="review the slice: checks, verdict and report")
     p.add_argument("--slice", required=True)
+    p.add_argument("--tests", action="store_true",
+                   help="also demand a test behind each acceptance line and for a fix")
     p.set_defaults(handler=cmd_review)
 
 
@@ -29,4 +31,5 @@ def _cli():
 
 def cmd_review(args: argparse.Namespace) -> dict:
     project = _cli()._active(load_registry(afc_home()))
-    return review.run_review(Path(project.code_path), Path(project.workspace_path), args.slice)
+    return review.run_review(Path(project.code_path), Path(project.workspace_path), args.slice,
+                            tests=args.tests)

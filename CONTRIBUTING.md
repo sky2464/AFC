@@ -95,7 +95,8 @@ Users only ever see published releases: `v*` tags on `main`. Publishing stays yo
 3. If the release changes the layout of the workspace (`~/.A-FC/`), ship a numbered upgrade step:
    `afc/upgrade_NNN.py` with `run(home)`, where step N takes the workspace from layout N-1 to N.
    The update backs up `~/.A-FC/`, runs missing steps in order and restores
-   the backup if one fails.
+   the backup if one fails. The next release carries layout 1 (`afc/upgrade_001.py`, FC-036:
+   removes the old global `maintain` switch).
 4. Tag the release on `main` with the same version as `VERSION`
    and push the tag.
 

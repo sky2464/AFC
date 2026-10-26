@@ -73,6 +73,9 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             dest.mkdir(parents=True)
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
+        elif p["kind"] == "stale_maintain":
+            (home / "maintain").unlink(missing_ok=True)
+            repaired.append("Removed the old global maintenance switch.")
         elif p["kind"] == "test_copy_behind" and p["fixable"]:
             # Changing git in the A-FC folder needs maintenance mode, as it does when typed. The copy
             # is already detached and clean, so reset moves it without a new detach.
@@ -269,6 +272,10 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     problems: list[dict] = root_problems(cli.afc_root()) if not is_test_copy(cli.afc_root(), home) else []
     problems += behind_problems(cli.afc_root(), home)
     problems += plan_problems(home)
+    if (home / "maintain").exists():
+        problems.append(_problem("stale_maintain", str(home / "maintain"), True,
+                                 detail="An old global maintenance switch is left over; it is ignored, "
+                                        "and repair removes it."))
     owned: set[Path] = set()
     for p in reg.projects.values():
         owned.add(Path(p.workspace_path).resolve())
@@ -305,6 +312,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     if with_addons:
         problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
+    problems += _tracked_deny_problems(cli.afc_root())
     wanted = _wanted(reg)
     foreign = foreign_roots_for(home, reg)
     for entry in current:
@@ -377,6 +385,30 @@ def _wanted(reg) -> list[str]:
         return []
     dirs = [Path(active.code_path), Path(active.workspace_path)]
     return [str(d.resolve()) for d in dirs if d.is_dir()]
+
+
+def _tracked_deny_problems(root: Path) -> list[dict]:
+    """The tracked .claude/settings.json list and the data file's list must agree (FC-038)."""
+    from afc import connectors
+
+    want, have = connectors.tracked_names(root), connectors.tracked_in_settings(root)
+    try:  # names the user asked for in plain words are taken out of the tracked file (slice 3)
+        from afc.config import afc_home
+        asked = {connectors.PREFIX + n for n in connectors.names(connectors.load(afc_home()))}
+    except Exception:
+        asked = set()
+    still = sorted(set(have) & asked)
+    if still:  # an update or edit put a wanted name back in the tracked list
+        return [_problem("tracked_deny_wanted", str(root / ".claude" / "settings.json"), False,
+                         detail="The connectors held back from the first start still list "
+                                + ", ".join(still) + ", which you asked for. Ask for it again "
+                                "(sh bin/afc connectors add) to turn it back on.")]
+    if set(want) - asked == set(have) - asked:
+        return []
+    diff = sorted((set(want) ^ set(have)) - asked)
+    return [_problem("tracked_deny_differs", str(root / ".claude" / "settings.json"), False,
+                     detail="The connectors held back from the first start differ between "
+                            "afc-connectors.json and .claude/settings.json: " + ", ".join(diff) + ".")]
 
 
 def _problem(kind: str, path: str, fixable: bool, detail: str, project: str = "") -> dict:

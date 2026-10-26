@@ -24,6 +24,7 @@ needs more.
 
 Run `sh bin/afc plan`; build `next_slice`. No active spec: summarize the top `Next` spec in one
 line and run `sh bin/afc plan start <id>`. No specs: `afc-interview`.
+When the plan lists `to_confirm` for the spec, settle those open assumptions in the first slice before building further.
 
 If the user names a spec that is not the active one, or one that isn't in the plan from
 `sh bin/afc plan` (an `S-` ID in
@@ -66,7 +67,8 @@ Quietly and safely:
 ## checkpoint 3 — showing the slice
 
 1. Show a slice once it works in a live run. Never show one that fails when tried.
-2. `sh bin/afc review --slice "<n> <label>"` (runs `afc scan` too) returns `verdict` and a `report` path. If `blocked`,
+2. `sh bin/afc review --slice "<n> <label>"` (runs `afc scan` too) returns `verdict` and a `report` path. Add
+   `--tests` only when the user has asked for tests in this project; otherwise run it as is. If `blocked`,
    do not ask for approval: say what is wrong, fix it, review again.
 3. Show the demo (how to open a screen; the command and real output for an API or CLI), with
    and the review summary.

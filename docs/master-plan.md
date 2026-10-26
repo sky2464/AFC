@@ -15,26 +15,31 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-043 | Ready means ready | M | [spec](specs/FC-043-ready-means-ready.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-044 | The plan can't drift | L | [spec](specs/FC-044-the-plan-can-t-drift.md) |
+| FC-045 | Releases and results from the plan | M | [spec](specs/FC-045-releases-and-results-from-the-plan.md) |
+| FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
+| FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-040 | Ready for v0.06a | 2026-10-26 | [FC-040](specs/archive/FC-040-ready-for-v0-06a.md) |
+| FC-041 | Maintenance mode survives a new session | 2026-10-26 | [FC-041](specs/archive/FC-041-maintenance-mode-survives-a-new-session.md) |
+| FC-042 | Review asks for tests only when asked | 2026-10-26 | [FC-042](specs/archive/FC-042-review-asks-for-tests-only-when-asked.md) |
+| FC-039 | Welcome counts held-back connectors | 2026-10-26 | [FC-039](specs/archive/FC-039-welcome-counts-held-back-connectors.md) |
+| FC-038 | Light first start | 2026-10-25 | [FC-038](specs/archive/FC-038-light-first-start.md) |
+| FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |
+| FC-036 | Maintenance mode never sticks | 2026-10-25 | [FC-036](specs/archive/FC-036-maintenance-mode-never-sticks.md) |
 | FC-035 | Ready for v0.05b | 2026-10-25 | [FC-035](specs/archive/FC-035-ready-for-v0-05b.md) |
 | FC-034 | Connectors load only when needed | 2026-10-25 | [FC-034](specs/archive/FC-034-connectors-load-only-when-needed.md) |
 | FC-033 | Master plan, one truth | 2026-10-25 | [FC-033](specs/archive/FC-033-master-plan-one-truth.md) |
-| FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
-| FC-031 | Test copy stays current and separate | 2026-10-25 | [FC-031](specs/archive/FC-031-test-copy-stays-current-and-separate.md) |
-| FC-030 | Tests only when asked | 2026-10-25 | [FC-030](specs/archive/FC-030-tests-only-when-asked.md) |
-| FC-029 | Ready for v0.04a | 2026-10-25 | [FC-029](specs/archive/FC-029-ready-for-v0-04a.md) |
-| FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
-| FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
-| FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -120,20 +125,6 @@ same day showed the rest.
 
 | Date | Event |
 |---|---|
-| 2026-10-24 | Master plan started; FC-001 to FC-009 added from the first live run |
-| 2026-10-24 | FC-010 added at the top after the maintenance mix-up; the Bun audit fix for FC-007 already exists on `claude/toolkit-layers-build-0d5bc1` (`77eda62`) |
-| 2026-10-24 | FC-010 started |
-| 2026-10-24 | Flight Control's specs renamed FC-001 to FC-010; S- stays for project specs |
-| 2026-10-24 | FC-007's code and tests brought onto `dev` with FC-010 slice 7 and checked against real Bun and npm output; waiting to be closed |
-| 2026-10-24 | FC-010 done |
-| 2026-10-24 | FC-011 One-click updates specced and sliced (7 slices); queued in Next |
-| 2026-10-24 | FC-012 added |
-| 2026-10-24 | FC-012 specced and sliced (5 slices) from the update session's findings; queued last in Next |
-| 2026-10-24 | FC-001 started |
-| 2026-10-24 | FC-001 done |
-| 2026-10-24 | FC-002 started |
-| 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
-| 2026-10-24 | FC-002 done |
 | 2026-10-24 | FC-014 added |
 | 2026-10-24 | FC-015 added |
 | 2026-10-24 | FC-014 and FC-015 specced and sliced (5 slices each): review folded into building a slice, ship folded into finishing a spec; deploys and history rewrites left as the user's own actions |
@@ -215,3 +206,23 @@ same day showed the rest.
 | 2026-10-25 | FC-034 done |
 | 2026-10-25 | FC-035 started |
 | 2026-10-25 | FC-035 done |
+| 2026-10-25 | FC-036 started |
+| 2026-10-25 | FC-036 done |
+| 2026-10-25 | FC-037 started |
+| 2026-10-25 | FC-037 done |
+| 2026-10-25 | FC-038 started |
+| 2026-10-25 | FC-038 done |
+| 2026-10-26 | FC-039 started |
+| 2026-10-26 | FC-039 done |
+| 2026-10-26 | FC-042 started |
+| 2026-10-26 | FC-042 done |
+| 2026-10-26 | FC-041 started |
+| 2026-10-26 | FC-043 added |
+| 2026-10-26 | FC-044 added |
+| 2026-10-26 | FC-045 added |
+| 2026-10-26 | FC-046 added |
+| 2026-10-26 | FC-047 added |
+| 2026-10-26 | FC-041 done |
+| 2026-10-26 | FC-040 started |
+| 2026-10-26 | FC-040 done |
+| 2026-10-26 | FC-043 started |

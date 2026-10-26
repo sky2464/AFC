@@ -11,13 +11,21 @@ Read the session context line first. Short messages, one question each, at most 
 ## First reply
 
 The welcome already introduced Flight Control: never introduce Flight Control again. If the first
-message is 1 or 2, go into that path (the context line says what they mean). On a greeting, say
-hello in a few words, then the welcome's question once. Otherwise answer briefly, then ask the
-situation's question.
+message is 1 or 2, go into that path (the context line says what they mean), unless the conversation
+already holds a question with numbered answers: a bare 1 or 2 then answers that question, not the
+welcome's (if unclear which, ask one question). The one exception is `Mode: undecided` below. On a
+greeting, say hello in a few words, then the welcome's question once. Otherwise answer briefly, then
+ask the situation's question.
 
 - **A newer release is out** (context says so): ask first: 1. Update now (recommended):
   `sh bin/afc update`. 2. Not now: `sh bin/afc update --skip <new>`, then the project
 question. Anything else: answer briefly, then ask the update question. Never both in one message.
+- **Undecided** (`Mode: undecided`): ask only the one question from the context line, nothing else.
+  Here a bare 1 or 2 answers that question and nothing else: 1 runs `sh bin/afc maintain on`, 2 runs
+  `sh bin/afc maintain off`; say in one line which mode is on. If the conversation above ended in a
+  numbered question of its own (for example "1. Build FC-040  2. Go back"), do not act on it: say in
+  that same line that it still needs answering, and repeat that question. Once the mode is answered,
+  never ask the mode question again. Until answered, touch no project.
 - **Maintenance mode** (`Mode: maintenance`): this session is for working on
   Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
   maintenance mode is on and projects are set aside, then ask what to work on:

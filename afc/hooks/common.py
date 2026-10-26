@@ -14,7 +14,7 @@ from pathlib import Path
 
 from afc.hooks.shell_text import strip_heredoc_bodies  # noqa: F401 (re-export)
 from afc.hooks.shell_text import expand_known, track_assignments  # noqa: F401 (re-export)
-from afc.config import afc_home, afc_root, maintain_enabled
+from afc.config import afc_home, afc_root, maintain_enabled, undecided
 from afc.registry import Project, RegistryError, load_registry
 
 WRITE_TOOLS = ("Write", "Edit", "NotebookEdit")
@@ -68,6 +68,7 @@ class Context:
     active: Project | None
     maintain: bool
     projects: tuple[Project, ...] = ()  # every registered project, for maintenance mode
+    undecided: bool = False  # asked "Flight Control or your project?", not yet answered
 
 
 def resolve_path(raw: str, cwd: str | None = None) -> Path:
@@ -107,6 +108,7 @@ def load_context(session_id: str | None = None) -> Context:
         active=active,
         maintain=maintain_enabled(home, session_id),
         projects=projects,
+        undecided=undecided(home, session_id),
     )
 
 

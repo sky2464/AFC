@@ -1,6 +1,20 @@
 {"hooks": {
-  "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [{"type": "command",
+  "SessionStart": [{"matcher": "startup|resume|fork|clear|compact", "hooks": [{"type": "command",
      "command": "sh \"${CLAUDE_PROJECT_DIR}/bin/afc\" hook session_start"}]}],
   "PreToolUse": [{"matcher": "Write|Edit|NotebookEdit|Bash|Read|Glob|Grep|LS", "hooks": [{"type": "command",
      "command": "sh \"${CLAUDE_PROJECT_DIR}/bin/afc\" hook pretool"}]}]
-}}
+},
+ "deniedMcpServers": [
+  {"serverName": "claude.ai Claude Docs"},
+  {"serverName": "claude.ai Adobe for creativity"},
+  {"serverName": "claude.ai Excalidraw"},
+  {"serverName": "claude.ai Context7"},
+  {"serverName": "claude.ai Microsoft Learn"},
+  {"serverName": "claude.ai Sentry"},
+  {"serverName": "claude.ai Notion"},
+  {"serverName": "claude.ai Linear"},
+  {"serverName": "claude.ai Figma"},
+  {"serverName": "claude.ai Canva"},
+  {"serverName": "claude.ai Gmail"},
+  {"serverName": "claude.ai Slack"}]
+}

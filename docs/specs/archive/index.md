@@ -2,6 +2,13 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-040 | Ready for v0.06a | 2026-10-26 | FC-040-ready-for-v0-06a.md |
+| FC-041 | Maintenance mode survives a new session | 2026-10-26 | FC-041-maintenance-mode-survives-a-new-session.md |
+| FC-042 | Review asks for tests only when asked | 2026-10-26 | FC-042-review-asks-for-tests-only-when-asked.md |
+| FC-039 | Welcome counts held-back connectors | 2026-10-26 | FC-039-welcome-counts-held-back-connectors.md |
+| FC-038 | Light first start | 2026-10-25 | FC-038-light-first-start.md |
+| FC-037 | Light start without a project | 2026-10-25 | FC-037-light-start-without-a-project.md |
+| FC-036 | Maintenance mode never sticks | 2026-10-25 | FC-036-maintenance-mode-never-sticks.md |
 | FC-035 | Ready for v0.05b | 2026-10-25 | FC-035-ready-for-v0-05b.md |
 | FC-034 | Connectors load only when needed | 2026-10-25 | FC-034-connectors-load-only-when-needed.md |
 | FC-033 | Master plan, one truth | 2026-10-25 | FC-033-master-plan-one-truth.md |

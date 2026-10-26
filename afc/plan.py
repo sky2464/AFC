@@ -168,6 +168,141 @@ def section_filled(spec_text: str, section: str) -> bool:
     return any(ln.strip() for ln in lines[start:end])
 
 
+def _slice_blocks(spec_text: str) -> list[str]:
+    """Each checkbox slice under `## Slices` with its wrapped continuation lines, as one string."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Slices")
+    except ValueError:
+        return []
+    blocks: list[str] = []
+    for line in lines[start:end]:
+        if re.match(r"\s*- \[[ xX]\]", line):
+            blocks.append(line.strip())
+        elif blocks and line.strip():
+            blocks[-1] += " " + line.strip()
+    return blocks
+
+
+def _bullets(spec_text: str, section: str) -> list[str]:
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, section)
+    except ValueError:
+        return []
+    return [m.group(1).strip() for ln in lines[start:end] if (m := re.match(r"\s*[-*]\s+(.*)$", ln))]
+
+
+def criteria(spec_text: str) -> list[str]:
+    """Ids ('A1', 'A2', ...) of the numbered bullets under "You'll know it works when"."""
+    found = []
+    for bullet in _bullets(spec_text, "You'll know it works when"):
+        m = re.match(r"(A\d+)\.", bullet)
+        if m:
+            found.append(m.group(1))
+    return found
+
+
+def proofs(label: str) -> list[str]:
+    """Criterion ids a slice names with `(proves A1, A2)` at its end."""
+    m = re.search(r"\(proves\s+([^)]*)\)\s*$", label.strip(), re.IGNORECASE)
+    return re.findall(r"A\d+", m.group(1)) if m else []
+
+
+def assumptions(spec_text: str) -> list[tuple[bool, str]]:
+    """(settled, text) for each checkbox line under `## Assumptions to confirm`."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Assumptions to confirm")
+    except ValueError:
+        return []
+    found = []
+    for line in lines[start:end]:
+        m = re.match(r"\s*- \[([ xX])\]\s*(.*)$", line)
+        if m:
+            found.append((m.group(1) != " ", m.group(2).strip()))
+        elif found and line.strip() and line.startswith((" ", "\t")):
+            found[-1] = (found[-1][0], found[-1][1] + " " + line.strip())
+    return found
+
+
+def readiness(spec_text: str, fc: bool) -> dict:
+    """Is a spec ready for build? {'ready': bool} plus 'missing' (plain words) when it is not,
+    'notes' (never a block) for older specs whose criteria are not numbered, and 'to_confirm'
+    (never a block) listing the assumptions not yet settled.
+
+    Checks Goal, Out of scope, criteria, slices (each with "you'll see it by"), Tasks (a `Slice n:`
+    line per slice) and, for Flight Control's own specs, "Reaches the apps"."""
+    missing: list[str] = []
+    for section, what in (("Goal", "no goal yet"), ("Out of scope", "nothing said about what is out of scope")):
+        if not section_filled(spec_text, section):
+            missing.append(what)
+    if fc and not section_filled(spec_text, "Reaches the apps"):
+        missing.append("no 'Reaches the apps' section filled in")
+    real_criteria = [b for b in _bullets(spec_text, "You'll know it works when") if not _placeholder(b)]
+    if not real_criteria:
+        missing.append("no criteria yet (what you will see when it works)")
+    blocks = _slice_blocks(spec_text)
+    if not blocks:
+        missing.append("no slices yet")
+    for n, block in enumerate(blocks, 1):
+        if not re.search(r"you'll see it by\s+(?!<)\S", block, re.IGNORECASE):
+            missing.append(f"slice {n} has no 'you'll see it by'")
+    if blocks:
+        tasks = _task_blocks(spec_text)
+        absent = [str(n) for n in range(1, len(blocks) + 1) if not tasks.get(n)]
+        if absent:
+            missing.append("no tasks for slice " + ", ".join(absent))
+    notes: list[str] = []
+    numbered = criteria(spec_text)
+    named = [proofs(b) for b in blocks]
+    if numbered or any(named):
+        for crit in numbered:
+            if not any(crit in ids for ids in named):
+                missing.append(f"{crit} has no slice that proves it")
+        for n, ids in enumerate(named, 1):
+            for crit in ids:
+                if crit not in numbered:
+                    missing.append(f"slice {n} says it proves {crit}, which is not in the criteria")
+    elif real_criteria:
+        notes.append("the criteria are not numbered, so they are not linked to slices")
+    to_confirm = [text for settled, text in assumptions(spec_text) if not settled and text and not text.startswith("<")]
+    return {
+        "ready": not missing,
+        **({"missing": missing} if missing else {}),
+        **({"notes": notes} if notes else {}),
+        **({"to_confirm": to_confirm} if to_confirm else {}),
+    }
+
+
+def _placeholder(bullet: str) -> bool:
+    """A template line nobody has filled in yet: `<…>` or `A1. <…>`."""
+    return bool(re.match(r"(?:A\d+\.\s*)?<", bullet.strip()))
+
+
+def _task_blocks(spec_text: str) -> dict[int, bool]:
+    """For each `Slice n:` heading under Tasks, whether it lists at least one real (non-template) task."""
+    blocks: dict[int, bool] = {}
+    current = None
+    for line in _task_lines(spec_text):
+        m = re.match(r"\s*Slice (\d+):", line)
+        if m:
+            current = int(m.group(1))
+            blocks[current] = False
+        elif current is not None and line.strip() and not _placeholder(line.strip().lstrip("-* ").strip()):
+            blocks[current] = True
+    return blocks
+
+
+def _task_lines(spec_text: str) -> list[str]:
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Tasks")
+    except ValueError:
+        return []
+    return lines[start:end]
+
+
 def open_slices(spec_text: str) -> list[str]:
     """Labels of the unticked slices, in order."""
     return [label for done, label in all_slices(spec_text) if not done]

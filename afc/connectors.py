@@ -59,6 +59,62 @@ def detect(code: Path) -> list[str]:
     return sorted({mapping[f] for f in facts_of(code) if f in mapping})
 
 
+def tracked_names(root: Path | None = None) -> list[str]:
+    """The connector names the tracked .claude/settings.json holds back from the first start
+    (the 'tracked_deny' list in afc-connectors.json)."""
+    try:
+        data = json.loads(((root or afc_root()) / "afc-connectors.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    found = data.get("tracked_deny") if isinstance(data, dict) else None
+    return [n for n in found if isinstance(n, str)] if isinstance(found, list) else []
+
+
+def tracked_in_settings(root: Path | None = None) -> list[str]:
+    """The names in the tracked .claude/settings.json deniedMcpServers (read only)."""
+    try:
+        data = json.loads(((root or afc_root()) / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    found = data.get(DENIED_KEY) if isinstance(data, dict) else None
+    return [n for n in (_entry_name(e) for e in found) if n] if isinstance(found, list) else []
+
+
+def tracked_held(home: Path, root: Path | None = None) -> list[str]:
+    """The tracked names the user has not asked for (FC-039)."""
+    asked = {n.lower() for n in names(load(home))}
+    return [n for n in tracked_names(root) if _clean(n).lower() not in asked]
+
+
+def told(home: Path, folder: Path) -> list[str] | None:
+    """The tracked names last told about for this Flight Control folder, or None when not told
+    (or the memory can't be read)."""
+    try:
+        data = json.loads((home / "connectors-told").read_text(encoding="utf-8"))
+        found = data[str(folder)]
+        return [n for n in found if isinstance(n, str)] if isinstance(found, list) else None
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def mark_told(home: Path, folder: Path, names_: list[str]) -> None:
+    """Remember what was told for this folder. A failure to write is ignored."""
+    path = home / "connectors-told"
+    try:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data = data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            data = {}
+        data[str(folder)] = list(names_)
+        home.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError:
+        pass
+
+
 def _clean(name: str) -> str:
     name = " ".join(name.split())
     if name.lower().startswith("claude.ai "):
@@ -240,6 +296,23 @@ def hold_for(root: Path, workspace: Path, code: Path) -> tuple[int, int]:
         raise
 
 
+def hold_for_workspace(root: Path, home: Path) -> tuple[int, int]:
+    """With no active project: hold back every connector not on the workspace's own list
+    (connectors.json in the workspace root; missing means empty). Same undo as hold_for."""
+    from afc.session_dirs import check_settings, settings_path
+    from afc.undo import Undo
+
+    check_settings(root)
+    wanted = to_hold(names(load(home)), root)
+    undo = Undo(settings_path(root))
+    undo.save_settings()
+    try:
+        return hold(root, wanted), len(wanted)
+    except BaseException:
+        undo.rollback()
+        raise
+
+
 def release(root: Path, name: str) -> bool:
     """Unblock one connector Flight Control held here, so it loads from the next start. Only
     entries Flight Control wrote are removed; the user's own entries and choices stay."""
@@ -252,7 +325,7 @@ def release(root: Path, name: str) -> bool:
     mine = [n for n in mine if isinstance(n, str)] if isinstance(mine, list) else []
     hit = [n for n in mine if n.lower() == full.lower()]
     if not hit:
-        return False
+        return release_tracked(root, full)
     denied = settings.get(DENIED_KEY, [])
     denied = denied if isinstance(denied, list) else []
     left = [e for e in denied if _entry_name(e) not in hit]
@@ -264,3 +337,122 @@ def release(root: Path, name: str) -> bool:
             settings.pop(key, None)
     _atomic_write(path, json.dumps(settings, indent=2) + "\n")
     return True
+
+
+def release_tracked(root: Path, full: str) -> bool:
+    """Take one name out of the tracked .claude/settings.json deniedMcpServers (FC-038 slice 3) and
+    hide that edit from git with skip-worktree, so `git status` stays clean and updates are not
+    refused. Only that name is removed; every other key stays. Put back as it was on any error."""
+    import subprocess
+
+    from afc.session_dirs import _atomic_write
+
+    path = root / ".claude" / "settings.json"
+    try:
+        old = path.read_text(encoding="utf-8")
+        settings = json.loads(old)
+    except (OSError, ValueError):
+        return False
+    denied = settings.get(DENIED_KEY) if isinstance(settings, dict) else None
+    if not isinstance(denied, list):
+        return False
+    left = [e for e in denied if (_entry_name(e) or "").lower() != full.lower()]
+    if len(left) == len(denied):
+        return False
+    if left:
+        settings[DENIED_KEY] = left
+    else:
+        settings.pop(DENIED_KEY, None)
+    _atomic_write(path, json.dumps(settings, indent=1) + "\n")
+    try:
+        subprocess.run(["git", "-C", str(root), "update-index", "--skip-worktree",
+                        ".claude/settings.json"], check=True, capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        _atomic_write(path, old)
+        raise
+    return True
+
+
+def asked_full(home: Path, project_ws: Path | None = None) -> list[str]:
+    """Full names ('claude.ai Gmail') of the connectors the user asked for, from the workspace's
+    list (and the active project's list when given)."""
+    out: list[str] = []
+    for ws in (home, project_ws):
+        if ws is not None:
+            out += [PREFIX + n for n in names(load(ws))]
+    return list(dict.fromkeys(out))
+
+
+def _skip_worktree(root: Path, on: bool) -> bool:
+    import subprocess
+
+    flag = "--skip-worktree" if on else "--no-skip-worktree"
+    try:
+        subprocess.run(["git", "-C", str(root), "update-index", flag, ".claude/settings.json"],
+                       check=True, capture_output=True, timeout=20)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def is_hidden(root: Path) -> bool:
+    """True when .claude/settings.json is marked skip-worktree (a plain-words choice is applied)."""
+    import subprocess
+
+    try:
+        out = subprocess.run(["git", "-C", str(root), "ls-files", "-v", ".claude/settings.json"],
+                             capture_output=True, text=True, timeout=20).stdout
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return out.startswith("S")
+
+
+def unhide(root: Path) -> str | None:
+    """Before an update: clear skip-worktree and restore the tracked .claude/settings.json.
+    Returns the file's previous text (for undo), or None when nothing was hidden or it failed
+    (then the file is left as it was)."""
+    import subprocess
+
+    if not is_hidden(root):
+        return None
+    path = root / ".claude" / "settings.json"
+    try:
+        old = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    if not _skip_worktree(root, False):
+        return None
+    try:
+        subprocess.run(["git", "-C", str(root), "checkout", "--", ".claude/settings.json"],
+                       check=True, capture_output=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        _skip_worktree(root, True)
+        return None
+    return old
+
+
+def rehide(root: Path, wanted: list[str], old: str | None = None) -> None:
+    """After an update: take every wanted name out of the (new) tracked file and hide the edit
+    again. If any step fails, put the new file back exactly as released (unhidden, so git sees
+    it clean) and raise. `old` is kept for callers; the undo never needs it."""
+    from afc.session_dirs import _atomic_write
+
+    path = root / ".claude" / "settings.json"
+    released = path.read_text()
+    try:
+        for full in wanted:
+            release_tracked(root, full)
+    except Exception:
+        try:
+            _atomic_write(path, released)
+        finally:
+            _skip_worktree(root, False)
+        raise
+
+
+def restore_hidden(root: Path, old: str) -> None:
+    """Undo `unhide`: put the old text back and hide the file from git again."""
+    from afc.session_dirs import _atomic_write
+
+    _atomic_write(root / ".claude" / "settings.json", old)
+    _skip_worktree(root, True)

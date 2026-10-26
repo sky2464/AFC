@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 from afc import update, update_apply, version
-from afc.config import afc_home, afc_root, maintain_enabled, valid_session
+from afc.config import afc_home, afc_root, maintain_enabled, needs_choice, seen, undecided as is_undecided, valid_session
 from afc.context_brief import brief_path
 from afc.registry import load_registry
 
@@ -133,23 +133,49 @@ def _addons_line(root: Path) -> str:
             f"{'It still works' if one else 'They still work'} everywhere else.\n")
 
 
-def _connectors_line(reg, root: Path) -> str:
+def _connectors_line(reg, root: Path, home: Path | None = None, ignore_project: bool = False) -> str:
     """Block the account connectors the active project doesn't use, and say so once. Empty when
     nothing new was held back or anything failed: the settings are then as they were."""
     try:
         from afc import connectors
 
-        active = reg.active()
-        if active is None:
-            return ""
-        new, _ = connectors.hold_for(root, Path(active.workspace_path), Path(active.code_path))
+        active = None if ignore_project else reg.active()
+        home = home or afc_home()
     except Exception:  # the welcome must never break over connectors
         return ""
-    if not new:
+    new = 0
+    try:
+        if active is None:
+            new, _ = connectors.hold_for_workspace(root, home)
+        else:
+            new, _ = connectors.hold_for(root, Path(active.workspace_path), Path(active.code_path))
+    except Exception:
+        new = 0
+    tracked = 0
+    held = []
+    try:
+        held = connectors.tracked_held(home)
+        before = connectors.told(home, root)
+        if held and (before is None or any(n not in before for n in held)):
+            tracked = len(held)
+    except Exception:
+        tracked = 0
+    count = max(new, tracked)
+    if not count:
         return ""
-    one = new == 1
-    return (f"🔌 {new} account connector{'' if one else 's'} held back from the next start "
-            f"(not used by {active.name}); say which you need and I'll add {'it' if one else 'them'}.\n")
+    one = count == 1
+    if new >= tracked:
+        who = "(until a project needs them)" if active is None else f"(not used by {active.name})"
+        text = f"held back from the next start {who}"
+    else:
+        text = "held back to keep the start light"
+    if tracked:
+        try:
+            connectors.mark_told(home, root, held)
+        except Exception:
+            pass
+    return (f"🔌 {count} account connector{'' if one else 's'} {'is' if one else 'are'} {text}; "
+            f"say which you need and I'll add {'it' if one else 'them'}.\n")
 
 
 def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | None:
@@ -210,12 +236,16 @@ def _branch(root: Path) -> str:
         return "unknown"
 
 
-def _maintenance_output() -> dict:
+def _maintenance_output(home: Path | None = None) -> dict:
     """The welcome for a maintenance session: Flight Control itself, no projects offered."""
     root = afc_root()
     branch = _branch(root)
+    try:  # maintenance sets projects aside, so it counts as no active project
+        held = _connectors_line(None, root, home, ignore_project=True)
+    except Exception:
+        held = ""
     message = (
-        f"{INTRO}\n{_addons_line(root)}🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
+        f"{INTRO}\n{_addons_line(root)}{held}🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
         "Projects are set aside. Type /afc mm off to go back to them."
     )
     context = (
@@ -236,10 +266,34 @@ def _wrap(message: str, context: str) -> dict:
     }
 
 
-def build_output(home: Path, session: str | None = None, now: float | None = None) -> dict:
+CHOOSE = "1. Keep working on Flight Control (recommended)  2. Go to your project"
+
+
+def _undecided_output() -> dict:
+    """The welcome for a session that follows recent maintenance work: one question, nothing else."""
+    message = f"{INTRO}\n{CHOOSE}"
+    context = (
+        "Flight Control session. Mode: undecided — this session follows recent maintenance work: "
+        "another session recently had maintenance mode on for Flight Control here. "
+        "Do not read, build or change any project, and ignore the active project, until the user "
+        f"answers. The welcome asked one question: {CHOOSE}. In this session a bare 1 or 2 answers "
+        "that question and nothing else: 1 means run sh bin/afc maintain on, 2 means run sh bin/afc "
+        "maintain off, then say in one plain line which mode is on. If the conversation above ended "
+        "in a numbered question of its own (for example \"1. Build FC-040  2. Go back\"), do NOT act "
+        "on it: say in that same line that it still needs answering, and repeat that question. Once "
+        "the mode is answered this session is no longer undecided: never ask the mode question "
+        "again. For anything else, ask the mode question again and nothing more."
+    )
+    return _wrap(message, context)
+
+
+def build_output(home: Path, session: str | None = None, now: float | None = None,
+                 undecided: bool = False) -> dict:
+    if undecided:
+        return _undecided_output()
     if maintain_enabled(home, session):
         try:
-            return _maintenance_output()
+            return _maintenance_output(home)
         except Exception:  # the welcome must never break
             pass
     try:
@@ -256,10 +310,12 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
                 "The welcome already introduced Flight Control: do not introduce it again. "
                 f"The welcome asked: 1 = {one}, 2 = {two}. "
                 "If the user's first message is 1 or 2, treat it as their answer — do not ask that "
-                "question again. If they said hi or asked something else, answer briefly, then ask "
+                "question again — unless the conversation already holds a question with its own "
+                "numbered answers: a bare 1 or 2 then answers that question, not the welcome's "
+                "(if unclear which, ask one question). If they said hi or asked something else, answer briefly, then ask "
                 f"one question: 1 = {one} (recommended) or 2 = {two}."
             )
-        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}{_connectors_line(reg, afc_root())}", 1)
+        message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}{_connectors_line(reg, afc_root(), home)}", 1)
         context = (
             f"Flight Control session. {_project_line(reg)} {asked}{_health_line(home)} "
             "Follow CLAUDE.md and the afc-start skill for the first reply."
@@ -309,15 +365,34 @@ def _save_session(session: str | None) -> None:
         pass  # the welcome must never break over this
 
 
+def _source_in(stdin_text: str) -> str | None:
+    """The hook event's source (startup, resume, fork, clear, compact) when it is a string."""
+    try:
+        event = json.loads(stdin_text)
+    except ValueError:
+        return None
+    source = event.get("source") if isinstance(event, dict) else None
+    return source if isinstance(source, str) else None
+
+
 def main(stdout=None, stdin_text: str = "") -> int:
     stdout = stdout or sys.stdout
     session = _session_in(stdin_text)
-    _save_session(session)
+    source = _source_in(stdin_text)
     try:
         home = afc_home()
     except Exception:
         home = Path.home() / ".A-FC"
-    out = _with_home_note(build_output(home, session), home)
+    try:
+        was_seen = seen(home, session)
+        # a session that still has an unanswered question (any source) is asked once more
+        undecided = is_undecided(home, session) or needs_choice(home, session, source, was_seen)
+    except Exception:  # the welcome must never break
+        undecided = False
+    if source == "fork" and not undecided:
+        return 0  # a fork that isn't asked about starts exactly as before FC-041: no welcome, no side effects
+    _save_session(session)
+    out = _with_home_note(build_output(home, session, undecided=undecided), home)
     stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
     return 0
 

@@ -2,12 +2,15 @@
 and Flight Control's own folder only changes while maintenance mode is on.
 
 In maintenance mode, writes into any registered project's code or workspace folder, and git
-commands that run in or point at those folders, are blocked. Reading stays allowed. Outside
-maintenance mode `check_maintenance` does nothing; `check_own_copy` blocks git that changes the
+commands that run in or point at those folders, are blocked. Reading stays allowed. While a
+session has not yet answered "Flight Control or your project?", `check_undecided` blocks the same
+reach for the file tools, and lets a shell command run only when it is wholly on a short safe list.
+Outside maintenance mode `check_maintenance` does nothing; `check_own_copy` blocks git that changes the
 A-FC folder itself (reading git is always fine). In that folder, whatever the mode, merges must
 fast-forward and checkout/switch must land on a local branch (never a detached HEAD).
 """
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -15,6 +18,7 @@ from afc.hooks.common import (
     WRITE_TOOLS,
     Context,
     bash_write_targets_or_none,
+    lex,
     resolve_path,
     target_path,
 )
@@ -99,10 +103,12 @@ def _git_locations(words: list[str], base: Path) -> list[Path]:
     return found
 
 
-def check_maintenance(event: dict, ctx: Context) -> str | None:
-    """Return a block reason when maintenance mode would reach into a project, else None."""
-    if not ctx.maintain:
-        return None
+UNDECIDED_REASON = "choose Flight Control or your project first"
+
+
+def _reach(event: dict, ctx: Context) -> tuple[str, Path, str] | None:
+    """('write' or 'git', path, project name) when the call writes into, or runs git in or
+    pointing at, a project's code or workspace folder; else None."""
     folders = _project_folders(ctx)
     if not folders:
         return None
@@ -110,7 +116,7 @@ def check_maintenance(event: dict, ctx: Context) -> str | None:
     if tool in WRITE_TOOLS:
         target = target_path(event)
         owner = _owner(target, folders) if target is not None else None
-        return _write_reason(target, owner) if owner else None
+        return ("write", target, owner) if owner else None
     if tool != "Bash":
         return None
     tool_input = event.get("tool_input")
@@ -121,16 +127,125 @@ def check_maintenance(event: dict, ctx: Context) -> str | None:
     for raw in bash_write_targets_or_none(command, cwd) or []:
         owner = _owner(Path(raw), folders)
         if owner:
-            return _write_reason(Path(raw), owner)
+            return "write", Path(raw), owner
     for words, base in simple_commands(command, cwd) or []:
         if parse_git(words) is None:
             continue
         for where in _git_locations(words, base):
             owner = _owner(where, folders)
             if owner:
-                return (f"maintenance mode is on, so git can't run in {where} (project {owner}) "
-                        "— project work needs maintenance mode off")
+                return "git", where, owner
     return None
+
+
+# What a shell command may be while the session is undecided. A list, not a hunt for every way to
+# write: a form nobody listed counts as not on it.
+_SAFE_PLAIN = {"ls", "cat", "head", "tail", "grep", "rg", "find", "pwd", "echo", "wc", "sort", "diff"}
+_SAFE_GIT = {"status", "log", "diff", "show", "branch"}
+_SAFE_AFC = {"maintain", "status", "plan", "check"}
+_FIND_UNSAFE = {"-exec", "-execdir", "-ok", "-okdir", "-delete", "-fprint", "-fprint0", "-fprintf",
+                "-fls"}
+_PUNCTUATION = set("();<>|&")
+# sort writes files through -o/-T/-S and through any abbreviation of --output, so only clusters of
+# single-letter flags (no value-taking letter, no `--` option at all) are on the list; a file to read is fine.
+_SORT_FLAGS = re.compile(r"-[rnufbhVsc]+")
+
+
+def _safe_options(name: str, args: list[str]) -> bool:
+    """True when no option of a plain read-only command makes it write or run something."""
+    for arg in args:
+        if name == "find" and arg in _FIND_UNSAFE:
+            return False
+        if name == "rg" and arg.startswith(("--pre", "--hostname-bin")):
+            return False
+        if name == "sort" and arg.startswith("-") and not _SORT_FLAGS.fullmatch(arg):
+            return False
+    return True
+
+
+def _safe_git(words: list[str]) -> bool:
+    """`git status|log|diff|show` and a bare `git branch`: no option before the subcommand (-c,
+    -C and --git-dir change what git runs or where), and no output or pager options after it."""
+    if len(words) < 2 or words[1] not in _SAFE_GIT:
+        return False
+    args = words[2:]
+    if words[1] == "branch":
+        return not args
+    for arg in args:
+        key = arg.split("=", 1)[0]
+        if (len(key) >= 4 and "--output".startswith(key)  # git accepts shortened long options
+                or arg.startswith(("-O", "--open-files-in-pager", "--ext-diff", "--exec"))):
+            return False
+    return True
+
+
+def _safe_simple(words: list[str]) -> bool:
+    """True when one simple command (no redirect, no prefix) is on the safe list."""
+    name = words[0]
+    if name == "git":
+        return _safe_git(words)
+    if name == "sh":  # the Flight Control launcher: sh <any path>/bin/afc maintain|status|plan|check
+        if not (len(words) >= 3 and words[2] in _SAFE_AFC
+                and (words[1] == "bin/afc" or words[1].endswith("/bin/afc"))):
+            return False
+        # `plan` only reads when it has no subcommand: add, goal, rename, drop, move, start and
+        # done all write the project's workspace.
+        return words[2] != "plan" or len(words) == 3
+    return name in _SAFE_PLAIN and _safe_options(name, words[1:])
+
+
+def shell_on_safe_list(command: str) -> bool:
+    """True only when every part of a shell command is on the safe list.
+
+    Works on the raw tokens, not on `simple_commands`, because that drops the very things that
+    matter here: redirects, assignments and wrappers. Only `|` and `&&` join parts; a redirect,
+    subshell, command substitution, process substitution, `;`, `||`, `&` or newline, or a command
+    that cannot be lexed, is not on the list.
+    """
+    if "$(" in command or "`" in command:
+        return False
+    tokens = lex(command)
+    if not tokens:
+        return False
+    part: list[str] = []
+    for tok in tokens + ["&&"]:
+        if tok in ("|", "&&"):
+            if not part or not _safe_simple(part):
+                return False
+            part = []
+        elif set(tok) <= _PUNCTUATION or "<" in tok or ">" in tok:
+            return False
+        else:
+            part.append(tok)
+    return True
+
+
+def check_undecided(event: dict, ctx: Context) -> str | None:
+    """Until the session answers "Flight Control or your project?", block project writes and git
+    for the file tools, and every shell command that is not wholly on the safe list. Flight
+    Control's own folder, `afc maintain on|off` and reading stay allowed."""
+    if not ctx.undecided:
+        return None
+    if event.get("tool_name") == "Bash":
+        tool_input = event.get("tool_input")
+        command = tool_input.get("command") if isinstance(tool_input, dict) else None
+        if not (isinstance(command, str) and shell_on_safe_list(command)):
+            return UNDECIDED_REASON
+    return UNDECIDED_REASON if _reach(event, ctx) else None
+
+
+def check_maintenance(event: dict, ctx: Context) -> str | None:
+    """Return a block reason when maintenance mode would reach into a project, else None."""
+    if not ctx.maintain:
+        return None
+    reach = _reach(event, ctx)
+    if reach is None:
+        return None
+    kind, path, owner = reach
+    if kind == "write":
+        return _write_reason(path, owner)
+    return (f"maintenance mode is on, so git can't run in {path} (project {owner}) "
+            "— project work needs maintenance mode off")
 
 
 def _write_reason(path: Path, owner: str) -> str:

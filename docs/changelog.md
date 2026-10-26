@@ -1,10 +1,77 @@
 # Changelog
 
+## 2026-10-26 — FC-040 Ready for v0.06a
+
+`main` can be released as v0.06a: `VERSION` says `v0.06a`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
+
+- Ready for v0.06a
+
+## 2026-10-26 — FC-041 Maintenance mode survives a new session
+
+A new session never guesses which world the user is in. When a fork or /clear follows recent maintenance work, it asks one question first and shields every project until the user answers. A bare number always answers the question just asked.
+
+- See what a restart sends
+- Ask when a fork or clear follows maintenance work
+- Nothing touches a project until answered
+- A bare number answers the last question
+- Only a safe list of shell commands until answered
+
+## 2026-10-26 — FC-042 Review asks for tests only when asked
+
+The review judges a slice by what it can see without tests (secrets, scans, file size, naming) and never blocks a slice for having no tests. A user who does ask for tests still gets the old checks.
+
+- No test demand by default
+- Tests when asked
+- Live on the app that was blocked
+
+## 2026-10-26 — FC-039 Welcome counts held-back connectors
+
+The first welcome in a new copy says once, in one plain line, that account connectors are held back and how to get one, so a missing connector is never a surprise.
+
+- Say it once per copy
+- Say it again when it grows, and count down when asked
+- Cheap
+
+## 2026-10-25 — FC-038 Light first start
+
+The very first "hi" in a new copy costs clearly fewer tokens, with no extra step for the user and nothing taken away from a connector they use.
+
+- Does a tracked list work on the first start?
+- Ship the list
+- Asking for one in plain words
+- Updates keep the choice
+
+## 2026-10-25 — FC-037 Light start without a project
+
+With no active project, a start still holds back every claude.ai connector, so the second and every later start costs about the same as FC-034's project start.
+
+- Hold back with no project
+- Ask for one with no project
+- Live check
+
+## 2026-10-25 — FC-036 Maintenance mode never sticks
+
+Maintenance mode is only ever on in the one session that turned it on, and never in a copy on `main`. A new or daily copy always starts with your projects.
+
+- No global switch
+- Cleared by the update
+- Never on main
+- Live check
+
 ## 2026-10-25 — FC-035 Ready for v0.05b
 
 `main` can be released as v0.05b: `VERSION` says `v0.05b`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
 
 - Ready for v0.05b
+
+## v0.06a
+
+- Maintenance mode can't get stuck any more: it is on for one session only, never on a copy on main, and the update clears an old leftover switch. The update backs up your workspace first.
+- A fork or /clear right after Flight Control work asks one question first, "Flight Control or your project?". Until you answer, nothing in your project can be changed (a short safe list of read-only shell commands still runs).
+- The review no longer demands tests unless you ask for them (`--tests`).
+- Starts without a project are light too: about 42k tokens from the second start, down from 73k.
+- A new copy's very first hi is lighter: about 56k, down from 73k, with no extra step.
+- The first welcome says once that connectors are held back and how to ask for one.
 
 ## v0.05b
 
