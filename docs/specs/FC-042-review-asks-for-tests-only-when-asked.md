@@ -64,7 +64,7 @@ behind the flag.
 - [x] 2. Tests when asked — you'll see it by the same scratch project with `--tests` giving
       `verdict: blocked` and five "untested acceptance line" findings, and `afc-slice` carrying the
       sentence about when to use it
-- [ ] 3. Live on the app that was blocked — you'll see it by `sh bin/afc review --slice "3 …"` on a
+- [x] 3. Live on the app that was blocked — you'll see it by `sh bin/afc review --slice "3 …"` on a
       scratch copy of php-vuln-checker at commit `a8fcebf` with a changed `app/page.tsx` giving
       `verdict: ok`
 
@@ -83,5 +83,12 @@ Slice 3:
   a one-line change, run the review, write the result in Decisions. Never use the real project.
 
 ## Decisions
+
+- Slice 3, 2026-10-26: on a scratch copy of php-vuln-checker at `a8fcebf` (own registry and
+  workspace, plan copied in; the real project untouched) with one comment line added to
+  `app/page.tsx`, `sh bin/afc review --slice "3 server-side request that reads the announced PHP
+  version"` gave `verdict: ok`, 0 critical, 0 warnings, and a report with no "untested acceptance
+  line" and no "regression test" lines. The same review with `--tests` gave `verdict: blocked` with
+  5 critical findings, the five that stopped the user, so the flag brings the old checks back.
 
 ## Shipped
