@@ -80,6 +80,41 @@ def tracked_in_settings(root: Path | None = None) -> list[str]:
     return [n for n in (_entry_name(e) for e in found) if n] if isinstance(found, list) else []
 
 
+def tracked_held(home: Path, root: Path | None = None) -> list[str]:
+    """The tracked names the user has not asked for (FC-039)."""
+    asked = {n.lower() for n in names(load(home))}
+    return [n for n in tracked_names(root) if _clean(n).lower() not in asked]
+
+
+def told(home: Path, folder: Path) -> list[str] | None:
+    """The tracked names last told about for this Flight Control folder, or None when not told
+    (or the memory can't be read)."""
+    try:
+        data = json.loads((home / "connectors-told").read_text(encoding="utf-8"))
+        found = data[str(folder)]
+        return [n for n in found if isinstance(n, str)] if isinstance(found, list) else None
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def mark_told(home: Path, folder: Path, names_: list[str]) -> None:
+    """Remember what was told for this folder. A failure to write is ignored."""
+    path = home / "connectors-told"
+    try:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data = data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            data = {}
+        data[str(folder)] = list(names_)
+        home.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        os.replace(tmp, path)
+    except OSError:
+        pass
+
+
 def _clean(name: str) -> str:
     name = " ".join(name.split())
     if name.lower().startswith("claude.ai "):

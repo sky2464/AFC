@@ -140,18 +140,41 @@ def _connectors_line(reg, root: Path, home: Path | None = None, ignore_project: 
         from afc import connectors
 
         active = None if ignore_project else reg.active()
-        if active is None:
-            new, _ = connectors.hold_for_workspace(root, home or afc_home())
-        else:
-            new, _ = connectors.hold_for(root, Path(active.workspace_path), Path(active.code_path))
+        home = home or afc_home()
     except Exception:  # the welcome must never break over connectors
         return ""
-    if not new:
+    new = 0
+    try:
+        if active is None:
+            new, _ = connectors.hold_for_workspace(root, home)
+        else:
+            new, _ = connectors.hold_for(root, Path(active.workspace_path), Path(active.code_path))
+    except Exception:
+        new = 0
+    tracked = 0
+    held = []
+    try:
+        held = connectors.tracked_held(home)
+        if held and connectors.told(home, root) is None:
+            tracked = len(held)
+    except Exception:
+        tracked = 0
+    count = max(new, tracked)
+    if not count:
         return ""
-    one = new == 1
-    who = "(until a project needs them)" if active is None else f"(not used by {active.name})"
-    return (f"🔌 {new} account connector{'' if one else 's'} held back from the next start "
-            f"{who}; say which you need and I'll add {'it' if one else 'them'}.\n")
+    one = count == 1
+    if new >= tracked:
+        who = "(until a project needs them)" if active is None else f"(not used by {active.name})"
+        text = f"held back from the next start {who}"
+    else:
+        text = "held back to keep the start light"
+    if tracked:
+        try:
+            connectors.mark_told(home, root, held)
+        except Exception:
+            pass
+    return (f"🔌 {count} account connector{'' if one else 's'} {'is' if one else 'are'} {text}; "
+            f"say which you need and I'll add {'it' if one else 'them'}.\n")
 
 
 def _update_offer(home: Path, now: float | None = None) -> tuple[str, str] | None:
