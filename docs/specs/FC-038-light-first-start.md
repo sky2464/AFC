@@ -143,5 +143,8 @@ Slice 4:
   `.claude/settings.json`), a clone with Gmail asked for; `sh bin/afc update` ended on v0.06a with the new
   name in the file, Gmail still out, `git status` clean, skip-worktree set again and no refusal.
   The update path is `update_apply.apply` (not `workspace_upgrade`).
+- Not done, 2026-10-25: the "You'll know it works" line that the welcome counts the tracked names
+  among the connectors held back. The first start is quiet about them, and no slice owns the count.
+  Closed anyway on the user's go-ahead to build; if the count matters it needs its own small spec.
 
 ## Shipped
