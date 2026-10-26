@@ -78,7 +78,7 @@ plan's table columns. Merging, pushing or rewriting history.
 - [x] 3. Commands for what was done by hand — you'll see it by `plan set` changing size and dependency,
       `plan start` refusing while the dependency is open, and `plan reopen` bringing a finished
       scratch spec back (proves A3)
-- [ ] 4. A build leaves a clean tree — you'll see it by the workflow building a one-slice scratch spec
+- [x] 4. A build leaves a clean tree — you'll see it by the workflow building a one-slice scratch spec
       on a scratch clone and ending with an empty `git status --short` and the two `docs:` commits
       (proves A4)
 - [ ] 5. Old history labelled — you'll see it by `docs/superpowers/README.md` and `check` on the real

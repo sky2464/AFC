@@ -158,11 +158,22 @@ log(`Building ${todo.length} slice(s) of ${spec}`)
 
 // The build moves the plan itself: the spec goes to Now before the first slice and to Done after the
 // last gate passes. A spec already in Now (a resumed build) makes start say so; the build goes on.
+// Each plan move is committed on the spot, so the tree is clean between slices and when the build
+// ends. Only the plan's own files are staged: the plan, the specs (and their archive), and the
+// changelog that `plan done` writes.
+const PLAN_FILES = ['docs/master-plan.md', 'docs/specs']
+async function commitPlan(message, files) {
+  const paths = files.map(q).join(' ')
+  const r = await sh(`git add -- ${paths} && (git diff --cached --quiet -- ${paths} || git commit -m ${q(message)} -- ${paths})`)
+  return r.code === 0 ? 'committed' : 'not committed: ' + String(r.out).slice(-200)
+}
+
 const specId = (String(spec).match(/FC-\d+/) || [''])[0]
 let plan = null
 if (specId) {
   const started = await sh(`sh bin/afc plan start ${specId}`)
   plan = { start: started.code === 0 ? 'started' : 'not started: ' + String(started.out).slice(-200) }
+  if (started.code === 0) plan.startCommit = await commitPlan(`docs: ${specId} started`, PLAN_FILES)
   log(`Plan: ${specId} ${plan.start}`)
 }
 
@@ -214,6 +225,7 @@ const allPassed = slices.every(s => alreadyBuilt.has(s.number) || passed.include
 if (specId && allPassed) {
   const closed = await sh(`sh bin/afc plan done ${specId}`)
   plan = { ...plan, done: closed.code === 0 ? 'done' : 'not done: ' + String(closed.out).slice(-200) }
+  if (closed.code === 0) plan.doneCommit = await commitPlan(`docs: ${specId} done, archived`, [...PLAN_FILES, 'docs/changelog.md'])
   log(`Plan: ${specId} ${plan.done}`)
 }
 
