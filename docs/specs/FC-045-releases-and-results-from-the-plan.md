@@ -1,6 +1,6 @@
 # FC-045 — Releases and results from the plan
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-26 · Done: -
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose Done rows carry the version and links
 to the review and the evidence.
@@ -69,7 +69,7 @@ gives it. Deciding FC-040's fate (see Design notes). Measuring anything new beyo
 
 ## Slices
 
-- [ ] 1. Draft the release — you'll see it by `release prepare v0.07a --show` and then without `--show`
+- [x] 1. Draft the release — you'll see it by `release prepare v0.07a --show` and then without `--show`
       on a scratch clone, and `--show` on the real `dev` listing the specs FC-040 misses (proves A1, A2)
 - [ ] 2. Releases table and Release column — you'll see it by a scratch plan showing the table and the
       stamped Done rows after `prepare` (proves A3)
