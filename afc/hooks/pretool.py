@@ -23,17 +23,25 @@ RULES: list[Rule] = [check_foreign_home, check_undecided, check_paths, check_mai
 GUARDED_TOOLS = (*WRITE_TOOLS, "Bash", *READ_TOOLS)
 
 
+def decide(event: dict, session_id: str | None = None) -> str | None:
+    """The reason this tool call must be blocked, or None to allow it. Shared by the Claude Code
+    hook and `afc guard`, so every tool gets the same answer."""
+    if event.get("tool_name") not in GUARDED_TOOLS:
+        return None
+    ctx = load_context(session_id if session_id is not None else event.get("session_id"))
+    for rule in RULES:
+        reason = rule(event, ctx)
+        if reason:
+            return reason
+    return None
+
+
 def main(stdin_text: str, stderr) -> int:
     try:
-        event = read_event(stdin_text)
-        if event.get("tool_name") not in GUARDED_TOOLS:
-            return 0
-        ctx = load_context(event.get("session_id"))
-        for rule in RULES:
-            reason = rule(event, ctx)
-            if reason:
-                print(f"Flight Control blocked: {reason}", file=stderr)
-                return 2
+        reason = decide(read_event(stdin_text))
+        if reason:
+            print(f"Flight Control blocked: {reason}", file=stderr)
+            return 2
         return 0
     except Exception as exc:  # fail closed on any internal error
         print(f"Flight Control guard error: {exc}", file=stderr)

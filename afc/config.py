@@ -60,13 +60,33 @@ def on_main() -> bool:
     return _branch(afc_root()) == "main"
 
 
+def _branch_flag(home: Path) -> Path | None:
+    """The switch for the branch this copy is on, used only when there is no session ID (Cursor,
+    Codex, Copilot and other tools that give none). None when the branch can't be told."""
+    from afc.update import _branch  # late import: update imports this module
+
+    name = re.sub(r"[^A-Za-z0-9_-]", "_", _branch(afc_root()))[:100]
+    return home / "maintain.branch.d" / name if name else None
+
+
+def _branch_on(home: Path) -> bool:
+    flag = _branch_flag(home)
+    try:
+        return bool(flag) and flag.exists() and time.time() - flag.stat().st_mtime < STALE_AFTER
+    except OSError:
+        return False
+
+
 def maintain_scope(home: Path, session: str | None = None) -> str:
-    """'session' (this session only) or 'off'. A leftover global `maintain` file is ignored, and
-    a copy on `main` is always off."""
+    """'session' (this session only), 'branch' (no session ID: this copy's branch) or 'off'. A leftover
+    global `maintain` file is ignored, and a copy on `main` is always off. A session with an ID never
+    reads the branch switch, so Claude Code behaves exactly as before."""
     session = valid_session(session)
     if on_main():
         return "off"
-    return "session" if session and (_flags(home) / session).exists() else "off"
+    if session:
+        return "session" if (_flags(home) / session).exists() else "off"
+    return "branch" if _branch_on(home) else "off"
 
 
 def maintain_enabled(home: Path, session: str | None = None) -> bool:
@@ -74,8 +94,7 @@ def maintain_enabled(home: Path, session: str | None = None) -> bool:
     return maintain_scope(home, session) != "off"
 
 
-NO_SESSION = ("Maintenance mode needs this session's ID; open Flight Control in Claude Code "
-              "and try again")
+NO_BRANCH = "Maintenance mode needs a branch name, and this copy isn't on a branch (detached HEAD)"
 
 
 def undecided(home: Path, session: str | None = None) -> bool:
@@ -93,15 +112,23 @@ def undecided(home: Path, session: str | None = None) -> bool:
 
 def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
     """Turn maintenance mode on or off for one session; either answer ends "undecided" (removes
-    the .ask file). Turning it on with no usable session ID raises ValueError; there is no
-    global switch."""
+    the .ask file). With no usable session ID the switch belongs to this copy's branch instead; if the
+    branch can't be told, turning it on raises ValueError. There is no global switch."""
     session = valid_session(session)
     flags = _flags(home)
     if on and on_main():
         raise ValueError(ON_MAIN)
+    if not session:
+        flag = _branch_flag(home)
+        if on:
+            if flag is None:
+                raise ValueError(NO_BRANCH)
+            flag.parent.mkdir(parents=True, exist_ok=True)
+            flag.touch()
+        elif flag is not None:
+            flag.unlink(missing_ok=True)
+        return
     if on:
-        if not session:
-            raise ValueError(NO_SESSION)
         flags.mkdir(parents=True, exist_ok=True)
         (flags / session).touch()
         _prune(flags)

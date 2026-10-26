@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {"type": "command", "bash": "sh \"$(git rev-parse --show-toplevel)/bin/afc\" hook adapter copilot", "cwd": ".", "timeoutSec": 30}
+    ]
+  }
+}

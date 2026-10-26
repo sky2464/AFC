@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [{"command": "sh \"$(git rev-parse --show-toplevel)/bin/afc\" hook adapter cursor", "failClosed": true}],
+    "beforeReadFile": [{"command": "sh \"$(git rev-parse --show-toplevel)/bin/afc\" hook adapter cursor", "failClosed": true}]
+  }
+}

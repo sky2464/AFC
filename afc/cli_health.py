@@ -13,8 +13,8 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
-from afc import addons, tools
-from afc.config import afc_home, current_session, maintain_enabled
+from afc import addons, instructions, tool_coverage, tools
+from afc.config import afc_home, afc_root as cli_root, current_session, maintain_enabled
 from afc.registry import load_registry, save_registry
 from afc.session_dirs import (GrantError, block_addons, blocked_addons, check_settings, drop_dirs, grant_dirs,
                               granted_now, settings_path)
@@ -63,6 +63,8 @@ def _cli():
 def cmd_check(args: argparse.Namespace) -> dict:
     problems = find_problems(afc_home())
     result = {"ok": not problems, "problems": problems}
+    other = tool_coverage.coverage(cli_root())
+    result["other_tools"] = tool_coverage.lines(other)
     note = root_git_note()
     if note:
         result["note"] = note
@@ -462,6 +464,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     if with_addons:
         problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
+    problems += _instruction_problems(cli.afc_root())
     problems += _tracked_deny_problems(cli.afc_root())
     wanted = _wanted(reg)
     foreign = foreign_roots_for(home, reg)
@@ -690,6 +693,15 @@ def _wanted(reg) -> list[str]:
         return []
     dirs = [Path(active.code_path), Path(active.workspace_path)]
     return [str(d.resolve()) for d in dirs if d.is_dir()]
+
+
+def _instruction_problems(root: Path) -> list[dict]:
+    """AGENTS.md or the Copilot pointer no longer matches CLAUDE.md. Silent when they were never made."""
+    if not (root / "AGENTS.md").exists():
+        return []
+    return [_problem("instructions_out_of_date", str(path), False,
+                     detail="this file no longer matches CLAUDE.md; run: sh bin/afc instructions --write")
+            for path in instructions.out_of_date(root)]
 
 
 def _tracked_deny_problems(root: Path) -> list[dict]:
