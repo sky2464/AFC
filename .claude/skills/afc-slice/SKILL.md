@@ -37,7 +37,11 @@ nothing, never create a branch in the app to make the request fit.
 
 1. Decide what the slice touches, from: `auth`, `api`, `data`, `deploy`, `logs`, `deps`, `input`.
 2. `sh bin/afc modules --touches <a,b>`; read only the returned rule files.
-3. A mini threat check, at most five rows, kept internal:
+3. If the slice changes structure (a new module, boundary, dependency or outside call), hand it to
+   the `afc-architect` agent first: it adds a short design note to the spec's Design notes, and after
+   the build it writes the `architecture.md` row and the `--architecture` note; never the main
+   session or the builder.
+4. A mini threat check, at most five rows, kept internal:
 
 | Threat | Category | Mitigation |
 |---|---|---|
@@ -79,7 +83,7 @@ Quietly and safely:
 ## On yes
 
 Record it, unasked, in one call:
-`sh bin/afc slice record <id> <n> --decision "<decided and why>" --architecture "<what changed>"`
+`sh bin/afc slice record <id> <n> --decision "<decided and why>" --architecture "<afc-architect's note, or: no structural change>"`
 It ticks the spec, logs the decision, notes the architecture and starts the spec in the plan if needed. Never read or edit those files by hand for it.
 Then `sh bin/afc set last_slice "<n> <label>"`, `sh bin/afc index refresh`, `sh bin/afc index rebuild --all`.
 

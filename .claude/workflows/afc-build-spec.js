@@ -8,10 +8,12 @@ export const meta = {
   ],
 }
 
-// args: { spec, slices: [{number, text}], start?, alreadyBuilt?: [numbers], builder?, checker?, check? }
+// args: { spec, slices: [{number, text}], start?, alreadyBuilt?: [numbers], builder?, checker?, check?, structural?: [numbers] }
 // spec is the spec's path (or ID), slices its slice lines; builder/checker are model names.
 // check is 'risky' (default: the checker runs only for risky slices) or 'all' (every slice).
 // There is no way to turn checking off: risky slices are always checked.
+// structural lists the slices that add a module, boundary, dependency or outside call: afc-architect
+// writes a design note before each of them, and after any slice whose build leaves an unmapped module.
 const MAX_FIX_ROUNDS = 2
 
 const spec = args.spec
@@ -20,6 +22,7 @@ const builderModel = args.builder
 const checkerModel = args.checker
 const start = args.start || (slices[0] && slices[0].number)
 const alreadyBuilt = new Set(args.alreadyBuilt || [])
+const structural = new Set(args.structural || [])
 const checkMode = args.check || 'risky'
 if (!spec || !slices.length) throw new Error('afc-build-spec needs args.spec and args.slices')
 if (checkMode !== 'risky' && checkMode !== 'all') throw new Error("args.check must be 'risky' or 'all'")
@@ -122,6 +125,33 @@ Every problem must quote, word for word, the spec line or rule it breaks. Anythi
 to a quoted line goes in notes, not problems. Run no tests. pass is true only when there are no
 problems.`
 
+const designPrompt = s => `${tag(s)} of the spec at ${spec} changes structure. Before it is built:
+
+Slice: ${s.number}. ${s.text}
+
+Read docs/architecture.md and the spec. Add a short design note for this slice (two to four lines:
+where the new piece lives, what it depends on, what must not depend on it) to the spec's Design notes.
+Change nothing else. Commit with a message that contains "${tag(s)}" and the spec ID. Do not push or change branch.`
+
+const mapPrompt = (s, unmapped) => `The build of ${tag(s)} of the spec at ${spec} left paths that no
+Key files cell in docs/architecture.md names:
+${unmapped.map(u => `- ${u}`).join('\n')}
+
+Add each to the right row of the Components table (or a new row), then run sh bin/afc check and make
+sure no architecture_unmapped is left. Change nothing else. Commit with a message that contains
+"${tag(s)}" and the spec ID. Do not push or change branch. Put a one-line note of what changed in summary.`
+
+const runArchitect = (prompt, label) => agent(prompt, {
+  label, phase: 'Build', schema: WORK_RESULT, agentType: 'afc-architect',
+})
+
+async function unmappedPaths() {
+  const c = lastJson((await sh('sh bin/afc check')).out)
+  return ((c && c.problems) || [])
+    .filter(p => p.kind === 'architecture_unmapped')
+    .map(p => (String(p.detail).match(/`([^`]+)`/) || [, p.detail])[1])
+}
+
 const runChecker = (s, label, phaseName) => agent(checkPrompt(s), {
   label, phase: phaseName, schema: CHECK_RESULT, model: checkerModel, agentType: 'afc-checker',
 })
@@ -180,6 +210,15 @@ if (specId) {
 for (const s of todo) {
   phase('Build')
   const base = ((await sh('git rev-parse HEAD')).out.match(/[0-9a-f]{40}/) || [''])[0]
+  let design = null
+  if (structural.has(s.number)) {
+    design = await runArchitect(designPrompt(s), `design ${s.number}`)
+    if (!design || !design.done) {
+      results.push({ slice: s.number, pass: false, stopped: 'architect did not write the design note', design })
+      log(`Stopped at slice ${s.number}: the architect did not finish the design note`)
+      break
+    }
+  }
   const built = await agent(buildPrompt(s), {
     label: `build ${s.number}`, phase: 'Build', schema: WORK_RESULT,
     model: builderModel, agentType: 'afc-builder',
@@ -212,7 +251,20 @@ for (const s of todo) {
     if (!fixed || !fixed.done) break
   }
 
-  results.push({ slice: s.number, pass: check.pass, problems: check.problems, notes: check.notes })
+  let architecture = null
+  if (check.pass) {
+    const unmapped = await unmappedPaths()
+    if (unmapped.length) {
+      const mapped = await runArchitect(mapPrompt(s, unmapped), `map ${s.number}`)
+      architecture = mapped ? mapped.summary : null
+      if (!mapped || !mapped.done || (await unmappedPaths()).length) {
+        check = { ...check, pass: false, notes: [...(check.notes || []), 'architect left unmapped paths'] }
+      }
+    }
+  }
+
+  results.push({ slice: s.number, pass: check.pass, problems: check.problems, notes: check.notes,
+    design: design ? design.summary : null, architecture })
   if (!check.pass) {
     log(`Stopped at slice ${s.number}: it did not pass after ${MAX_FIX_ROUNDS} fix rounds`)
     break

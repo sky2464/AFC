@@ -119,7 +119,7 @@ and Vertex.
 - [x] 1. Six roles with effort — you'll see it by `sh bin/afc agents` on a scratch project printing
       six roles with model and effort, `agents set architect sonnet` changing only that agent file,
       and the effort line accepted by a live `claude -p` call on each model (proves A1, A2)
-- [ ] 2. Architecture goes to the architect — you'll see it by the skill sentences, and a scratch
+- [x] 2. Architecture goes to the architect — you'll see it by the skill sentences, and a scratch
       slice that changes structure ending with its `architecture.md` row written by `afc-architect`
       (proves A3, A4)
 - [ ] 3. Documents go to Haiku — you'll see it by a scratch changelog request answered by `afc-docs`
@@ -175,5 +175,9 @@ Slice 6:
 
 - 2026-10-26 (slice 1): scratch `install_code_agents` writes six agents; `agents set architect sonnet` rewrites only
   `afc-architect.md`. Live `claude -p` accepts `--effort low` on haiku, default on sonnet, and `--effort high` on opus.
+- 2026-10-26 (slice 2): both build workflows take `structural: [slice numbers]`; `afc-architect` writes the design
+  note before those slices and the architecture update after them (FC's workflow also after any slice that leaves
+  `architecture_unmapped`). Scratch run: a session told about a new outside-call module called `afc-architect`
+  with no model argument; it ran on claude-opus-5-5 at effort high and wrote the `src/payments.py` row itself.
 
 ## Shipped
