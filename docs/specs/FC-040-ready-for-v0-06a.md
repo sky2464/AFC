@@ -47,7 +47,7 @@ Any new feature.
 
 ## Slices
 
-- [ ] 1. Ready for v0.06a — you'll see it by `sh bin/afc version` printing `v0.06a`, a `## v0.06a`
+- [x] 1. Ready for v0.06a — you'll see it by `sh bin/afc version` printing `v0.06a`, a `## v0.06a`
       changelog section of 10 lines or fewer, the layout-1 upgrade run on a scratch workspace
       leaving no `maintain` file, and `sh bin/afc release check` on `dev` reporting only "not on
       main"
@@ -65,5 +65,7 @@ Slice 1:
 
 - 2026-10-26: named v0.06a, not v0.05b1. Copies on v0.05b only see tags shaped like `v0.05b`
   (numbers and one letter) and skip any other tag, so a `b1` would never be offered to them.
+
+- 2026-10-26 slice 1: VERSION is v0.06a; `sh bin/afc version` printed {"version": "v0.06a"}. The `## v0.06a` section has 6 bullets (6 lines, plus heading), covering the four bullets plus FC-041 and FC-042 and the workspace backup (merged into the first bullet). Numbers checked: FC-037 second start 42,241; FC-038 first start 56,247 from 73,310. `workspace_upgrade.upgrade` on a scratch layout-0 workspace with a `maintain` file returned upgraded: true, layout 1, steps [1], with a backup folder made and `maintain` gone. `sh bin/afc release check` on dev, before the commit, said ready: false, problems: "You are not on main (you are on dev)." and "There are uncommitted changes." (the second was this slice's own edits).
 
 ## Shipped

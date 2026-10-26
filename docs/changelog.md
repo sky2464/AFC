@@ -58,6 +58,15 @@ Maintenance mode is only ever on in the one session that turned it on, and never
 
 - Ready for v0.05b
 
+## v0.06a
+
+- Maintenance mode can't get stuck any more: it is on for one session only, never on a copy on main, and the update clears an old leftover switch. The update backs up your workspace first.
+- A fork or /clear right after Flight Control work asks one question first, "Flight Control or your project?". Until you answer, nothing in your project can be changed (a short safe list of read-only shell commands still runs).
+- The review no longer demands tests unless you ask for them (`--tests`).
+- Starts without a project are light too: about 42k tokens from the second start, down from 73k.
+- A new copy's very first hi is lighter: about 56k, down from 73k, with no extra step.
+- The first welcome says once that connectors are held back and how to ask for one.
+
 ## v0.05b
 
 - Tests run only when you ask. Flight Control keeps five on the things that protect your data, and your apps get none unless you ask.
