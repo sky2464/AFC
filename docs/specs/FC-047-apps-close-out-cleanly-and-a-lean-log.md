@@ -87,7 +87,7 @@ real php-vuln-checker. Showing the events file in the welcome. Reading the event
 - [x] 5. Clean up the log, and keep it clean — you'll see it by `plan tidy --show` and `plan tidy` on a
       scratch copy of Flight Control's plan (rows to `events.jsonl`, fact rows kept, plan shorter,
       counts matching) and `check` flagging a scratch plan padded past 150 lines (proves A7, A8)
-- [ ] 6. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
+- [x] 6. Live on a copy of the app that was flagged — you'll see it by a scratch copy of php-vuln-checker
       (own registry and workspace) with its health problem gone after the file is filled (proves A6)
 
 ## Tasks
@@ -114,5 +114,10 @@ Slice 6:
   Decisions. Never use the real project.
 
 ## Decisions
+
+- Slice 6 (2026-10-26): on a scratch copy of php-vuln-checker (own registry and workspace, last slice set to
+  "2 address input page" as in the real registry), `check` reported `architecture_empty` while the file was the
+  bare template; after real content was added it no longer did, and `plan` showed the line "profile unknown;
+  remote none; last slice 2 address input page; folder php-vuln-checker". The real project was not touched.
 
 ## Shipped
