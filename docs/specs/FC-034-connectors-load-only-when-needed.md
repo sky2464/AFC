@@ -75,7 +75,7 @@ at start).
       restart showing a `deniedMcpServers` entry really removes that connector's tools
 - [x] 2. A connector list per project — you'll see it by `sh bin/afc` showing a project's connector
       list, filled from what the project shows, and adding one by name
-- [ ] 3. Hold back the rest at start — you'll see it by a session on a project with no connectors
+- [x] 3. Hold back the rest at start — you'll see it by a session on a project with no connectors
       starting with those tools blocked, one welcome line, and a second start saying nothing
 - [ ] 4. Ask for one in plain words — you'll see it by saying "I need Gmail", seeing it listed and
       unblocked from the next start, with a `/mcp` choice left untouched

@@ -109,3 +109,99 @@ def add(workspace: Path, name: str) -> tuple[dict, bool]:
     data["named"].append(name)
     _save(workspace, data)
     return data, True
+
+
+# ---- holding the rest back at session start (FC-034 slice 3)
+
+DENIED_KEY = "deniedMcpServers"
+HELD_KEY = "afcBlockedConnectors"  # connector names Flight Control blocked (the user's own entries stay)
+PREFIX = "claude.ai "
+
+
+def known(claude_json: Path | None = None) -> list[str]:
+    """The account connectors Claude Code has seen, as full names ('claude.ai Gmail'). Empty when
+    the file can't be read: then nothing is blocked."""
+    path = claude_json or (Path.home() / ".claude.json")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        seen = data["claudeAiMcpEverConnected"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+    if not isinstance(seen, list):
+        return []
+    return [n for n in dict.fromkeys(seen) if isinstance(n, str) and n.startswith(PREFIX)]
+
+
+def user_off(root: Path, claude_json: Path | None = None) -> set[str]:
+    """Connectors the user already switched off in /mcp for this folder; left alone."""
+    path = claude_json or (Path.home() / ".claude.json")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        off = data["projects"][str(root)]["disabledMcpServers"]
+        return {n for n in off if isinstance(n, str)}
+    except (OSError, ValueError, KeyError, TypeError):
+        return set()
+
+
+def to_hold(listed: list[str], root: Path, claude_json: Path | None = None) -> list[str]:
+    """Connectors to block: seen, not on the project's list, not already off by the user's choice."""
+    keep = {n.lower() for n in listed}
+    off = user_off(root, claude_json)
+    return [n for n in known(claude_json) if n[len(PREFIX):].lower() not in keep and n not in off]
+
+
+def _entry_name(entry) -> str | None:
+    if isinstance(entry, dict) and isinstance(entry.get("serverName"), str):
+        return entry["serverName"]
+    return entry if isinstance(entry, str) else None
+
+
+def hold(root: Path, names_: list[str]) -> int:
+    """Block exactly these connectors here (deniedMcpServers) and return how many were newly held.
+    Names Flight Control held earlier that are not in the list come back; entries the user wrote
+    and all other keys are kept. Writes only when something changes."""
+    from afc.session_dirs import GrantError, _atomic_write, _read_settings, settings_path
+
+    path = settings_path(root)
+    settings = _read_settings(path)
+    denied = settings.get(DENIED_KEY, [])
+    if not isinstance(denied, list):
+        raise GrantError(f"{path}: '{DENIED_KEY}' must be a list")
+    mine = settings.get(HELD_KEY, [])
+    mine = [n for n in mine if isinstance(n, str)] if isinstance(mine, list) else []
+    wanted = list(dict.fromkeys(names_))
+    present = {_entry_name(e) for e in denied}
+    new = [n for n in wanted if n not in present]
+    kept = [e for e in denied if not (_entry_name(e) in mine and _entry_name(e) not in wanted)]
+    held = [n for n in wanted if n in present and n not in mine]  # the user's own entry: not ours
+    final = kept + [{"serverName": n} for n in new]
+    mine_now = [n for n in wanted if n not in held]
+    if final == denied and mine_now == mine:
+        return 0
+    if final:
+        settings[DENIED_KEY] = final
+    else:
+        settings.pop(DENIED_KEY, None)
+    if mine_now:
+        settings[HELD_KEY] = mine_now
+    else:
+        settings.pop(HELD_KEY, None)
+    _atomic_write(path, json.dumps(settings, indent=2) + "\n")
+    return len([n for n in new if n not in mine])
+
+
+def hold_for(root: Path, workspace: Path, code: Path) -> tuple[int, int]:
+    """Hold back every connector not on the project's list. Returns (newly held, held in all).
+    On any error the settings file is put back as it was and the error is raised."""
+    from afc.session_dirs import check_settings, settings_path
+    from afc.undo import Undo
+
+    check_settings(root)
+    wanted = to_hold(names(refresh(workspace, code)), root)
+    undo = Undo(settings_path(root))
+    undo.save_settings()
+    try:
+        return hold(root, wanted), len(wanted)
+    except BaseException:
+        undo.rollback()
+        raise

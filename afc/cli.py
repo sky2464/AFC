@@ -248,6 +248,12 @@ def _commit(home: Path, reg, project: Project, undo: Undo) -> list[str]:
         tools.swap_in(afc_root(), Path(project.workspace_path))
     except tools.ToolsError as exc:
         raise CliError(str(exc))
+    try:
+        from afc import connectors
+
+        connectors.hold_for(afc_root(), Path(project.workspace_path), Path(project.code_path))
+    except Exception:  # connectors are a bonus; switching must not fail over them
+        pass
     save_registry(home, reg)
     return granted
 
