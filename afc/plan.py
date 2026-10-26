@@ -433,6 +433,61 @@ def next_finding_id(findings_text: str) -> str:
     return f"F-{max(nums, default=0) + 1:03d}"
 
 
+_PARKED_HEADER = "| ID | Title | Size | Why | Revisit |\n|---|---|---|---|---|\n"
+_WAITING_HEADER = "| # | Step | Added |\n|---|---|---|\n"
+
+
+def _ensure_section(text: str, heading: str, header: str, after: str) -> str:
+    """Add `## heading` with its table header after `## after` when absent; return text unchanged when present."""
+    lines = text.split("\n")
+    try:
+        _section_span(lines, heading)
+        return text  # already there
+    except ValueError:
+        pass
+    try:
+        _, end = _section_span(lines, after)
+    except ValueError:
+        end = len(lines)
+    lines[end:end] = ["", f"## {heading}", ""] + header.splitlines() + [""]
+    return "\n".join(lines)
+
+
+def add_parked(text: str, sid: str, title: str, size: str, why: str, revisit: str) -> str:
+    """Add a row to the Parked table (creating the section after Next if absent)."""
+    text = _ensure_section(text, "Parked", _PARKED_HEADER, "Next")
+    rows = read_rows(text, "Parked")
+    rows.append([sid, title, size, why, revisit])
+    return write_rows(text, "Parked", rows)
+
+
+def remove_parked(text: str, sid: str) -> tuple[str, list[str]]:
+    """Remove the Parked row for sid; return (new text, removed row) or ValueError if absent."""
+    rows = read_rows(text, "Parked")
+    row = next((r for r in rows if r and r[0] == sid), None)
+    if row is None:
+        raise ValueError(f"{sid} is not in Parked.")
+    return write_rows(text, "Parked", [r for r in rows if r[0] != sid]), row
+
+
+def add_waiting(text: str, step: str, date: str) -> tuple[str, int]:
+    """Add a row to Waiting on you (creating the section after Next if absent); return (text, number)."""
+    text = _ensure_section(text, "Waiting on you", _WAITING_HEADER, "Next")
+    rows = read_rows(text, "Waiting on you")
+    n = max((int(r[0]) for r in rows if r and r[0].isdigit()), default=0) + 1
+    rows.append([str(n), step, date])
+    return write_rows(text, "Waiting on you", rows), n
+
+
+def remove_waiting(text: str, n: int) -> str:
+    """Remove row number n from Waiting on you; ValueError if absent."""
+    rows = read_rows(text, "Waiting on you")
+    kept = [r for r in rows if not (r and r[0] == str(n))]
+    if len(kept) == len(rows):
+        raise ValueError(f"No waiting step number {n}.")
+    return write_rows(text, "Waiting on you", kept)
+
+
 def add_finding(findings_text: str, fid: str, text: str, found: str) -> str:
     """Append one finding row to the All findings table; create the section if absent."""
     new_row = f"| {fid} | {cell(text)} | open | {cell(found)} |"

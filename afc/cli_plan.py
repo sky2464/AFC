@@ -67,6 +67,18 @@ def register(sub) -> None:
     q = psub.add_parser("find", help="add a finding with the next F-NNN id in state open")
     q.add_argument("text")
     q.set_defaults(handler=cmd_find)
+    q = psub.add_parser("park", help="move a waiting spec to Parked (with a reason and revisit date)")
+    q.add_argument("id")
+    q.add_argument("--why", required=True)
+    q.add_argument("--revisit", required=True)
+    q.set_defaults(handler=cmd_park)
+    q = psub.add_parser("unpark", help="bring a parked spec back to Next")
+    q.add_argument("id")
+    q.set_defaults(handler=cmd_unpark)
+    q = psub.add_parser("wait", help="add a step to Waiting on you, or clear one (--done N)")
+    q.add_argument("step", nargs="?", default="")
+    q.add_argument("--done", type=int, metavar="N", help="clear waiting step number N")
+    q.set_defaults(handler=cmd_wait)
     q = psub.add_parser("score", help="update one Scoreboard measure and log it")
     q.add_argument("name")
     q.add_argument("value")
@@ -421,14 +433,13 @@ def cmd_drop(args: argparse.Namespace) -> dict:
     space.archive_dir.mkdir(parents=True, exist_ok=True)
     index_path = space.archive_dir / "index.md"
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
-    done_row = [sid, f"{row[1]} (dropped)", today]
+    archive_row = [sid, f"{row[1]} (dropped)", today]
     new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
-    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", "dropped"]] + plan.read_rows(new, "Done"))
-    new = _logged(space, new, today, f"{sid} dropped")
+    plan.event(space, today, f"{sid} dropped")
     shutil.move(str(spec_path), str(target))
     try:
         target.write_text(plan.set_header(spec_text, status="dropped", done=today), encoding="utf-8")
-        index_path.write_text(_archive_index(old_index or "", done_row + [name]), encoding="utf-8")
+        index_path.write_text(_archive_index(old_index or "", archive_row + [name]), encoding="utf-8")
         space.master.write_text(new, encoding="utf-8")
     except BaseException:
         if old_index is None:
@@ -591,6 +602,60 @@ def cmd_done(args: argparse.Namespace) -> dict:
 def cmd_tidy(args: argparse.Namespace) -> dict:
     space, _, _ = _load(write=not args.show)
     return plan.tidy(space, apply=not args.show)
+
+
+def cmd_park(args: argparse.Namespace) -> dict:
+    space, _, text = _load(write=True)
+    sid = args.id
+    row, waiting = _waiting(space, text, sid, "parked")
+    why = " ".join(args.why.split())
+    revisit = " ".join(args.revisit.split())
+    if not why:
+        raise _error("Give a reason with --why.")
+    if not revisit:
+        raise _error("Give a revisit date or condition with --revisit.")
+    today = _cli()._today()
+    new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
+    new = plan.add_parked(new, sid, row[1], row[2] if len(row) > 2 else "M", why, revisit)
+    new = _logged(space, new, today, f"{sid} parked: {why}")
+    space.master.write_text(new, encoding="utf-8")
+    return {"parked": sid, "why": why, "revisit": revisit}
+
+
+def cmd_unpark(args: argparse.Namespace) -> dict:
+    space, _, text = _load(write=True)
+    sid = args.id
+    try:
+        new, row = plan.remove_parked(text, sid)
+    except ValueError as exc:
+        raise _error(str(exc)) from None
+    today = _cli()._today()
+    name = f"{sid}-{plan.slugify(row[1] if len(row) > 1 else sid)}.md"
+    spec_ref = f"[spec](specs/{name})"
+    new = plan.write_rows(new, "Next", [[sid, row[1] if len(row) > 1 else sid, row[2] if len(row) > 2 else "M", spec_ref]] + plan.read_rows(new, "Next"))
+    new = _logged(space, new, today, f"{sid} unparked")
+    space.master.write_text(new, encoding="utf-8")
+    return {"unparked": sid}
+
+
+def cmd_wait(args: argparse.Namespace) -> dict:
+    space, _, text = _load(write=True)
+    today = _cli()._today()
+    if args.done is not None:
+        try:
+            new = plan.remove_waiting(text, args.done)
+        except ValueError as exc:
+            raise _error(str(exc)) from None
+        plan.event(space, today, f"waiting step {args.done} done")
+        space.master.write_text(new, encoding="utf-8")
+        return {"cleared": args.done}
+    step = " ".join(args.step.split())
+    if not step:
+        raise _error("Give the step as text, or use --done N to clear one.")
+    new, n = plan.add_waiting(text, step, today)
+    new = _logged(space, new, today, f"waiting: {step[:60]}")
+    space.master.write_text(new, encoding="utf-8")
+    return {"waiting": n, "step": step}
 
 
 def cmd_find(args: argparse.Namespace) -> dict:

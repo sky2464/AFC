@@ -25,6 +25,14 @@ Every change must reach the apps Flight Control builds for users.
 | FC-049 | Architecture memory for Flight Control | M | [spec](specs/FC-049-architecture-memory-for-flight-control.md) |
 | FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) |
 
+
+## Waiting on you
+
+| # | Step | Added |
+|---|---|---|
+| 1 | R6: move A-FC-test to current code (973da0c is stale) | 2026-10-26 |
+| 2 | FC-040 release: make the v0.06a tag, push it, and publish release notes | 2026-10-26 |
+
 ## Done
 
 | ID | Title | Done | Spec | Release | Outcome |
@@ -62,3 +70,5 @@ Findings: 1 open (R6 waiting on you). Full list and history in [docs/findings.md
 | 2026-10-25 | FC-014 slice 1 approved and ticked: review gives a verdict; spec stays in Next while FC-009 holds Now |
 | 2026-10-25 | FC-018 done: helpers 7.0→2.0 and tokens 7.5M→0.25M per slice, full-suite runs 8.7→5.0 (target 4.35 missed; FC-013 run-one-file rule covers it) |
 | 2026-10-25 | FC-027 renamed to Add-ons off at start, quiet health check |
+| 2026-10-26 | waiting: R6: move A-FC-test to current code (973da0c is stale) |
+| 2026-10-26 | waiting: FC-040 release: make the v0.06a tag, push it, and publish re |

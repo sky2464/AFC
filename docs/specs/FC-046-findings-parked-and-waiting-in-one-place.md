@@ -83,7 +83,7 @@ State. Rewriting specs to add an area (only the ones in Next).
       and `docs/master-plan.md` shrinking by about 80 lines (proves A1)
 - [x] 2. Take a finding in with one command — you'll see it by `plan find` on Flight Control's plan and a
       scratch project (proves A2)
-- [ ] 3. Parked and waiting — you'll see it by a scratch spec parked and brought back, a drop no longer
+- [x] 3. Parked and waiting — you'll see it by a scratch spec parked and brought back, a drop no longer
       landing in Done, and R6 and the FC-040 steps in Waiting on you (proves A3, A4)
 - [ ] 4. The check — you'll see it by a scratch findings file with one stateless finding and one false
       "fixed in" giving both sentences in `check` (proves A5)
