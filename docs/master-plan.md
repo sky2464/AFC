@@ -20,6 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-039 | Welcome counts held-back connectors | S | [FC-039](specs/FC-039-welcome-counts-held-back-connectors.md) |
 
 ## Done
 
