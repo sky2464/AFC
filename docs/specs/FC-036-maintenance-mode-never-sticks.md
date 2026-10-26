@@ -1,6 +1,6 @@
 # FC-036 — Maintenance mode never sticks
 
-Size: S · Status: next, ready for build
+Size: S · Status: in progress
 
 Found on 2026-10-25 in a fresh clone of `main` (`~/Documents/Code/AFC-Test/A-FC`, v0.04a). Nobody
 typed `/afc mm`, yet the first start said "🔧 Maintenance: working on Flight Control itself · A-FC ·
@@ -68,7 +68,7 @@ maintenance mode allows once it is on. The guard rules themselves.
 
 ## Slices
 
-- [ ] 1. No global switch — you'll see it by `sh bin/afc maintain on` with `AFC_SESSION` and
+- [x] 1. No global switch — you'll see it by `sh bin/afc maintain on` with `AFC_SESSION` and
       `CLAUDE_CODE_SESSION_ID` unset printing the refusal and creating no file, and a touched
       `~/.A-FC/maintain` (in a scratch `AFC_HOME`) reading as off, listed by `check` and removed by
       `repair`

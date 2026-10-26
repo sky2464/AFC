@@ -73,6 +73,9 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             dest.mkdir(parents=True)
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
+        elif p["kind"] == "stale_maintain":
+            (home / "maintain").unlink(missing_ok=True)
+            repaired.append("Removed the old global maintenance switch.")
         elif p["kind"] == "test_copy_behind" and p["fixable"]:
             # Changing git in the A-FC folder needs maintenance mode, as it does when typed. The copy
             # is already detached and clean, so reset moves it without a new detach.
@@ -269,6 +272,10 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     problems: list[dict] = root_problems(cli.afc_root()) if not is_test_copy(cli.afc_root(), home) else []
     problems += behind_problems(cli.afc_root(), home)
     problems += plan_problems(home)
+    if (home / "maintain").exists():
+        problems.append(_problem("stale_maintain", str(home / "maintain"), True,
+                                 detail="An old global maintenance switch is left over; it is ignored, "
+                                        "and repair removes it."))
     owned: set[Path] = set()
     for p in reg.projects.values():
         owned.add(Path(p.workspace_path).resolve())

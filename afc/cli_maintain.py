@@ -9,10 +9,6 @@ import argparse
 from afc.config import afc_home, current_session, maintain_scope, set_maintain
 
 NAMES = ("maintain",)
-GLOBAL_NOTE = (
-    "This session's ID isn't known, so maintenance mode is on for every session until it is "
-    "turned off."
-)
 
 
 def register(sub) -> None:
@@ -31,10 +27,10 @@ def cmd_maintain(args: argparse.Namespace) -> dict:
     home = afc_home()
     session = current_session()
     if args.state in ("on", "off"):
-        set_maintain(home, args.state == "on", session)
+        try:
+            set_maintain(home, args.state == "on", session)
+        except ValueError as exc:
+            return {"error": str(exc)}
     scope = maintain_scope(home, session)
     result: dict = {"maintain": scope != "off", "scope": scope}
-    if scope == "global":
-        result["note"] = GLOBAL_NOTE if session is None else (
-            "Maintenance mode was switched on for every session; turn it off to end that.")
     return result

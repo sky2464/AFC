@@ -45,9 +45,7 @@ def _flags(home: Path) -> Path:
 
 
 def maintain_scope(home: Path, session: str | None = None) -> str:
-    """'global' (one switch for every session), 'session' (this session only) or 'off'."""
-    if (home / "maintain").exists():
-        return "global"
+    """'session' (this session only) or 'off'. A leftover global `maintain` file is ignored."""
     session = valid_session(session)
     return "session" if session and (_flags(home) / session).exists() else "off"
 
@@ -57,22 +55,23 @@ def maintain_enabled(home: Path, session: str | None = None) -> bool:
     return maintain_scope(home, session) != "off"
 
 
+NO_SESSION = ("Maintenance mode needs this session's ID; open Flight Control in Claude Code "
+              "and try again")
+
+
 def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
-    """Turn maintenance mode on or off for one session. With no usable session ID it falls back
-    to the single global switch. Turning off also clears the global switch."""
+    """Turn maintenance mode on or off for one session. Turning it on with no usable session ID
+    raises ValueError; there is no global switch."""
     session = valid_session(session)
     flags = _flags(home)
-    if on and session:
+    if on:
+        if not session:
+            raise ValueError(NO_SESSION)
         flags.mkdir(parents=True, exist_ok=True)
         (flags / session).touch()
         _prune(flags)
-    elif on:
-        home.mkdir(parents=True, exist_ok=True)
-        (home / "maintain").touch()
-    else:
-        (home / "maintain").unlink(missing_ok=True)
-        if session:
-            (flags / session).unlink(missing_ok=True)
+    elif session:
+        (flags / session).unlink(missing_ok=True)
 
 
 def _prune(flags: Path) -> None:
