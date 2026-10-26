@@ -251,8 +251,13 @@ def _with_home_note(out: dict, home: Path) -> dict:
     except Exception:  # the welcome must never break
         return out
     context = out["hookSpecificOutput"]["additionalContext"]
-    out["hookSpecificOutput"]["additionalContext"] = (
-        f"{context} The workspace is a test home {home}, not ~/.A-FC.")
+    note = f"The workspace is a test home {home}, not ~/.A-FC."
+    if not home.exists():
+        note += (" It does not exist yet: say once, in plain words, that the test workspace is empty and "
+                 "will be made with the first project. Never look in ~/.A-FC or offer its projects.")
+    else:
+        note += " Never look in ~/.A-FC or offer its projects; don't name workspace paths unless asked."
+    out["hookSpecificOutput"]["additionalContext"] = f"{context} {note}"
     return out
 
 

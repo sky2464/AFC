@@ -20,7 +20,7 @@ from afc.undo import Undo
 from afc.workspace import create_workspace
 
 NAMES = ("check", "repair", "relocate")
-ACCESS = ("stale_access", "gone_access", "missing_access")
+ACCESS = ("stale_access", "gone_access", "missing_access", "foreign_access")
 ADDONS = ("addon_not_allowed", "addon_unblock")
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
@@ -96,7 +96,7 @@ def cmd_repair(args: argparse.Namespace) -> dict:
         undo.save_settings()
         try:
             grant_dirs(cli.afc_root(), _wanted(reg))
-            drop_dirs(cli.afc_root(), [p["path"] for p in access if p["kind"] == "gone_access"])
+            drop_dirs(cli.afc_root(), [p["path"] for p in access if p["kind"] in ("gone_access", "foreign_access")])
         except BaseException:
             undo.rollback()
             raise
@@ -240,8 +240,13 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
         problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
     wanted = _wanted(reg)
+    foreign = foreign_roots_for(home, reg)
     for entry in current:
-        if not Path(entry).exists():
+        if any(_inside(entry, r) for r in foreign):
+            problems.append(_problem("foreign_access", entry, True,
+                                     detail=f"This test copy still has access to {entry}, which belongs to the "
+                                            "real Flight Control workspace; repair removes it."))
+        elif not Path(entry).exists():
             problems.append(_problem("gone_access", entry, True,
                                      detail=f"Claude still has access to {entry}, which no longer exists."))
         elif entry in ours and entry not in wanted:
@@ -280,6 +285,23 @@ def _architecture_problems(project) -> list[dict]:
     return [_problem("architecture_empty", str(path), False, project=project.name,
                      detail=f"{project.name}: slices are done but architecture.md is still the empty "
                             "template; Claude fills it in from the code.")]
+
+
+def foreign_roots_for(home: Path, reg) -> list[Path]:
+    """In a test home, the real ~/.A-FC and the code folders of projects registered only there."""
+    from afc.hooks.common import Context
+    from afc.hooks.rules_paths import foreign_roots
+
+    return foreign_roots(Context(home=home, root=_cli().afc_root(), active=None, maintain=False,
+                                 projects=tuple(reg.projects.values())))
+
+
+def _inside(entry: str, root: Path) -> bool:
+    try:
+        path = Path(entry).expanduser().resolve()
+    except (OSError, RuntimeError):
+        return False
+    return path == root or path.is_relative_to(root)
 
 
 def _wanted(reg) -> list[str]:

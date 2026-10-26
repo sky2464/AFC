@@ -10,17 +10,17 @@ from collections.abc import Callable
 from afc.hooks.common import WRITE_TOOLS, Context, load_context, read_event
 from afc.hooks.rules_git import check_git
 from afc.hooks.rules_maintenance import check_maintenance, check_own_copy
-from afc.hooks.rules_paths import check_paths
+from afc.hooks.rules_paths import READ_TOOLS, check_foreign_home, check_paths
 from afc.hooks.rules_process import check_process
 from afc.hooks.rules_resources import check_resources
 from afc.hooks.rules_secrets import check_secrets
 
 Rule = Callable[[dict, Context], str | None]
 
-RULES: list[Rule] = [check_paths, check_maintenance, check_own_copy, check_secrets,
+RULES: list[Rule] = [check_foreign_home, check_paths, check_maintenance, check_own_copy, check_secrets,
                      check_resources, check_git, check_process]
 
-GUARDED_TOOLS = (*WRITE_TOOLS, "Bash")
+GUARDED_TOOLS = (*WRITE_TOOLS, "Bash", *READ_TOOLS)
 
 
 def main(stdin_text: str, stderr) -> int:
