@@ -76,13 +76,13 @@ php-vuln-checker. The welcome banner's text. Auto-running `repair` without the u
 
 ## Slices
 
-- [ ] 1. A test copy knows it is behind — you'll check it by a test that makes a worktree behind
+- [ ] 1. A test copy knows it is behind — you'll see it by a live run that makes a worktree behind
       `dev`, sees `check` report it as fixable and the start context carry one line, and sees
       `repair` move it to the tip of `dev`
-- [ ] 2. A test copy stays in its own workspace — you'll check it by tests where a test-home
+- [ ] 2. A test copy stays in its own workspace — you'll see it by a live run where a test-home
       session's `ls` or read of the real `~/.A-FC` is blocked, `repair` drops permissions pointing
       there, and a missing test home is named in the start context
-- [ ] 3. A quiet empty start — you'll check it by tests that `/afc` with no projects makes no
+- [ ] 3. A quiet empty start — you'll see it by a live run where `/afc` with no projects makes no
       failing call, the health line names the problem and its fix and is said once per session,
       and a live run in an up-to-date `A-FC-test` with two `/afc` and "any project running?"
       shows no error, no repeat and no other workspace

@@ -114,7 +114,7 @@ def changelog_entry(spec_text: str, sid: str, title: str, today: str) -> str:
         out += [goal, ""]
     for _, label in plan.all_slices(spec_text):
         label = re.sub(r"^\d+\.\s*", "", label)
-        label = re.split(r"\s+—\s+you'll check", label)[0].strip()
+        label = re.split(r"\s+—\s+you'll (?:check|see)", label)[0].strip()
         out.append(f"- {label}")
     return "\n".join(out) + "\n"
 

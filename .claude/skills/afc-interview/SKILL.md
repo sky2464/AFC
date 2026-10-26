@@ -51,7 +51,7 @@ works when** and **Slices**, replacing the example line.
 Slices:
 
 - One line each, in this exact form, or `plan` cannot see it:
-  `- [ ] <n>. <label> — you'll check it by <how>`
+  `- [ ] <n>. <label> — you'll see it by <live run or command output>`
 - The first slice of a new app is behavior the user can see work, with setup folded
   into it: "type an address and see the PHP version it announces", never "Create the app".
 - Write no test work into a slice unless the user asked for tests; none is only "tests" or "error handling".

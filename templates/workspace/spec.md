@@ -12,7 +12,7 @@ Size: {size} · Status: next · Started: - · Done: -
 
 ## Slices
 
-- [ ] 1. <label> — you'll check it by <how>
+- [ ] 1. <label> — you'll see it by <how>
 
 ## Decisions
 

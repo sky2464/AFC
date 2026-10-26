@@ -90,7 +90,7 @@ Changing what the guards, secret check or path rules do. Adding a new test tool.
       line, and GitHub running only the five on a pull request to `main`
 - [x] 4. Projects test only when asked — you'll see it by a live slice in a test project that
       shows a working change with no test written, and delivers it without a test command
-- [ ] 5. Specs say "you'll see it by" — you'll see it by the spec template, `CONTRIBUTING.md` and
+- [x] 5. Specs say "you'll see it by" — you'll see it by the spec template, `CONTRIBUTING.md` and
       the open specs in Next all using it
 
 ## Tasks
