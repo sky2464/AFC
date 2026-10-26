@@ -94,7 +94,7 @@ folder gets the same instruction files; until then apps are unchanged.
 - [x] 5. Instruction files — you'll see it by `AGENTS.md` and the per-tool pointer files matching
   `CLAUDE.md`, and a check that fails when they drift (proves A4)
 - [x] 6. Hook adapters — you'll see it by a blocked action in each tool that supports hooks (proves A5)
-- [ ] 7. `/afc` flow and health line — you'll see it by `sh bin/afc check` listing each tool's state
+- [x] 7. `/afc` flow and health line — you'll see it by `sh bin/afc check` listing each tool's state
   (proves A6, A7)
 
 ## Tasks
@@ -109,6 +109,12 @@ Slice 1:
 
 ## Shipped
 
+- Slice 7 (2026-10-26): `sh bin/afc check` now has an `other_tools` list, one plain line per tool
+  (instructions, hook and what it can block, commit check on/off/missing) and a line on turning the
+  commit check on; `instructions_out_of_date` is a problem when AGENTS.md or the Copilot pointer
+  drifts. A6: any tool starts the flow by following `.claude/commands/afc.md`, which `AGENTS.md`
+  points to; `sh bin/afc status` and `plan` work with no Claude Code. All seven slices are built;
+  not yet run inside the real tools (see slice 6).
 - Slice 6 (2026-10-26): `sh bin/afc hook adapter <cursor|codex|copilot|antigravity>` turns each tool's
   payload into the event the Claude Code guard reads and answers in that tool's words; with no
   Python or a bad `.afc-home` it blocks (exit 2). Hook files: `.cursor/hooks.json`,

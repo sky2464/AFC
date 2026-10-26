@@ -72,6 +72,8 @@ Never show the commands to the user; run them yourself.
    `sh bin/afc resume <name>` (resume also makes it the active project). If they try to switch to
    a paused project, offer to resume it.
 7. **Health check** — `sh bin/afc check` finds problems across all projects and changes nothing.
+   Its `other_tools` lines say how Cursor, Codex, Copilot and Antigravity are covered; mention them
+   only when the user asks about those tools or one says "missing" or "out of date".
    Explain them in plain words, two at a time. An add-on that was switched off gets this line: "Flight Control switched off <name> in its own
    sessions because it isn't on the allowed list. It still works everywhere else." Problems marked
    `fixable` need no decision: offer
