@@ -24,6 +24,7 @@ needs more.
 
 Run `sh bin/afc plan`; build `next_slice`. No active spec: summarize the top `Next` spec in one
 line and run `sh bin/afc plan start <id>`. No specs: `afc-interview`.
+When the plan lists `to_confirm` for the spec, settle those open assumptions in the first slice before building further.
 
 If the user names a spec that is not the active one, or one that isn't in the plan from
 `sh bin/afc plan` (an `S-` ID in

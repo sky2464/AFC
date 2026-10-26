@@ -209,9 +209,27 @@ def proofs(label: str) -> list[str]:
     return re.findall(r"A\d+", m.group(1)) if m else []
 
 
+def assumptions(spec_text: str) -> list[tuple[bool, str]]:
+    """(settled, text) for each checkbox line under `## Assumptions to confirm`."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, "Assumptions to confirm")
+    except ValueError:
+        return []
+    found = []
+    for line in lines[start:end]:
+        m = re.match(r"\s*- \[([ xX])\]\s*(.*)$", line)
+        if m:
+            found.append((m.group(1) != " ", m.group(2).strip()))
+        elif found and line.strip() and line.startswith((" ", "\t")):
+            found[-1] = (found[-1][0], found[-1][1] + " " + line.strip())
+    return found
+
+
 def readiness(spec_text: str, fc: bool) -> dict:
     """Is a spec ready for build? {'ready': bool} plus 'missing' (plain words) when it is not,
-    and 'notes' (never a block) for older specs whose criteria are not numbered.
+    'notes' (never a block) for older specs whose criteria are not numbered, and 'to_confirm'
+    (never a block) listing the assumptions not yet settled.
 
     Checks Goal, Out of scope, criteria, slices (each with "you'll see it by"), Tasks (a `Slice n:`
     line per slice) and, for Flight Control's own specs, "Reaches the apps"."""
@@ -247,7 +265,13 @@ def readiness(spec_text: str, fc: bool) -> dict:
                     missing.append(f"slice {n} says it proves {crit}, which is not in the criteria")
     elif _bullets(spec_text, "You'll know it works when"):
         notes.append("the criteria are not numbered, so they are not linked to slices")
-    return {"ready": not missing, **({"missing": missing} if missing else {}), **({"notes": notes} if notes else {})}
+    to_confirm = [text for settled, text in assumptions(spec_text) if not settled and text]
+    return {
+        "ready": not missing,
+        **({"missing": missing} if missing else {}),
+        **({"notes": notes} if notes else {}),
+        **({"to_confirm": to_confirm} if to_confirm else {}),
+    }
 
 
 def _task_lines(spec_text: str) -> list[str]:

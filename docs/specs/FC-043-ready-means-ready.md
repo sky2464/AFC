@@ -76,7 +76,7 @@ Rewriting older specs to the new shape. Any test.
 - [x] 2. Criteria tied to slices — you'll see it by a scratch spec whose A3 has no slice and whose
       slice 2 names A9 giving both messages, and an older unnumbered spec giving only the note
       (proves A2)
-- [ ] 3. Assumptions — you'll see it by a scratch spec with one open assumption showing it under
+- [x] 3. Assumptions — you'll see it by a scratch spec with one open assumption showing it under
       `to_confirm`, and `afc-slice` carrying the sentence about settling it in slice 1 (proves A3)
 - [ ] 4. New specs and Shipped — you'll see it by `plan add` on a scratch plan giving a spec with the new
       sections, and `plan done` on it writing the Shipped line (proves A4, A5)
