@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-26 — FC-044 The plan can't drift
+
+Anything wrong in the plan is found by `sh bin/afc check` in a plain sentence, on Flight Control's plan and on every project's plan; what needs no decision is fixed by `repair`; every plan change has a command, so hand editing is never needed; and a build never leaves the plan uncommitted.
+
+- Find more, on both plans
+- Fix what needs no decision
+- Commands for what was done by hand
+- A build leaves a clean tree
+- Old history labelled
+
 ## 2026-10-26 — FC-048 MM: prefix turns maintenance mode on
 
 Typing `/afc MM: <request>` turns maintenance mode on for the session and then handles `<request>` as Flight Control work, so the user never has to send `/afc mm` first as a separate message.

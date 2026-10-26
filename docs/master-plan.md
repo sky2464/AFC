@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-044 | The plan can't drift | L | [spec](specs/FC-044-the-plan-can-t-drift.md) | 2026-10-26 |
 
 ## Next
 
@@ -29,6 +28,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |
 | FC-048 | MM: prefix turns maintenance mode on | 2026-10-26 | [FC-048](specs/archive/FC-048-mm-prefix-turns-maintenance-mode-on.md) |
 | FC-043 | Ready means ready | 2026-10-26 | [FC-043](specs/archive/FC-043-ready-means-ready.md) |
 | FC-040 | Ready for v0.06a | 2026-10-26 | [FC-040](specs/archive/FC-040-ready-for-v0-06a.md) |
@@ -38,7 +38,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-038 | Light first start | 2026-10-25 | [FC-038](specs/archive/FC-038-light-first-start.md) |
 | FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |
 | FC-036 | Maintenance mode never sticks | 2026-10-25 | [FC-036](specs/archive/FC-036-maintenance-mode-never-sticks.md) |
-| FC-035 | Ready for v0.05b | 2026-10-25 | [FC-035](specs/archive/FC-035-ready-for-v0-05b.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -124,8 +123,6 @@ same day showed the rest.
 
 | Date | Event |
 |---|---|
-| 2026-10-24 | FC-004 started |
-| 2026-10-24 | FC-004 done |
 | 2026-10-24 | FC-005 started |
 | 2026-10-24 | FC-005 done |
 | 2026-10-24 | FC-006 started |
@@ -225,3 +222,4 @@ same day showed the rest.
 | 2026-10-26 | FC-048 started |
 | 2026-10-26 | FC-048 done |
 | 2026-10-26 | FC-044 started |
+| 2026-10-26 | FC-044 done |

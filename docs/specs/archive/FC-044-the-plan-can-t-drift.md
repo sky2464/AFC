@@ -1,6 +1,6 @@
 # FC-044 — The plan can't drift
 
-Size: L · Status: in progress · Started: 2026-10-26 · Done: -
+Size: L · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26, comparing this plan with AgToosa's and looking at our own history.
 
@@ -131,3 +131,5 @@ Slice 5:
 - Known and left: `commitPlan` returns "committed" even when nothing was staged. It is only a label.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 5. Criteria: 0 of 6 proven.
