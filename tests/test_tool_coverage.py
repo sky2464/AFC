@@ -30,7 +30,10 @@ class ToolCoverageTests(unittest.TestCase):
         (root / ".githooks").mkdir()
         (root / ".githooks" / "pre-commit").write_text("#!/bin/sh\n")
         found = tool_coverage.coverage(root)
-        self.assertEqual({i["instructions"] for i in found}, {"out of date"})
+        # the Copilot pointer never copies CLAUDE.md, so it cannot go stale
+        self.assertEqual({i["tool"]: i["instructions"] for i in found},
+                         {"Cursor": "out of date", "Codex": "out of date", "GitHub Copilot": "ok",
+                          "Antigravity": "out of date"})
         self.assertEqual({i["commit_check"] for i in found}, {"off"})
         self.assertTrue(any("git config core.hooksPath" in line for line in tool_coverage.lines(found)))
         subprocess.run(["git", "config", "core.hooksPath", ".githooks"], cwd=root, check=True)
