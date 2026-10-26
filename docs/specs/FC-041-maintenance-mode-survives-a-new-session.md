@@ -43,6 +43,13 @@ mistake (`afc/hooks/session_start.py`, `afc/hooks/rules_maintenance.py`, `afc/co
   plain "Flight Control blocked: choose Flight Control or your project first" line. Answering 1 runs
   `sh bin/afc maintain on` (this session only); answering 2 runs `sh bin/afc maintain off`. Either
   one lifts the block.
+- While a session is undecided, a shell (Bash) command runs only when it is on a short safe list:
+  `sh bin/afc` with `maintain`, `status`, `plan` or `check`; plain read-only commands (`ls`, `cat`,
+  `head`, `tail`, `grep`, `rg`, `find` without `-exec`/`-delete`, `pwd`, `echo`, `wc`, `sort`,
+  `diff`); and read-only git (`git status`, `log`, `diff`, `show`, `branch` with no argument). Anything
+  else, including any command with a redirect, pipe into a writer, `sed -i`, `python -c`, `touch`,
+  `pushd`, `GIT_DIR=` or `env -C`, stops with the same "choose first" line. A list, not a hunt for
+  every way to write: a form nobody listed is blocked.
 - A bare 1 or 2 answers the question just asked in the conversation, not the welcome's. If it
   isn't clear which, `afc-start` asks one question. The one exception is an undecided session,
   where a bare 1 or 2 answers the undecided question and nothing else.
@@ -106,6 +113,11 @@ be asked, 2026-10-26).
       "undecided" case and the bare-number rule, and a live `claude --continue --fork-session -p 1`
       on a conversation that ends in a "Build / Go back" menu answering from the menu, with a
       scratch project showing no change
+- [x] 5. Only a safe list of shell commands until answered — you'll see it by the pretool hook, in a
+      scratch home with the `.ask` file present, allowing `sh bin/afc maintain status`, `ls`, `git status`
+      and `cat` of a file, and blocking `sed -i`, `python3 -c "open(..,'w')"`, `touch`, `pushd .. && git
+      status`, `GIT_DIR=.. git status`, `env -C .. git status`, `echo x > file` and `ls | tee file` with the "choose
+      first" line, and `maintain off` then allowing the blocked ones again
 
 ## Tasks
 
@@ -123,6 +135,13 @@ Slice 3:
   `maintain.d/<id>.ask` exists, block project code writes and project git with the "choose first"
   line.
 - `afc/config.py`: `set_maintain` (on or off) removes the `.ask` file.
+
+Slice 5:
+- `afc/hooks/rules_maintenance.py`: while `ctx.undecided`, `check_undecided` blocks every Bash command
+  that is not wholly on the safe list (parse the raw tokens with `lex`; any redirect, pipe, `&&`/`;`
+  chain, subshell, `-exec`, env-assignment prefix, or unparsable command counts as not on the list,
+  except `a | b` or `a && b` where each part is itself on the list). Keep the existing project-reach
+  check for Write/Edit tools. Never block `sh <path>/bin/afc maintain|status|plan|check`.
 
 Slice 4:
 - `.claude/skills/afc-start/SKILL.md`: a case for "Mode: undecided" and one sentence for the bare
@@ -235,5 +254,43 @@ Fix 2, 2026-10-26 (a second checker found three breaks; the user decided each):
   - The menu's action ("Build FC-040") was not taken. The scratch project's `git status --short` was
     empty and its log is the single `init` commit.
   - This is one run; the model's wording will vary.
+
+Slice 5, tried 2026-10-26 with the real pretool hook (`sh bin/afc hook pretool`, JSON events piped in)
+in a scratch home `.../scratchpad/s5` (one scratch project with its own git folder, `maintain.d/other`
+as the recent flag, `maintain.d/sess1.ask` for the session, events sent from the A-FC folder):
+
+- Allowed (exit 0, no output): `sh bin/afc maintain status`, `sh <full path>/bin/afc plan`, `sh bin/afc
+  check`, `python3 -m afc maintain status`, `ls`, `ls -la /private/tmp`, `cat`, `head`, `grep -r`, `rg`,
+  `find . -name '*.py'`, `pwd`, `echo`, `wc`, `sort`, `diff`, `git status|log --oneline|diff|show
+  HEAD|branch`, `ls | head -3`, `git status && ls`, a three-part pipe. With the project as the working
+  folder `ls` and `cat a.txt` were allowed and `git status` / `git log` were stopped (project git, as
+  in slice 3); the same `git status` from session `sess2` (no `.ask`) was allowed.
+- Stopped with exit 2 and "Flight Control blocked: choose Flight Control or your project first": the
+  listed ones (`sed -i`, `python3 -c "open(..,'w')"`, `touch`, `pushd .. && git status`, `GIT_DIR=.. git
+  status`, `env -C .. git status`, `echo x > file`, `ls | tee file`) and also `ls; touch x`, `git status
+  $(touch x)`, a backtick substitution, `cat <(touch x)`, `FOO=1 git status`, `git -c core.pager='touch x'
+  log`, `git -C <project> status`, `git diff --output=file`, `--outp=file` (git accepts shortened
+  options), `git log --output=f`, `find -exec|-delete|-fprint`, `sort -o|-ro|--output`, `rg --pre`,
+  `bash -c`, `sh -c`, `sh bin/afc maintain status; touch x`, `sh bin/afc set|new` (not one of the four
+  words), `node -e`, `./ls`, `/bin/ls`, `ls || touch x`, `ls & touch x`, `(ls)`, `cat <<EOF`, `ls >> f`,
+  `ls 2>&1`, `git branch newb`, `git branch -D x`, `git checkout`, `git commit`, `env ls`, `tee f`,
+  `ls && touch x` (the writer on the right of an `&&`). 71 commands in all: 64 allowed after the
+  answer, 7 stopped by other guards.
+- A Write into the project was still stopped by the project-reach check, and a Write into the A-FC folder
+  by the normal maintenance line: both unchanged.
+- `AFC_SESSION=sess1 sh bin/afc maintain off` removed `sess1.ask`; the whole list was run again: none got the
+  "choose first" line (the earlier blocked ones ran, `touch`, `echo x >`, `sed -i`, `env -C`, ...). Seven
+  were still stopped, by other guards (`git commit|checkout|branch` in the A-FC folder, `ls >> f` and
+  `tee f` landing in it, without maintenance mode in the scratch home), not by the undecided rule.
+- Design: `shell_on_safe_list` in `afc/hooks/rules_maintenance.py` works on the raw `lex` tokens and not
+  on `simple_commands`, because that helper drops redirects, `VAR=` prefixes and wrappers like `env`,
+  which are the very things to refuse. Only `|` and `&&` join parts; every other punctuation token, any
+  `<` or `>` inside a word (quoted too), `$(` or a backtick anywhere, a newline, or an unlexable command is
+  not on the list. A command name has to be bare (`/bin/ls` and `./ls` are not). Git takes no option
+  before the subcommand and no `--output`/`-O`/`--ext-diff`/`--exec` after it; `branch` takes no argument.
+  A safe command still goes through the project-reach check (git in a project folder stays stopped), and
+  the rule comes first in the pretool list as before; no other guard moved.
+- Not on the list, so blocked while undecided: `cd`, `which`, `date`, `git -C`, `git branch -a`, quoted
+  text with `>` or `<` inside (`grep 'a>b'`). Add one by name to `_SAFE_PLAIN` or `_safe_git` if it matters.
 
 ## Shipped
