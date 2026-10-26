@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-038 | Light first start | M | [FC-038](specs/FC-038-light-first-start.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-038 | Light first start | M | [FC-038](specs/FC-038-light-first-start.md) |
 
 ## Done
 
@@ -220,3 +220,4 @@ same day showed the rest.
 | 2026-10-25 | FC-036 done |
 | 2026-10-25 | FC-037 started |
 | 2026-10-25 | FC-037 done |
+| 2026-10-25 | FC-038 started |

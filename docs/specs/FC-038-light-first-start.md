@@ -1,6 +1,6 @@
 # FC-038 — Light first start
 
-Size: M · Status: next, ready for build
+Size: M · Status: in progress
 
 Found on 2026-10-25 in a fresh clone of `main` (see FC-036 and FC-037). The very first start of a
 new copy loaded 73,197 tokens for "hi". FC-034 and FC-037 hold connectors back, but they do it from
