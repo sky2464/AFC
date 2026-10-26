@@ -47,8 +47,9 @@ folder gets the same instruction files; until then apps are unchanged.
   current branch (never `main`), and `sh bin/afc maintain status` says `branch`. Claude Code sessions
   keep their own per-session switch, unchanged. (Changed on 2026-10-26 from "on in `dev`, off
   elsewhere", which would have turned it off in worktrees and on for every session in a dev copy.)
-- A4. One file, `AGENTS.md`, is generated from `CLAUDE.md` and kept in step by a check; the Cursor,
-  Copilot and Antigravity files point to it instead of copying it.
+- A4. One file, `AGENTS.md`, is generated from `CLAUDE.md` and kept in step by a check. Cursor, Codex
+  and Antigravity read `AGENTS.md` themselves (checked in slice 1), so only Copilot gets a pointer
+  file, `.github/copilot-instructions.md`.
 - A5. For each of Cursor, Codex, Copilot and Antigravity, a hook file calls `afc guard` where that
   tool supports hooks, and the spec records, per tool, what it can and cannot block.
 - A6. The `/afc` flow works from a plain `sh bin/afc` start in any tool, with the same short
@@ -90,7 +91,7 @@ folder gets the same instruction files; until then apps are unchanged.
   terminal with no Claude Code (proves A2)
 - [x] 4. Maintenance mode by branch — you'll see it by `maintain status` saying on in `dev` and off
   elsewhere, with no session ID set (proves A3)
-- [ ] 5. Instruction files — you'll see it by `AGENTS.md` and the per-tool pointer files matching
+- [x] 5. Instruction files — you'll see it by `AGENTS.md` and the per-tool pointer files matching
   `CLAUDE.md`, and a check that fails when they drift (proves A4)
 - [ ] 6. Hook adapters — you'll see it by a blocked action in each tool that supports hooks (proves A5)
 - [ ] 7. `/afc` flow and health line — you'll see it by `sh bin/afc check` listing each tool's state
@@ -108,6 +109,9 @@ Slice 1:
 
 ## Shipped
 
+- Slice 5 (2026-10-26): `sh bin/afc instructions` checks and `--write` regenerates `AGENTS.md` (a
+  preface for non-Claude tools plus CLAUDE.md) and the Copilot pointer; a test fails when they drift,
+  so CI catches it. Apps are unchanged: they get no instruction files yet.
 - Slice 4 (2026-10-26): with no session ID, `maintain on|off` uses `maintain.branch.d/<branch>`
   (never on for `main`, expires after 7 days); a session with an ID never reads it. The guard now
   blocks A-FC edits from other tools when it is off and allows them when it is on. The commit check

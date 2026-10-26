@@ -14,6 +14,7 @@ from afc import (
     cli_health,
     cli_home,
     cli_index,
+    cli_instructions,
     cli_maintain,
     cli_plan,
     cli_project_setup,
@@ -114,6 +115,7 @@ def build_parser() -> argparse.ArgumentParser:
     cli_projects.register(sub)
     cli_health.register(sub)
     cli_guard.register(sub)
+    cli_instructions.register(sub)
     cli_maintain.register(sub)
     cli_tools.register(sub)
     cli_plan.register(sub)
