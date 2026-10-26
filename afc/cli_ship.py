@@ -37,8 +37,6 @@ def run_gate(spec_text: str) -> dict:
 
     home = afc_home()
     if maintain_enabled(home, current_session()):
-        return ship.gate(spec_text, afc_root(), None, run_tests=False)
-    else:
-        project = cli._active(load_registry(home))
-        code, command = Path(project.code_path), ship.recorded_test_command(Path(project.workspace_path))
-    return ship.gate(spec_text, code, command)
+        return ship.gate(spec_text, afc_root())
+    project = cli._active(load_registry(home))
+    return ship.gate(spec_text, Path(project.code_path))

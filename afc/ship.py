@@ -1,30 +1,16 @@
 """The readiness gate for finishing a spec (FC-015).
 
 gate() lists, in plain words, what is still missing before a spec can be called finished. It
-only reads: it runs the project's own test command and looks at git, and changes nothing.
-The project's test command is the line `Test command: <command>` in plan/architecture.md of its
-workspace; with none recorded the gate counts the tests as missing, never as passing. Flight
-Control's own plan uses its known suite command.
+only reads: it looks at the spec and at git, and changes nothing. It runs no tests and needs
+no test command (FC-030).
 """
 
 import re
-import shlex
 import subprocess
 from pathlib import Path
 
 from afc import plan
 
-TEST_TIMEOUT = 600
-NO_TEST_COMMAND = ("No test command is recorded for this project, so the tests were never run. "
-                   "Record it as a line `Test command: <command>` in plan/architecture.md.")
-
-
-def recorded_test_command(workspace: Path) -> str | None:
-    path = Path(workspace) / "plan" / "architecture.md"
-    if not path.is_file():
-        return None
-    m = re.search(r"^Test command:[ \t]*`?([^`\n]+?)`?[ \t]*$", path.read_text(encoding="utf-8"), re.M)
-    return m.group(1) if m else None
 
 
 def open_slices(spec_text: str) -> list[str]:
@@ -32,21 +18,6 @@ def open_slices(spec_text: str) -> list[str]:
     if not open_ and not plan.all_slices(spec_text):
         return ["The spec has no slices yet."]
     return [f"A slice is not ticked: {s}" for s in open_]
-
-
-def tests_green(code: Path, command: str | None) -> list[str]:
-    if not command:
-        return [NO_TEST_COMMAND]
-    try:
-        done = subprocess.run(shlex.split(command), cwd=code, capture_output=True, text=True,
-                              timeout=TEST_TIMEOUT)
-    except FileNotFoundError:
-        return [f"The test command could not be started: {command}"]
-    except subprocess.TimeoutExpired:
-        return [f"The test suite did not finish within {TEST_TIMEOUT} seconds."]
-    if done.returncode != 0:
-        return [f"The test suite is failing (`{command}`)."]
-    return []
 
 
 def clean_tree(code: Path) -> list[str]:
@@ -110,9 +81,9 @@ def pushed(code: Path) -> list[str]:
     return []
 
 
-def gate(spec_text: str, code: Path, test_command: str | None, run_tests: bool = True) -> dict:
+def gate(spec_text: str, code: Path) -> dict:
     """What is missing before the spec is finished; ready only when nothing is."""
-    missing = [*open_slices(spec_text), *(tests_green(code, test_command) if run_tests else []), *clean_tree(code),
+    missing = [*open_slices(spec_text), *clean_tree(code),
                *wip_commits(code), *pushed(code)]
     return {"ready": not missing, "missing": missing,
             "next": "Ready to finish." if not missing else missing[0]}

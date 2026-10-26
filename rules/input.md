@@ -27,6 +27,6 @@
 - Never echo input back in error messages without encoding.
 
 ## Check
-- Tests: each new input has one test with a valid value and one with a malicious or out-of-range value.
+- Check: try each new input live with a valid value and with a malicious or out-of-range value.
 - At checkpoint 3: semgrep (when installed) for injection patterns.
 - Review question: "Where is each new input validated, and how is each output encoded?"

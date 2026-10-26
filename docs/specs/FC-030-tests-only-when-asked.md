@@ -88,7 +88,7 @@ Changing what the guards, secret check or path rules do. Adding a new test tool.
       test run in its log, and no test count in its summary
 - [x] 3. Quiet replies and CI — you'll see it by `/afc` in maintenance mode showing no GitHub test
       line, and GitHub running only the five on a pull request to `main`
-- [ ] 4. Projects test only when asked — you'll see it by a live slice in a test project that
+- [x] 4. Projects test only when asked — you'll see it by a live slice in a test project that
       shows a working change with no test written, and delivers it without a test command
 - [ ] 5. Specs say "you'll see it by" — you'll see it by the spec template, `CONTRIBUTING.md` and
       the open specs in Next all using it

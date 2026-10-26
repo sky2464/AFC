@@ -27,6 +27,6 @@
 - Never return more fields than the client needs.
 
 ## Check
-- Tests: an `evil-example.com` origin gets no CORS header; a disallowed origin gets no CORS header; the rate limit returns 429; an error returns the envelope with no stack trace.
+- Check: try live that an `evil-example.com` origin gets no CORS header; a disallowed origin gets no CORS header; the rate limit returns 429; an error returns the envelope with no stack trace.
 - At checkpoint 3: semgrep (when installed) for permissive CORS and leaky error handlers.
 - Review question: "Who may call this endpoint, how often, and what does it return on error?"
