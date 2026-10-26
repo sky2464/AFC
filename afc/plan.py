@@ -422,6 +422,7 @@ def findings_path(space) -> Path:
     return space.base / "findings.md"
 
 
+_FIXES_LINE = re.compile(r"^Fixes:\s*(.+)", re.IGNORECASE)
 _FINDING_ID = re.compile(r"\bF-(\d+)\b")
 _FINDING_HEADER = "| ID | Finding | State | Found |\n|---|---|---|---|\n"
 
@@ -486,6 +487,44 @@ def remove_waiting(text: str, n: int) -> str:
     if len(kept) == len(rows):
         raise ValueError(f"No waiting step number {n}.")
     return write_rows(text, "Waiting on you", kept)
+
+
+def fixes(spec_text: str) -> list[str]:
+    """Finding IDs named in a `Fixes: F-001, R6` line in the first block of spec header lines.
+    Reads lines until the first blank line or a `## ` heading."""
+    for line in spec_text.split("\n"):
+        if not line.strip() or line.startswith("## "):
+            break
+        m = _FIXES_LINE.match(line.strip())
+        if m:
+            return [t.strip() for t in m.group(1).split(",") if t.strip()]
+    return []
+
+
+def set_finding_state(findings_text: str, fid: str, state: str) -> str:
+    """Update the State cell of finding fid in the All findings table; no-op when fid is absent."""
+    lines = findings_text.split("\n")
+    try:
+        start, end = _section_span(lines, "All findings")
+    except ValueError:
+        return findings_text
+    for i in range(start, end):
+        if lines[i].lstrip().startswith("|"):
+            cells = [c.strip() for c in lines[i].strip().strip("|").split("|")]
+            if cells and cells[0] == fid:
+                cells = cells + [""] * (4 - len(cells))
+                cells[2] = state
+                lines[i] = "| " + " | ".join(cell(c) for c in cells) + " |"
+                break
+    return "\n".join(lines)
+
+
+def all_findings(findings_text: str) -> list[list[str]]:
+    """All rows from the All findings table."""
+    try:
+        return read_rows(findings_text, "All findings")
+    except ValueError:
+        return []
 
 
 def add_finding(findings_text: str, fid: str, text: str, found: str) -> str:

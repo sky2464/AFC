@@ -87,7 +87,7 @@ State. Rewriting specs to add an area (only the ones in Next).
       landing in Done, and R6 and the FC-040 steps in Waiting on you (proves A3, A4)
 - [x] 4. The check — you'll see it by a scratch findings file with one stateless finding and one false
       "fixed in" giving both sentences in `check` (proves A5)
-- [ ] 5. Findings close themselves — you'll see it by a scratch spec with `Fixes: F-001` moving the
+- [x] 5. Findings close themselves — you'll see it by a scratch spec with `Fixes: F-001` moving the
       finding to in progress on `plan start` and to fixed on `plan done`, `plan` showing the
       one-line count and the unplanned ones, and a typo ID refused (proves A7, A8, A9)
 - [ ] 6. Areas — you'll see it by the four rows with their Scoreboard numbers and the Next specs naming

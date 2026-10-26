@@ -221,7 +221,75 @@ def cmd_plan(args: argparse.Namespace) -> dict:
            "done_count": len(plan.read_rows(text, "Done"))}
     if not maintain_enabled(home, current_session()):
         out["where"] = _where(load_registry(home).active())
+    fpath = plan.findings_path(space)
+    if fpath.is_file():
+        ftext = fpath.read_text(encoding="utf-8")
+        all_f = plan.all_findings(ftext)
+        counts: dict[str, int] = {}
+        for r in all_f:
+            s = (r[2].strip() if len(r) > 2 else "").lower()
+            key = "open" if s == "open" else "in progress" if s == "in progress" else "waiting" if s == "waiting on you" else "other"
+            counts[key] = counts.get(key, 0) + 1
+        unplanned_ids = _unplanned_findings(space, text, all_f) if counts.get("open", 0) else []
+        findings_line = f"open {counts.get('open', 0)}, in progress {counts.get('in progress', 0)}, waiting {counts.get('waiting', 0)}"
+        if unplanned_ids:
+            findings_line += f"; unplanned: {', '.join(unplanned_ids)}"
+        out["findings"] = findings_line
     return out
+
+
+def _unplanned_findings(space: plan.Space, plan_text: str, all_findings: list[list[str]]) -> list[str]:
+    """Open finding IDs that no spec in Now or Next says it fixes."""
+    open_ids = {r[0] for r in all_findings if r and (r[2].strip().lower() if len(r) > 2 else "") == "open"}
+    if not open_ids:
+        return []
+    planned: set[str] = set()
+    for section in ("Now", "Next"):
+        for row in plan.read_rows(plan_text, section):
+            spec_path = _spec_path(space, row)
+            if spec_path.is_file():
+                for fid in plan.fixes(spec_path.read_text(encoding="utf-8")):
+                    planned.add(fid)
+    return sorted(open_ids - planned)
+
+
+def _apply_finding_states(space: plan.Space, spec_text: str, new_state: str) -> None:
+    """Move the findings named in the spec's Fixes: line to new_state; writes findings.md if it exists."""
+    ids = plan.fixes(spec_text)
+    if not ids:
+        return
+    fpath = plan.findings_path(space)
+    if not fpath.is_file():
+        return
+    text = fpath.read_text(encoding="utf-8")
+    changed = False
+    for fid in ids:
+        new_text = plan.set_finding_state(text, fid, new_state)
+        if new_text != text:
+            text = new_text
+            changed = True
+    if changed:
+        fpath.write_text(text, encoding="utf-8")
+
+
+def _check_fixes_exist(space: plan.Space, spec_text: str) -> None:
+    """Raise an error when a finding ID in Fixes: is not in the findings file."""
+    ids = plan.fixes(spec_text)
+    if not ids:
+        return
+    fpath = plan.findings_path(space)
+    if not fpath.is_file():
+        if ids:
+            raise _error(f"This spec names findings ({', '.join(ids)}) in Fixes:, but the plan has "
+                         "no findings.md yet. Run plan find to create it first.")
+        return
+    text = fpath.read_text(encoding="utf-8")
+    known = {r[0] for r in plan.all_findings(text) if r}
+    bad = [fid for fid in ids if fid not in known]
+    if bad:
+        raise _error(f"Finding {'ID' if len(bad) == 1 else 'IDs'} {', '.join(bad)} in Fixes: "
+                     f"{'is' if len(bad) == 1 else 'are'} not in the findings file; fix the typo or "
+                     "add the finding first.")
 
 
 def _where(project) -> str:
@@ -361,6 +429,7 @@ def cmd_start(args: argparse.Namespace) -> dict:
         raise _error(f"{sid} can't start yet: the plan has no goal. "
                      'Set it first with: plan goal "<one line>"')
     spec_path, spec_text = _read_spec(space, sid, row)
+    _check_fixes_exist(space, spec_text)
     for dep in plan.depends(spec_text):
         if not _is_done(text, dep):
             raise _error(f"{sid} waits for {dep}, which is not done yet. Finish {dep} first, "
@@ -370,6 +439,7 @@ def cmd_start(args: argparse.Namespace) -> dict:
     new = plan.write_rows(new, "Now", [[sid, row[1], row[2], row[3], today]])
     plan.event(space, today, f"{sid} started")
     spec_path.write_text(plan.set_header(spec_text, status="in progress", started=today), encoding="utf-8")
+    _apply_finding_states(space, spec_text, "in progress")
     try:
         path.write_text(new, encoding="utf-8")
     except BaseException:
@@ -435,6 +505,7 @@ def cmd_drop(args: argparse.Namespace) -> dict:
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
     archive_row = [sid, f"{row[1]} (dropped)", today]
     new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
+    _apply_finding_states(space, spec_text, "open")
     plan.event(space, today, f"{sid} dropped")
     shutil.move(str(spec_path), str(target))
     try:
@@ -569,8 +640,11 @@ def cmd_done(args: argparse.Namespace) -> dict:
     new = plan.write_rows(text, "Now", [])
     new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", outcome]] + plan.read_rows(new, "Done"))
     plan.event(space, today, f"{sid} done")
+    # Determine release for finding state (from Done row if already stamped, else just use spec ID)
+    fixed_state = f"fixed in {sid}"
     body = plan.set_header(spec_text, status="done", done=today)
     body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}. {_criteria_line(spec_text)}")
+    _apply_finding_states(space, spec_text, fixed_state)
     changelog = (space.base if space.prefix == "FC" else space.base.parent) / "changelog.md"
     old_changelog = changelog.read_text(encoding="utf-8") if changelog.is_file() else None
     entry = ship.changelog_entry(spec_text, sid, row[1], today)
@@ -615,8 +689,10 @@ def cmd_park(args: argparse.Namespace) -> dict:
     if not revisit:
         raise _error("Give a revisit date or condition with --revisit.")
     today = _cli()._today()
+    spec_path, spec_text = _read_spec(space, sid, row)
     new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
     new = plan.add_parked(new, sid, row[1], row[2] if len(row) > 2 else "M", why, revisit)
+    _apply_finding_states(space, spec_text, "open")
     new = _logged(space, new, today, f"{sid} parked: {why}")
     space.master.write_text(new, encoding="utf-8")
     return {"parked": sid, "why": why, "revisit": revisit}
