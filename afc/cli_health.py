@@ -6,6 +6,7 @@ at its code folder after the user moved it. Nothing is ever deleted.
 """
 
 import argparse
+import re
 import shutil
 import subprocess
 from collections.abc import Callable
@@ -22,7 +23,19 @@ from afc.workspace import create_workspace
 NAMES = ("check", "repair", "relocate")
 ACCESS = ("stale_access", "gone_access", "missing_access", "foreign_access")
 ADDONS = ("addon_not_allowed", "addon_unblock")
-PLAN_KINDS = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs")
+PLAN_KINDS = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs", "plan_two_in_now",
+              "plan_no_spec_file", "plan_status_mismatch", "plan_archive_not_indexed", "plan_table_broken",
+              "plan_uncommitted")
+PLAN_CLOSES = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs")  # closing a spec in the plan
+PLAN_WHY_LEFT = {
+    "plan_two_in_now": "which spec stays in progress is your call",
+    "plan_no_spec_file": "only you know whether the spec was dropped or the file moved",
+    "plan_status_mismatch": "either the plan or the spec header is right, and that needs your decision",
+    "plan_table_broken": "a row with the wrong number of cells could lose text if it were guessed at",
+    "plan_uncommitted": "committing is yours to approve",
+}
+PLAN_MAX_LINES = 150
+PLAN_MAX_LOG = 30
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
@@ -132,28 +145,110 @@ def cmd_repair(args: argparse.Namespace) -> dict:
     return {"repaired": repaired, "left": find_problems(home)}
 
 
-def plan_problems(home: Path) -> list[dict]:
-    """Flight Control's plan gone stale: a Now row with every slice ticked, a built spec still in Next,
-    or a worktree's own copy of the plan that differs from the one on dev. Reads only."""
+def plan_problems(space, owner: str = "") -> list[dict]:
+    """A master plan gone wrong, Flight Control's own (owner "") or a project's (owner = its name).
+
+    Found everywhere: two rows in Now, a Now or Next row whose spec file is gone, a spec header that
+    disagrees with its section, an archived spec missing from the archive index, a table row with the
+    wrong number of cells. Flight Control's own plan also gets: a Now row with every slice ticked, a
+    built spec still in Next, a worktree copy that differs, and uncommitted edits (not while a build
+    has an open slice). Only a missing archive index entry is fixable by repair. Reads only."""
     from afc import cli_plan, plan
 
-    root = cli_plan._plan_root()
-    master = root / "docs" / "master-plan.md"
+    master = space.master
     if not master.is_file():
         return []
-    space = plan.flight_control_space(root)
+    own = space.prefix == "FC"
+    whose = "Flight Control's plan" if own else f"{owner}'s plan"
     text = master.read_text(encoding="utf-8")
     found: list[dict] = []
-    for section, kind, how in (
-            ("Now", "plan_all_ticked_in_now", "is in Now with every slice ticked"),
-            ("Next", "plan_built_in_next", "is built (every slice ticked) but still in Next")):
-        for row in plan.read_rows(text, section):
+
+    def add(kind: str, path: Path, detail: str, fixable: bool = False) -> None:
+        found.append(_problem(kind, str(path), fixable, detail=f"{whose}: {detail}", project="" if own else owner))
+
+    # Tables first; a row with the wrong number of cells is reported and left out of the checks below.
+    rows: dict[str, list[list[str]]] = {}
+    for section in ("Now", "Next", "Done", "Update log"):
+        try:
+            cells = _table_widths(text, section)
+        except ValueError:
+            add("plan_table_broken", master, f"the {section} section or its table is missing.")
+            continue
+        header, body = cells
+        bad = [c for c in body if c != header]
+        if bad:
+            add("plan_table_broken", master,
+                f"the {section} table has {len(bad)} row{'s' if len(bad) > 1 else ''} with the wrong "
+                f"number of cells (it should have {header}).")
+        rows[section] = [r for r in plan.read_rows(text, section) if len(r) == header]
+    now, nxt = rows.get("Now", []), rows.get("Next", [])
+    if len(now) > 1:
+        add("plan_two_in_now", master,
+            f"{len(now)} specs are in Now ({', '.join(r[0] for r in now)}); only one can be in progress.")
+    expected = {"Now": "in progress", "Next": "next"}
+    for section, section_rows in (("Now", now), ("Next", nxt)):
+        for row in section_rows:
             spec = cli_plan._spec_path(space, row)
-            slices = plan.all_slices(spec.read_text(encoding="utf-8")) if spec.is_file() else []
-            if slices and all(done for done, _ in slices):
+            if not spec.is_file():
+                add("plan_no_spec_file", master, f"{row[0]} is in {section} but its spec file is missing.")
+                continue
+            spec_text = spec.read_text(encoding="utf-8")
+            status = _header_status(spec_text)
+            if status and status != expected[section]:
+                add("plan_status_mismatch", spec,
+                    f"{row[0]} is in {section} but its spec says \"{status}\".")
+            slices = plan.all_slices(spec_text)
+            if own and slices and all(done for done, _ in slices):
+                kind, how = (("plan_all_ticked_in_now", "is in Now with every slice ticked") if section == "Now"
+                             else ("plan_built_in_next", "is built (every slice ticked) but still in Next"))
                 found.append(_problem(kind, str(master), True, project=row[0],
                                       detail=f"{row[0]} {how}; repair closes it in the plan "
                                              "(needs maintenance mode)."))
+    log_rows = len(rows.get("Update log", []))
+    lines = len(text.split("\n"))
+    if lines > PLAN_MAX_LINES or log_rows > PLAN_MAX_LOG:
+        name, size = plan.longest_section(text)
+        add("plan_too_long", master,
+            f"the plan is {lines} lines with {log_rows} Update log rows; the longest part is {name} ({size} lines). "
+            "`plan tidy --show` lists what can move out, and `plan tidy` moves it.")
+    index = space.archive_dir / "index.md"
+    indexed = index.read_text(encoding="utf-8") if index.is_file() else ""
+    if space.archive_dir.is_dir():
+        for f in sorted(space.archive_dir.iterdir()):
+            if re.match(rf"{space.prefix}-\d+.*\.md$", f.name) and f.name not in indexed:
+                add("plan_archive_not_indexed", f, f"{f.name} is in the archive but not in its index; "
+                    "repair adds it.", fixable=True)
+    if own:
+        found += _own_plan_problems(space, text, now)
+    return found
+
+
+def _table_widths(text: str, section: str) -> tuple[int, list[int]]:
+    """(cell count of the header, cell count of each data row) for a section's table; ValueError
+    when the section or its table is missing."""
+    from afc import plan
+
+    lines = text.split("\n")
+    start, end = plan._section_span(lines, section)
+    table = [ln for ln in lines[start:end] if ln.lstrip().startswith("|")]
+    if len(table) < 2:
+        raise ValueError(section)
+    counts = [len(plan._split_row(ln)) for ln in table]
+    return counts[0], counts[2:]
+
+
+def _header_status(spec_text: str) -> str:
+    m = re.search(r"^Size:.*?Status:\s*([^·\n]*?)\s*(?:·|$)", spec_text, re.MULTILINE)
+    return m.group(1).strip() if m else ""
+
+
+def _own_plan_problems(space, text: str, now: list[list[str]]) -> list[dict]:
+    """The checks that only make sense for Flight Control's own plan: a worktree's own copy that differs,
+    and uncommitted edits (skipped while a spec in Now still has an open slice)."""
+    from afc import cli_plan, plan
+
+    found: list[dict] = []
+    root = space.base.parent
     here = _cli().afc_root() / "docs" / "master-plan.md"
     if root.resolve() != _cli().afc_root().resolve() and here.is_file() and \
             here.read_text(encoding="utf-8") != text:
@@ -162,6 +257,15 @@ def plan_problems(home: Path) -> list[dict]:
                               detail="This worktree's own copy of the master plan differs from the one on dev; "
                                      + ("repair replaces it with dev's." if clean else
                                         "it has uncommitted edits, so repair leaves it alone.")))
+    building = False
+    for row in now:
+        spec = cli_plan._spec_path(space, row)
+        if spec.is_file() and any(not done for done, _ in plan.all_slices(spec.read_text(encoding="utf-8"))):
+            building = True
+    if not building and _git(root, "status", "--short", "--", "docs/master-plan.md", "docs/specs"):
+        found.append(_problem("plan_uncommitted", str(space.master), False,
+                              detail="Flight Control's plan: the master plan or a spec has changes that are "
+                                     "not committed yet."))
     return found
 
 
@@ -174,6 +278,13 @@ def _repair_plan(home: Path, found: list[dict]) -> list[str]:
     out: list[str] = []
     if not found:
         return out
+    for p in [p for p in found if p["kind"] == "plan_archive_not_indexed"]:
+        out.append(_repair_archive_index(home, p))
+    left = {p["kind"] for p in found if p["kind"] in PLAN_WHY_LEFT}
+    if left:
+        why = "; ".join(PLAN_WHY_LEFT[k] for k in PLAN_WHY_LEFT if k in left)
+        out.append(f"Left the other plan problems as they are, because they need a decision: {why}.")
+    found = [p for p in found if p["kind"] in PLAN_CLOSES]
     ordered = sorted(found, key=lambda p: p["kind"] != "plan_all_ticked_in_now")
     for p in ordered:
         if p["kind"] == "plan_copy_differs":
@@ -193,6 +304,25 @@ def _repair_plan(home: Path, found: list[dict]) -> list[str]:
         except cli.CliError as exc:
             out.append(f"Could not close {p['project']} in the plan: {exc}")
     return out
+
+
+def _repair_archive_index(home: Path, p: dict) -> str:
+    """Add the row for an archived spec that the archive index lacks, read from the spec file itself."""
+    from afc import cli_plan
+
+    path = Path(p["path"])
+    if not p.get("project") and not maintain_enabled(home, current_session()):
+        return (f"{path.name} is missing from the archive index; adding it changes Flight Control's own "
+                "plan, so it needs maintenance mode (/afc mm).")
+    text = path.read_text(encoding="utf-8")
+    sid = re.match(r"([A-Za-z]+-\d+)", path.name).group(1)
+    title = re.search(r"^#\s*\S+\s*[—-]\s*(.+?)\s*$", text, re.MULTILINE)
+    done = re.search(r"Done:\s*(\d{4}-\d{2}-\d{2})", text)
+    row = [sid, title.group(1) if title else path.stem, done.group(1) if done else "-", path.name]
+    index = path.parent / "index.md"
+    old = index.read_text(encoding="utf-8") if index.is_file() else ""
+    index.write_text(cli_plan._archive_index(old, row), encoding="utf-8")
+    return f"Added {path.name} to the archive index."
 
 
 def switch_addons(root: Path, found: list[dict]) -> tuple[int, int]:
@@ -271,7 +401,16 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     reg = load_registry(home)
     problems: list[dict] = root_problems(cli.afc_root()) if not is_test_copy(cli.afc_root(), home) else []
     problems += behind_problems(cli.afc_root(), home)
-    problems += plan_problems(home)
+    from afc import cli_plan, plan
+
+    fc_space = plan.flight_control_space(cli_plan._plan_root())
+    problems += plan_problems(fc_space)
+    problems += _findings_problems(fc_space)
+    for p in reg.projects.values():
+        if Path(p.workspace_path).is_dir():
+            proj_space = plan.project_space(Path(p.workspace_path))
+            problems += plan_problems(proj_space, p.name)
+            problems += _findings_problems(proj_space)
     if (home / "maintain").exists():
         problems.append(_problem("stale_maintain", str(home / "maintain"), True,
                                  detail="An old global maintenance switch is left over; it is ignored, "
@@ -347,18 +486,67 @@ def _decisions_problems(project) -> list[dict]:
                             "decisions stop landing under the always/never rules.")]
 
 
+def architecture_is_bare(path: Path) -> bool:
+    """True when the project's architecture.md is still the empty template (whitespace aside)."""
+    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
+    if not path.is_file() or not template.is_file():
+        return False
+    return " ".join(path.read_text(encoding="utf-8").split()) == " ".join(template.read_text(encoding="utf-8").split())
+
+
 def _architecture_problems(project) -> list[dict]:
     """A project with a done slice whose architecture.md is still the bare template (whitespace
     aside). Claude fills it from the code, so it is reported, never auto-fixed."""
     path = Path(project.workspace_path) / "plan" / "architecture.md"
-    template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
-    if not project.last_slice or not path.is_file() or not template.is_file():
-        return []
-    if " ".join(path.read_text(encoding="utf-8").split()) != " ".join(template.read_text(encoding="utf-8").split()):
+    if not project.last_slice or not architecture_is_bare(path):
         return []
     return [_problem("architecture_empty", str(path), False, project=project.name,
                      detail=f"{project.name}: slices are done but architecture.md is still the empty "
                             "template; Claude fills it in from the code.")]
+
+
+def _findings_problems(space) -> list[dict]:
+    """Check findings.md for rows with no State, or claiming fixed in a spec that is not done."""
+    from afc import plan
+    fpath = plan.findings_path(space)
+    if not fpath.is_file():
+        return []
+    try:
+        text = fpath.read_text(encoding="utf-8")
+        rows = plan.read_rows(text, "All findings")
+    except Exception:
+        return []
+    # Build a set of done spec IDs from the archive index and archive directory
+    done_ids: set[str] = set()
+    archive = space.archive_dir
+    if archive.is_dir():
+        for f in archive.iterdir():
+            m = re.match(rf"({re.escape(space.prefix)}-\d+)", f.name)
+            if m:
+                done_ids.add(m.group(1))
+    index = archive / "index.md"
+    if index.is_file():
+        for ln in index.read_text(encoding="utf-8").split("\n"):
+            if ln.lstrip().startswith("|"):
+                cells = [c.strip() for c in ln.strip().strip("|").split("|")]
+                if cells and re.match(rf"{re.escape(space.prefix)}-\d+$", cells[0]):
+                    done_ids.add(cells[0])
+
+    found = []
+    for row in rows:
+        fid = row[0] if row else ""
+        state = row[2].strip() if len(row) > 2 else ""
+        if not state:
+            found.append(_problem("finding_no_state", str(fpath), False,
+                                  detail=f"Finding {fid} has no State; set it to open, fixed, "
+                                         "waiting on you, parked, or no change needed."))
+        elif state.startswith("fixed in "):
+            spec_id = state[len("fixed in "):].strip().split()[0] if state[len("fixed in "):].strip() else ""
+            if spec_id and spec_id not in done_ids:
+                found.append(_problem("finding_fixed_not_done", str(fpath), False,
+                                      detail=f"Finding {fid} says fixed in {spec_id}, but {spec_id} "
+                                             "is not in the archive; update the State or finish the spec."))
+    return found
 
 
 def foreign_roots_for(home: Path, reg) -> list[Path]:

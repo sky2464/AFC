@@ -17,7 +17,9 @@ def register(sub) -> None:
     u.add_argument("--skip", metavar="VERSION", help="stay quiet about this release")
     u.set_defaults(handler=cmd_update)
     r = sub.add_parser("release", help="check whether main is ready to tag; changes nothing")
-    r.add_argument("action", choices=["check"])
+    r.add_argument("action", choices=["check", "prepare"])
+    r.add_argument("version", nargs="?", help="prepare: the version to release, e.g. v0.07a (you choose it)")
+    r.add_argument("--show", action="store_true", help="prepare: only list what is done; change nothing")
     r.set_defaults(handler=cmd_release)
     g = sub.add_parser("upgrade", help="upgrade the workspace to the layout this release expects")
     g.add_argument("--from-version", default=None,
@@ -53,7 +55,16 @@ def cmd_version(args: argparse.Namespace) -> dict:
 
 
 def cmd_release(args: argparse.Namespace) -> dict:
-    return release.check(afc_root())
+    if args.action == "check":
+        return release.check(afc_root())
+    from afc import cli  # late import: afc.cli imports this module
+
+    if not args.version:
+        raise cli.CliError("Say which version to prepare, for example: release prepare v0.07a")
+    try:
+        return release.prepare(afc_root(), args.version, args.show)
+    except ValueError as exc:
+        raise cli.CliError(str(exc)) from None
 
 
 def cmd_upgrade(args: argparse.Namespace) -> dict:

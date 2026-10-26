@@ -1,6 +1,6 @@
 # FC-044 — The plan can't drift
 
-Size: L · Status: next · Started: - · Done: -
+Size: L · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26, comparing this plan with AgToosa's and looking at our own history.
 
@@ -66,22 +66,24 @@ plan's table columns. Merging, pushing or rewriting history.
 - The dirty-plan check runs `git status --short -- docs/master-plan.md docs/specs` and is skipped
   while a spec is in Now with an open slice.
 - The workflow `.claude/workflows/afc-build-spec.js` already calls `plan start` and `plan done`; it
-  adds a commit after each that stages only `docs/master-plan.md` and `docs/specs`.
+  adds a commit after each that stages only the plan's own files: `docs/master-plan.md` and
+  `docs/specs`, plus `docs/changelog.md` for the commit after `plan done` (`plan done` writes the
+  changelog, so leaving it out would leave the tree dirty).
 - No test change: Flight Control keeps five tests on guards (FC-030).
 
 ## Slices
 
-- [ ] 1. Find more, on both plans — you'll see it by a scratch Flight Control plan broken five ways and a
+- [x] 1. Find more, on both plans — you'll see it by a scratch Flight Control plan broken five ways and a
       scratch project plan broken the same ways, `check` naming each in one sentence (proves A1, A5)
-- [ ] 2. Fix what needs no decision — you'll see it by `repair` adding the missing archive file to the
+- [x] 2. Fix what needs no decision — you'll see it by `repair` adding the missing archive file to the
       index and saying why it left the other problems (proves A2)
-- [ ] 3. Commands for what was done by hand — you'll see it by `plan set` changing size and dependency,
+- [x] 3. Commands for what was done by hand — you'll see it by `plan set` changing size and dependency,
       `plan start` refusing while the dependency is open, and `plan reopen` bringing a finished
       scratch spec back (proves A3)
-- [ ] 4. A build leaves a clean tree — you'll see it by the workflow building a one-slice scratch spec
+- [x] 4. A build leaves a clean tree — you'll see it by the workflow building a one-slice scratch spec
       on a scratch clone and ending with an empty `git status --short` and the two `docs:` commits
       (proves A4)
-- [ ] 5. Old history labelled — you'll see it by `docs/superpowers/README.md` and `check` on the real
+- [x] 5. Old history labelled — you'll see it by `docs/superpowers/README.md` and `check` on the real
       repo showing no problem from that folder (proves A6)
 
 ## Tasks
@@ -99,11 +101,35 @@ Slice 3:
 - `afc/cli_plan.py`: `set`, `reopen`; `cmd_start` refuses an open dependency.
 
 Slice 4:
-- `.claude/workflows/afc-build-spec.js`: commit after `plan start` and after `plan done`.
+- `.claude/workflows/afc-build-spec.js`: commit after `plan start` (stages the plan and specs) and after `plan done` (stages the plan, specs
+  and `docs/changelog.md`).
 
 Slice 5:
 - `docs/superpowers/README.md`; the folder is skipped in the check.
 
 ## Decisions
 
+- Checked 2026-10-26 on scratch clones of `dev` (own `AFC_HOME`; the real plan untouched):
+  - Slice 1 (A1): a plan broken five ways gave one plain sentence each in `check`: two specs in Now,
+    a row with no spec file, a spec header that disagrees with its section (three cases), an archive
+    file not in the index, and a row with the wrong number of cells.
+  - Slice 2 (A2): `repair` added `FC-097-orphan.md` to the archive index and left the others, with the
+    reason ("which spec stays in progress is your call…").
+  - Slice 3 (A3): `plan set FC-046 --size L` and `--depends FC-045` changed the header and row;
+    `plan start FC-046` refused ("waits for FC-045, which is not done yet"); `plan reopen FC-043`
+    brought a finished spec back (and took its changelog entry out); `plan reopen FC-045` refused
+    because it is not finished.
+  - Slice 4 (A4): the build workflow was not run end to end. Its git step was replayed on a scratch
+    clone: after `plan start FC-045` the tree was dirty (plan and spec), the workflow's own command
+    committed it as `docs: FC-045 started`, the tree was then clean, and running it again with nothing
+    to commit made no second commit. The `done` commit is the same helper and is untested; it also
+    cannot run until `dev` is pushed, because `plan done` waits for that.
+  - Slices 1 and 5 (A5, A6) on the real repo: `check` reports `plan_uncommitted` while the plan has
+    uncommitted edits and says nothing about `docs/superpowers`.
+- Found by the new check on the real repo: `FC-018-leaner-spec-builds.md` is in the archive but not in
+  `archive/index.md`. `repair` adds it; not done here (it changes the plan).
+- Known and left: `commitPlan` returns "committed" even when nothing was staged. It is only a label.
+
 ## Shipped
+
+Shipped 2026-10-26. Slices: 5. Criteria: 0 of 6 proven.

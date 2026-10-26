@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-10-26 — FC-045 Releases and results from the plan
+
+A release is made from the plan, not from a spec. `sh bin/afc release prepare <version>` lists what is done since the last release, drafts the `## <version>` section (10 lines or fewer, plain words) from each spec's goal, and sets VERSION. Each Done row says which release it went out in and what it reached (met, partly, not met), and a small Scoreboard shows the few numbers the goal depends on.
+
+- Draft the release
+- Releases table and Release column
+- Outcome on Done rows
+- Scoreboard
+
+## 2026-10-26 — FC-044 The plan can't drift
+
+Anything wrong in the plan is found by `sh bin/afc check` in a plain sentence, on Flight Control's plan and on every project's plan; what needs no decision is fixed by `repair`; every plan change has a command, so hand editing is never needed; and a build never leaves the plan uncommitted.
+
+- Find more, on both plans
+- Fix what needs no decision
+- Commands for what was done by hand
+- A build leaves a clean tree
+- Old history labelled
+
 ## 2026-10-26 — FC-048 MM: prefix turns maintenance mode on
 
 Typing `/afc MM: <request>` turns maintenance mode on for the session and then handles `<request>` as Flight Control work, so the user never has to send `/afc mm` first as a separate message.

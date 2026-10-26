@@ -1,6 +1,6 @@
 # FC-045 — Releases and results from the plan
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose Done rows carry the version and links
 to the review and the evidence.
@@ -69,13 +69,13 @@ gives it. Deciding FC-040's fate (see Design notes). Measuring anything new beyo
 
 ## Slices
 
-- [ ] 1. Draft the release — you'll see it by `release prepare v0.07a --show` and then without `--show`
+- [x] 1. Draft the release — you'll see it by `release prepare v0.07a --show` and then without `--show`
       on a scratch clone, and `--show` on the real `dev` listing the specs FC-040 misses (proves A1, A2)
-- [ ] 2. Releases table and Release column — you'll see it by a scratch plan showing the table and the
+- [x] 2. Releases table and Release column — you'll see it by a scratch plan showing the table and the
       stamped Done rows after `prepare` (proves A3)
-- [ ] 3. Outcome on Done rows — you'll see it by `plan done --outcome` and `plan drop` on scratch specs
+- [x] 3. Outcome on Done rows — you'll see it by `plan done --outcome` and `plan drop` on scratch specs
       and FC-009's row backfilled (proves A4)
-- [ ] 4. Scoreboard — you'll see it by the three seeded rows in the plan and `plan score` changing one
+- [x] 4. Scoreboard — you'll see it by the three seeded rows in the plan and `plan score` changing one
       with a log row (proves A5)
 
 ## Tasks
@@ -98,4 +98,21 @@ Slice 4:
 
 ## Decisions
 
+- Checked 2026-10-26 on a scratch clone of `dev` (own `AFC_HOME`; the real repo untouched):
+  - A2: `release prepare v0.07a --show` on the real `dev` listed FC-036 to FC-044 and FC-048
+    (everything since `v0.05b`, which is the newest tag) and changed nothing; `VERSION` stayed `v0.06a`.
+  - A1: without `--show`, on the scratch clone, it wrote a `## v0.07a` section of 8 lines, one per
+    spec from its goal, and set `VERSION` to `v0.07a`.
+  - A3: after `prepare` the scratch plan had `## Releases`; the real plan has none until the first
+    `prepare` (the table is built from tags and the Done rows' Release column).
+  - A4: `plan drop` wrote `(dropped)` and `dropped` in Outcome; `plan done` takes `--outcome RESULT
+    WHY`; FC-009's archive row reads "not met: 46,010 growth against 24,490".
+  - A5: the Scoreboard holds the three seeded rows; `plan score` changed one and logged it, and kept
+    the old value as "before" only with `--keep-before`.
+- Not run: `plan done --outcome` on a finished scratch spec (only its help was read); `plan score`
+  with a name that does not exist.
+- `prepare` since the last tag lists FC-040 too, because `v0.06a` is prepared but not tagged yet.
+
 ## Shipped
+
+Shipped 2026-10-26. Slices: 4. Criteria: 0 of 5 proven.
