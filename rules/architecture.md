@@ -23,6 +23,6 @@
 - Never write a full STRIDE document for a small slice; keep it to the mini table.
 
 ## Check
-- Tests: the suite stays green; new logic has tests.
+- Check: run the new logic live and see it work.
 - Review question: "Is any changed file over 500 lines, or importing across layers the wrong way?"
 - Review question: "Is there a mini threat check for this slice, and does any change need an ADR?"

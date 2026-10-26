@@ -59,7 +59,7 @@ keeps it.
 | `afc/addons.py`, `afc/tools.py`, `afc/cli_tools.py` | Allowed add-on list, swapping a project's skills and MCP servers in and out, and the `addons` / `tools` commands |
 | `afc-addons.json` | The add-ons Flight Control sessions may use |
 | `rules/`, `templates/`, `library/` | Rule modules, project templates and the capability library (`library/skills/`, `library/mcp/` recipes) |
-| `tests/` | Unit tests |
+| `tests/` | The five core tests |
 | `docs/superpowers/` | Design, plans and acceptance results |
 
 Project data never goes in this repo: it lives in `~/.A-FC/` (or `$AFC_HOME`).
@@ -94,15 +94,15 @@ Users only ever see published releases: `v*` tags on `main`. Publishing stays yo
 2. Bump the `VERSION` file to the new version (e.g. `v0.03a`) in the release commit.
 3. If the release changes the layout of the workspace (`~/.A-FC/`), ship a numbered upgrade step:
    `afc/upgrade_NNN.py` with `run(home)`, where step N takes the workspace from layout N-1 to N.
-   Update tests for it. The update backs up `~/.A-FC/`, runs missing steps in order and restores
+   The update backs up `~/.A-FC/`, runs missing steps in order and restores
    the backup if one fails.
-4. Run the full test suite, then tag the release on `main` with the same version as `VERSION`
+4. Tag the release on `main` with the same version as `VERSION`
    and push the tag.
 
 ## Writing specs
 
-Each slice of an FC spec ends with "you'll check it by" and names the test or command that checks
-it. Where the outcome is a time, size or count, give the number: "the welcome prints within 0.5
+Each slice of an FC spec ends with "you'll see it by" and names the live run or command output that
+shows it. Where the outcome is a time, size or count, give the number: "the welcome prints within 0.5
 seconds with the remote unreachable", not "never delays the welcome". A builder and a checker must
 read the same line the same way. Existing specs are not rewritten, but a spec whose next slice has
 no number where one is needed gets one before it is built.
@@ -112,26 +112,9 @@ the spec line or safety rule it breaks; anything else is reported as a note.
 
 ## Tests
 
-```bash
-sh bin/afc test
-```
-
-Size tests by risk. Guards, secrets and anything that moves or deletes data get thorough tests.
-A small read-only command gets three to five: happy path, nothing found, one failure. Do not
-assert the prose of a skill, doc or prompt; at most add one structural check (for example, a named
-command still exists) and check the wording in a live run.
-
-While building, run only the file for what changed, then run everything once before the commit:
-
-```bash
-python3 -m unittest tests.test_<name>
-sh bin/afc test --changed <ref>   # only the tests for what changed
-sh bin/afc test                   # everything, in parallel
-```
-
-To find a test, list names with `grep -n "def test_" tests/test_<name>.py` instead of reading the file.
-
-Tests always use a temporary `AFC_HOME`, so they never touch your real `~/.A-FC`.
+Flight Control keeps five tests, on the guards that protect user data.
+Run them with `sh bin/afc test`, only when asked.
+Tests use a temporary `AFC_HOME`, so they never touch your real `~/.A-FC`.
 
 ## Editing Flight Control itself
 

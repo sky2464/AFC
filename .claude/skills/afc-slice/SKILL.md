@@ -46,13 +46,11 @@ Elevation of privilege.
 
 ## checkpoint 2 — while building
 
-- Tests first, thorough for guards, secrets, data moves or deletes; three
-to five for a small read-only piece. Never test prose.
-- While building run only the changed test file; the whole suite once, before commit.
+- Try the change for real as you build. Write or run tests only when the user asks.
 - Code goes only into the active project's code path. If a guard blocks you
   ("Flight Control blocked …"), fix the cause or say so; never work around it.
   A guard that should have fired is a full stop.
-- A failing test or bug: state a hypothesis, write a reproduction test, then fix. After three wrong
+- A bug: state a hypothesis, reproduce it live, then fix. After three wrong
   hypotheses stop and ask the user.
 
 Quietly and safely:
@@ -67,13 +65,11 @@ Quietly and safely:
 
 ## checkpoint 3 — showing the slice
 
-1. Run the tests. A slice is not shown until at least one test for it
-ran and passed. Never show a slice with a failing test, or with none: write the test first. If
-   it truly cannot have one, say why.
+1. Show a slice once it works in a live run. Never show one that fails when tried.
 2. `sh bin/afc review --slice "<n> <label>"` (runs `afc scan` too) returns `verdict` and a `report` path. If `blocked`,
    do not ask for approval: say what is wrong, fix it, review again.
 3. Show the demo (how to open a screen; the command and real output for an API or CLI), with
-   the test result and the review summary.
+   and the review summary.
 4. A missing scanner: offer to install it. An `agent files` warning: say which file appeared, that
    you did not follow it, and ask whether to keep it.
 5. Ask "Is this what you meant?" 1. Yes, keep it (recommended) 2. Change something
@@ -82,11 +78,11 @@ ran and passed. Never show a slice with a failing test, or with none: write the 
 
 Record it, unasked, in one call:
 `sh bin/afc slice record <id> <n> --decision "<decided and why>" --architecture "<what changed>"`
-It ticks the spec, logs the decision and notes the architecture. Never read or edit those files by hand for it.
+It ticks the spec, logs the decision, notes the architecture and starts the spec in the plan if needed. Never read or edit those files by hand for it.
 Then `sh bin/afc set last_slice "<n> <label>"`, `sh bin/afc index refresh`, `sh bin/afc index rebuild --all`.
 
-No open slice left: `sh bin/afc ship --check <id>`, then
-`sh bin/afc plan done <id>`. Not ready: give its list and next step, never deploy. Finished: say in
+No open slice left: `slice record` closes the spec itself when it can (`plan_done`); on `plan_open`,
+`sh bin/afc ship --check <id>`, and `afc-deliver` closes it after the commit. Say nothing of this unless asked. Not ready: give its list and next step, never deploy. Finished: say in
 two plain lines what shipped and what is next; `suggest_next` is numbered step 1. Then hand off to `afc-deliver`.
 
 ## On no

@@ -1,22 +1,21 @@
-"""Test command: test runs every test file in parallel (FC-019)."""
+"""Test command: runs the core tests (FC-030)."""
 
 import argparse
+import os
+import re
+import subprocess
+import sys
+import time
 from pathlib import Path
 
-from afc import testrun
 from afc.config import afc_root
 
-NAMES = ("test", "ci", "gate")
+NAMES = ("test", "gate")
 
 
 def register(sub) -> None:
-    p = sub.add_parser("test", help="run the test suite, one process per file, in parallel")
-    p.add_argument("--dir", help="a folder of test_*.py files to run instead of tests/")
-    p.add_argument("--changed", metavar="REF", help="run only the tests for files changed since REF")
-    p.add_argument("--list", action="store_true", help="with --changed, show the picked tests without running them")
+    p = sub.add_parser("test", help="run the core tests")
     p.set_defaults(handler=cmd_test)
-    c = sub.add_parser("ci", help="show how the last test run on GitHub went")
-    c.set_defaults(handler=cmd_ci)
     g = sub.add_parser("gate", help="the build workflow's quick gate for one built slice")
     g.add_argument("--spec", required=True)
     g.add_argument("--slice", required=True, type=int)
@@ -25,31 +24,24 @@ def register(sub) -> None:
 
 
 def cmd_test(args: argparse.Namespace) -> dict:
-    from afc.cli import CliError
-
+    """Run the core tests in one process (FC-030)."""
     root = Path(afc_root())
-    if args.changed:
-        try:
-            changed = testrun.changed_files(root, args.changed)
-        except ValueError as exc:
-            raise CliError(str(exc))
-        picked = testrun.pick_tests(changed, root, root / "tests")
-        if args.list:
-            return {"changed": changed, "picked": picked}
-        out = testrun.run_files(root, root / "tests", picked)
-        out["picked"] = len(picked)
-    elif args.dir:
-        out = testrun.run_files(Path(args.dir), Path(args.dir))
-    else:
-        out = testrun.run_files(root, root / "tests")
-    out["exit_code"] = 1 if out["failed"] else 0
+    start = time.monotonic()
+    proc = subprocess.run(
+        [sys.executable, "-m", "unittest", "discover", "-s", str(root / "tests"), "-t", str(root)],
+        cwd=root, capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(root)},
+    )
+    text = proc.stderr + proc.stdout
+    ran = re.search(r"^Ran (\d+) tests? in", text, re.M)
+    total = int(ran.group(1)) if ran else 0
+    bad = len(re.findall(r"^(?:FAIL|ERROR): ", text, re.M))
+    if proc.returncode != 0 and not bad:
+        bad = 1
+    out: dict = {"passed": max(total - bad, 0), "failed": bad, "seconds": round(time.monotonic() - start, 1)}
+    if bad:
+        out["failure"] = "\n".join(text.strip().splitlines()[-15:])
+    out["exit_code"] = 1 if bad else 0
     return out
-
-
-def cmd_ci(args: argparse.Namespace) -> dict:
-    from afc import ci_status
-
-    return ci_status.last_run(Path(afc_root()))
 
 
 def cmd_gate(args: argparse.Namespace) -> dict:

@@ -2,12 +2,14 @@
 
 Flight Control's own master plan, kept in the same shape it gives every project. Specs live in
 `docs/specs/`; finished ones move to `docs/specs/archive/`. Build each spec on `dev`, one commit
-per slice, with maintenance mode on while editing and the full suite passing.
+per slice, with maintenance mode on while editing.
 
 ## Goal
 
 A calm co-pilot inside Claude Code that turns what someone wants to build into small, working,
 safe slices, with as few questions and as little noise as possible.
+
+Every change must reach the apps Flight Control builds for users.
 
 ## Now
 
@@ -18,22 +20,22 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-029 | Ready for v0.04a | S | [spec](specs/FC-029-ready-for-v0-04a.md) |
+| FC-034 | Connectors load only when needed | M | [FC-034](specs/FC-034-connectors-load-only-when-needed.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-033 | Master plan, one truth | 2026-10-25 | [FC-033](specs/archive/FC-033-master-plan-one-truth.md) |
+| FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
+| FC-031 | Test copy stays current and separate | 2026-10-25 | [FC-031](specs/archive/FC-031-test-copy-stays-current-and-separate.md) |
+| FC-030 | Tests only when asked | 2026-10-25 | [FC-030](specs/archive/FC-030-tests-only-when-asked.md) |
+| FC-029 | Ready for v0.04a | 2026-10-25 | [FC-029](specs/archive/FC-029-ready-for-v0-04a.md) |
 | FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
 | FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
 | FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
-| FC-023 | Smoother flow and welcome fixes | 2026-10-25 | [FC-023](specs/archive/FC-023-smoother-flow-and-fixes.md) |
-| FC-022 | Project role agents, workflow and init | 2026-10-25 | [FC-022](specs/archive/FC-022-project-role-agents-and-workflow.md) |
-| FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
-| FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
-| FC-017 | Leaner replies, plan edits and skill text | 2026-10-25 | [FC-017](specs/archive/FC-017-leaner-replies-plan-edits-and-skill-text.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -113,7 +115,7 @@ same day showed the rest.
 | R4 | The first reply to "hi" used 75,950 tokens, mostly the 28 add-ons loading | FC-027 |
 | R5 | After the welcome, the reply to "hi" introduced Flight Control again and re-asked the same 1/2 question | FC-028 |
 | R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | none; the user moves it forward |
-| R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | none yet |
+| R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | FC-034 |
 
 ## Update log
 
@@ -199,3 +201,14 @@ same day showed the rest.
 | 2026-10-25 | FC-028 started |
 | 2026-10-25 | FC-028 done |
 | 2026-10-25 | FC-029 added |
+| 2026-10-25 | FC-029 started |
+| 2026-10-25 | FC-029 done |
+| 2026-10-25 | FC-030 started |
+| 2026-10-25 | FC-030 done |
+| 2026-10-25 | FC-031 started |
+| 2026-10-25 | FC-031 done |
+| 2026-10-25 | FC-032 started |
+| 2026-10-25 | FC-032 done |
+| 2026-10-25 | FC-033 started |
+| 2026-10-25 | FC-033 done |
+| 2026-10-25 | FC-034 added and specced (5 slices): connectors load only when needed, per project |

@@ -33,6 +33,6 @@
 - Never skip the authorization check on "internal" endpoints.
 
 ## Check
-- Tests: an unauthenticated request gets 401; a user without the role gets 403; user A cannot read user B's object.
+- Check: try live that an unauthenticated request gets 401; a user without the role gets 403; user A cannot read user B's object.
 - At checkpoint 3: semgrep (when installed) for weak JWT and auth patterns.
 - Review question: "Which identity provider, which flow, and where is each permission checked?"

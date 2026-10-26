@@ -7,7 +7,7 @@ plan/decisions.md and plan/architecture.md. Nothing is written unless all three 
 import argparse
 import re
 
-from afc import plan
+from afc import cli_plan, plan
 from afc.cli_plan import _cli, _error, _find, _load, _read_spec
 
 NAMES = ("slice",)
@@ -64,7 +64,16 @@ def cmd_record(args: argparse.Namespace) -> dict:
     decision, arch = " ".join(args.decision.split()), " ".join(args.architecture.split())
     if not decision or not arch:
         raise _error("Give both a decision and an architecture note.")
-    _, row = _find(space, text, sid)
+    section, row = _find(space, text, sid)
+    started = False
+    if section == "Next":
+        try:
+            cli_plan.cmd_start(argparse.Namespace(id=sid))
+            started = True
+        except Exception:
+            pass  # another spec is in progress; recording still works
+        space, _, text = _load()
+        _, row = _find(space, text, sid)
     spec_path, spec_text = _read_spec(space, sid, row)
     ticked = _tick(spec_text, n)
     if ticked is None:
@@ -88,4 +97,13 @@ def cmd_record(args: argparse.Namespace) -> dict:
         for path, content in old.items():
             path.write_text(content, encoding="utf-8")
         raise
-    return {"recorded": sid, "slice": n, "open_slices": plan.open_slices(ticked)}
+    open_ = plan.open_slices(ticked)
+    out = {"recorded": sid, "slice": n, "open_slices": open_}
+    if started:
+        out["plan_started"] = True
+    if not open_:
+        try:
+            out["plan_done"] = cli_plan.cmd_done(argparse.Namespace(id=sid))["done"]
+        except Exception as exc:  # not ready yet: the ship check says what is missing
+            out["plan_open"] = str(exc)
+    return out

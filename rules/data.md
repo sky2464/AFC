@@ -27,5 +27,5 @@
 
 ## Check
 - While writing: the resources guard blocks company resources being written into a repo.
-- Tests: retention or delete logic has a test.
+- Check: run the retention or delete logic live and see what it removes.
 - Review question: "What class is each new field, where is it stored, and when is it deleted?"

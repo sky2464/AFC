@@ -1,9 +1,0 @@
-{
-  "lodash": [
-    {"id": 1, "url": "https://example.test/a", "title": "Prototype pollution", "vulnerable_versions": "<4.17.21", "severity": "high"},
-    {"id": 2, "url": "https://example.test/b", "title": "ReDoS", "vulnerable_versions": "<4.17.21", "severity": "moderate"}
-  ],
-  "minimist": [
-    {"id": 3, "url": "https://example.test/c", "title": "Prototype pollution", "vulnerable_versions": "<1.2.6", "severity": "critical"}
-  ]
-}

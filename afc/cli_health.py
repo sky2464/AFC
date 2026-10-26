@@ -12,7 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from afc import addons, tools
-from afc.config import afc_home
+from afc.config import afc_home, current_session, maintain_enabled
 from afc.registry import load_registry, save_registry
 from afc.session_dirs import (GrantError, block_addons, blocked_addons, check_settings, drop_dirs, grant_dirs,
                               granted_now, settings_path)
@@ -20,8 +20,9 @@ from afc.undo import Undo
 from afc.workspace import create_workspace
 
 NAMES = ("check", "repair", "relocate")
-ACCESS = ("stale_access", "gone_access", "missing_access")
+ACCESS = ("stale_access", "gone_access", "missing_access", "foreign_access")
 ADDONS = ("addon_not_allowed", "addon_unblock")
+PLAN_KINDS = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs")
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
@@ -72,6 +73,14 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             dest.mkdir(parents=True)
             shutil.move(p["path"], str(dest / "workspace"))
             repaired.append(f"Put the leftover workspace {p['path']} away in {dest}.")
+        elif p["kind"] == "test_copy_behind" and p["fixable"]:
+            # Changing git in the A-FC folder needs maintenance mode, as it does when typed. The copy
+            # is already detached and clean, so reset moves it without a new detach.
+            if not maintain_enabled(home, current_session()):
+                repaired.append("This test copy is behind dev; bringing it up to date changes Flight "
+                                "Control's own folder, so it needs maintenance mode (/afc mm).")
+            elif _git(cli.afc_root(), "reset", "--hard", "dev") is not None:
+                repaired.append("Brought this test copy up to date with dev.")
         elif p["kind"] == "root_detached" and p["fixable"]:
             if _git(cli.afc_root(), "switch", "main") is not None:
                 repaired.append("Put Flight Control's own copy back on main.")
@@ -82,13 +91,14 @@ def cmd_repair(args: argparse.Namespace) -> dict:
             path = Path(p["path"])
             path.write_text(path.read_text(encoding="utf-8").rstrip("\n") + "\n" + LOG_SECTION, encoding="utf-8")
             repaired.append(f"Added a Log section to {p['project']}'s decisions.")
+    repaired += _repair_plan(home, [p for p in find_problems(home) if p["kind"] in PLAN_KINDS])
     access = [p for p in find_problems(home) if p["kind"] in ACCESS]
     if access:
         undo = cli._settings_undo()
         undo.save_settings()
         try:
             grant_dirs(cli.afc_root(), _wanted(reg))
-            drop_dirs(cli.afc_root(), [p["path"] for p in access if p["kind"] == "gone_access"])
+            drop_dirs(cli.afc_root(), [p["path"] for p in access if p["kind"] in ("gone_access", "foreign_access")])
         except BaseException:
             undo.rollback()
             raise
@@ -117,6 +127,69 @@ def cmd_repair(args: argparse.Namespace) -> dict:
     if on:
         repaired.append("Switched back on add-ons that are now allowed; this applies from the next start.")
     return {"repaired": repaired, "left": find_problems(home)}
+
+
+def plan_problems(home: Path) -> list[dict]:
+    """Flight Control's plan gone stale: a Now row with every slice ticked, a built spec still in Next,
+    or a worktree's own copy of the plan that differs from the one on dev. Reads only."""
+    from afc import cli_plan, plan
+
+    root = cli_plan._plan_root()
+    master = root / "docs" / "master-plan.md"
+    if not master.is_file():
+        return []
+    space = plan.flight_control_space(root)
+    text = master.read_text(encoding="utf-8")
+    found: list[dict] = []
+    for section, kind, how in (
+            ("Now", "plan_all_ticked_in_now", "is in Now with every slice ticked"),
+            ("Next", "plan_built_in_next", "is built (every slice ticked) but still in Next")):
+        for row in plan.read_rows(text, section):
+            spec = cli_plan._spec_path(space, row)
+            slices = plan.all_slices(spec.read_text(encoding="utf-8")) if spec.is_file() else []
+            if slices and all(done for done, _ in slices):
+                found.append(_problem(kind, str(master), True, project=row[0],
+                                      detail=f"{row[0]} {how}; repair closes it in the plan "
+                                             "(needs maintenance mode)."))
+    here = _cli().afc_root() / "docs" / "master-plan.md"
+    if root.resolve() != _cli().afc_root().resolve() and here.is_file() and \
+            here.read_text(encoding="utf-8") != text:
+        clean = _git(_cli().afc_root(), "status", "--short", "--", "docs/master-plan.md") == ""
+        found.append(_problem("plan_copy_differs", str(here), clean,
+                              detail="This worktree's own copy of the master plan differs from the one on dev; "
+                                     + ("repair replaces it with dev's." if clean else
+                                        "it has uncommitted edits, so repair leaves it alone.")))
+    return found
+
+
+def _repair_plan(home: Path, found: list[dict]) -> list[str]:
+    from argparse import Namespace
+
+    from afc import cli_plan
+
+    cli = _cli()
+    out: list[str] = []
+    if not found:
+        return out
+    ordered = sorted(found, key=lambda p: p["kind"] != "plan_all_ticked_in_now")
+    for p in ordered:
+        if p["kind"] == "plan_copy_differs":
+            src = cli_plan._plan_root() / "docs" / "master-plan.md"
+            Path(p["path"]).write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            out.append("Replaced this worktree's copy of the master plan with the one on dev.")
+            continue
+        if not maintain_enabled(home, current_session()):
+            out.append(f"{p['project']} is out of date in the plan; closing it changes Flight Control's "
+                       "own plan, so it needs maintenance mode (/afc mm).")
+            continue
+        try:
+            if p["kind"] == "plan_built_in_next":
+                cli_plan.cmd_start(Namespace(id=p["project"]))
+            cli_plan.cmd_done(Namespace(id=p["project"]))
+            out.append(f"Closed {p['project']} in the master plan.")
+        except cli.CliError as exc:
+            out.append(f"Could not close {p['project']} in the plan: {exc}")
+    return out
 
 
 def switch_addons(root: Path, found: list[dict]) -> tuple[int, int]:
@@ -193,7 +266,9 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     the add-on part, which the welcome handles itself."""
     cli = _cli()
     reg = load_registry(home)
-    problems: list[dict] = root_problems(cli.afc_root())
+    problems: list[dict] = root_problems(cli.afc_root()) if not is_test_copy(cli.afc_root(), home) else []
+    problems += behind_problems(cli.afc_root(), home)
+    problems += plan_problems(home)
     owned: set[Path] = set()
     for p in reg.projects.values():
         owned.add(Path(p.workspace_path).resolve())
@@ -231,8 +306,13 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
         problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
     wanted = _wanted(reg)
+    foreign = foreign_roots_for(home, reg)
     for entry in current:
-        if not Path(entry).exists():
+        if any(_inside(entry, r) for r in foreign):
+            problems.append(_problem("foreign_access", entry, True,
+                                     detail=f"This test copy still has access to {entry}, which belongs to the "
+                                            "real Flight Control workspace; repair removes it."))
+        elif not Path(entry).exists():
             problems.append(_problem("gone_access", entry, True,
                                      detail=f"Claude still has access to {entry}, which no longer exists."))
         elif entry in ours and entry not in wanted:
@@ -271,6 +351,23 @@ def _architecture_problems(project) -> list[dict]:
     return [_problem("architecture_empty", str(path), False, project=project.name,
                      detail=f"{project.name}: slices are done but architecture.md is still the empty "
                             "template; Claude fills it in from the code.")]
+
+
+def foreign_roots_for(home: Path, reg) -> list[Path]:
+    """In a test home, the real ~/.A-FC and the code folders of projects registered only there."""
+    from afc.hooks.common import Context
+    from afc.hooks.rules_paths import foreign_roots
+
+    return foreign_roots(Context(home=home, root=_cli().afc_root(), active=None, maintain=False,
+                                 projects=tuple(reg.projects.values())))
+
+
+def _inside(entry: str, root: Path) -> bool:
+    try:
+        path = Path(entry).expanduser().resolve()
+    except (OSError, RuntimeError):
+        return False
+    return path == root or path.is_relative_to(root)
 
 
 def _wanted(reg) -> list[str]:
@@ -330,6 +427,41 @@ def root_problems(root: Path, git: Callable[..., str | None] | None = None) -> l
             detail="Flight Control's own copy has no origin remote, so it has nowhere to fetch "
                    "updates from."))
     return found
+
+
+def is_test_copy(root: Path, home: Path) -> bool:
+    """A test copy is a linked git worktree of A-FC whose workspace is not the real ~/.A-FC."""
+    try:
+        if home == (Path.home() / ".A-FC").resolve():
+            return False
+    except (OSError, RuntimeError):
+        return False
+    git_dir = _git(root, "rev-parse", "--absolute-git-dir")
+    common = _git(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    return bool(git_dir and common and Path(git_dir.strip()).resolve() != Path(common.strip()).resolve())
+
+
+def behind_problems(root: Path, home: Path) -> list[dict]:
+    """A test copy whose commit is an older commit of dev. Reads only. Fixable when the copy is a
+    detached HEAD with no uncommitted changes: repair then moves it to the tip of dev."""
+    if not is_test_copy(root, home):
+        return []
+    head = _git(root, "rev-parse", "HEAD")
+    tip = _git(root, "rev-parse", "--verify", "-q", "dev")
+    if not head or not tip or head.strip() == tip.strip():
+        return []
+    if _git(root, "merge-base", "--is-ancestor", "HEAD", "dev") is None:
+        return []  # not simply behind dev: nothing is guessed
+    count = (_git(root, "rev-list", "--count", "HEAD..dev") or "?").strip()
+    status = _git(root, "status", "--porcelain=v2", "--branch")
+    detached = status is not None and _head_branch(status) == "(detached)"
+    clean = status is not None and not any(not l.startswith("#") for l in status.splitlines())
+    fixable = detached and clean
+    return [_problem(
+        "test_copy_behind", str(root), fixable,
+        detail=f"This test copy is {count} commits behind dev, so testing it says nothing about today's "
+               + ("build. Repair moves it to the tip of dev." if fixable else
+                  "build. It has its own changes or a branch, so repair leaves it alone."))]
 
 
 def root_git_note() -> str | None:

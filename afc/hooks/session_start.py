@@ -90,14 +90,30 @@ def _health_line(home: Path) -> str:
     try:
         from afc.cli_health import find_problems
 
-        count = len(find_problems(home, with_addons=False))  # the welcome handles add-ons itself
+        found = find_problems(home, with_addons=False)  # the welcome handles add-ons itself
     except Exception:  # the welcome must never break over a health check
         return ""
+    behind = [p for p in found if p["kind"] == "test_copy_behind"]
+    count = len(found) - len(behind)
+    extra = ""
+    if behind:
+        extra = (" This test copy is behind dev: say so once, in one plain line, and offer to bring "
+                 "it up to date as step 1" + (" (sh bin/afc repair; it needs maintenance mode, so offer /afc mm first if it is off)." if behind[0]["fixable"] else
+                                              ", though it has its own changes so ask the user first."))
     if not count:
-        return ""
-    noun = "problem" if count == 1 else "problems"
-    return (f" Health check: {count} {noun} (sh bin/afc check). After the question, mention it "
-            "in one line and offer to look.")
+        return extra
+    rest = [p for p in found if p["kind"] != "test_copy_behind"]
+    access = [p for p in rest if p["kind"] in ("gone_access", "foreign_access", "stale_access", "missing_access")]
+    parts = []
+    if access:
+        parts.append(f"{len(access)} leftover folder permission{'' if len(access) == 1 else 's'} from an old project")
+    if len(rest) > len(access):
+        n = len(rest) - len(access)
+        parts.append(f"{n} other problem{'' if n == 1 else 's'} (sh bin/afc check)")
+    fix = (" Every one is fixable: offer 'fix it' as step 1 (sh bin/afc repair; nothing is deleted)."
+           if all(p["fixable"] for p in rest) else " Offer to look at them (sh bin/afc check).")
+    return (f" Health check: {' and '.join(parts)}. After the question, say this in one plain line, once "
+            "this session; a later /afc must not repeat it unless it changed." + fix + extra)
 
 
 def _addons_line(root: Path) -> str:
@@ -244,8 +260,13 @@ def _with_home_note(out: dict, home: Path) -> dict:
     except Exception:  # the welcome must never break
         return out
     context = out["hookSpecificOutput"]["additionalContext"]
-    out["hookSpecificOutput"]["additionalContext"] = (
-        f"{context} The workspace is a test home {home}, not ~/.A-FC.")
+    note = f"The workspace is a test home {home}, not ~/.A-FC."
+    if not home.exists():
+        note += (" It does not exist yet: say once, in plain words, that the test workspace is empty and "
+                 "will be made with the first project. Never look in ~/.A-FC or offer its projects.")
+    else:
+        note += " Never look in ~/.A-FC or offer its projects; don't name workspace paths unless asked."
+    out["hookSpecificOutput"]["additionalContext"] = f"{context} {note}"
     return out
 
 

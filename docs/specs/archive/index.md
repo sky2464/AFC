@@ -2,6 +2,11 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-033 | Master plan, one truth | 2026-10-25 | FC-033-master-plan-one-truth.md |
+| FC-032 | Every spec reaches the apps | 2026-10-25 | FC-032-every-spec-reaches-the-apps.md |
+| FC-031 | Test copy stays current and separate | 2026-10-25 | FC-031-test-copy-stays-current-and-separate.md |
+| FC-030 | Tests only when asked | 2026-10-25 | FC-030-tests-only-when-asked.md |
+| FC-029 | Ready for v0.04a | 2026-10-25 | FC-029-ready-for-v0-04a.md |
 | FC-028 | Welcome says it once | 2026-10-25 | FC-028-welcome-says-it-once.md |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | FC-027-add-ons-off-at-start-quiet-health-check.md |
 | FC-026 | Release check and v0.03a | 2026-10-25 | FC-026-release-check-and-v0-03a.md |

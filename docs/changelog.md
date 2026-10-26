@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-10-25 — FC-033 Master plan, one truth
+
+There is one master plan: the one on `dev` (for Flight Control) or in the project's workspace (for an app). Starting, finishing and checking work updates it automatically, wherever the work runs, and no copy can disagree with it.
+
+- Close what's built
+- The build moves the plan
+- One plan wherever you stand
+- A stale plan is found and fixed
+- Apps stay current
+
+## 2026-10-25 — FC-032 Every spec reaches the apps
+
+Every FC spec says how its change reaches the apps Flight Control builds, or says plainly that it can't. The rule is written into Flight Control itself, not left in notes.
+
+- The rule and the section
+- Plan flags missing sections
+
+## 2026-10-25 — FC-031 Test copy stays current and separate
+
+A test copy runs today's Flight Control and stays inside its own test workspace. An empty start is quiet: no red errors, no repeated lines, and any health problem is named in plain words with its fix.
+
+- A test copy knows it is behind
+- A test copy stays in its own workspace
+- A quiet empty start
+
+## 2026-10-25 — FC-030 Tests only when asked
+
+No tests run, and none are mentioned, unless the user asks. Flight Control keeps at most five tests for itself, all on the things that can hurt a user if they break silently. Building is faster and replies are cleaner.
+
+- Five core tests
+- Building runs no tests
+- Quiet replies and CI
+- Projects test only when asked
+- Specs say "you'll see it by"
+
+## 2026-10-25 — FC-029 Ready for v0.04a
+
+`main` can be released as v0.04a: `VERSION` says `v0.04a`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
+
+- Ready for v0.04a
+
 ## v0.04a
 
 - Add-ons that aren't on Flight Control's list are now really switched off in its sessions, so a start costs about a fifth fewer tokens (measured with 28 add-ons).

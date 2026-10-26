@@ -27,5 +27,5 @@
 
 ## Check
 - While writing: the secrets guard blocks secrets in written content, including log lines.
-- Tests: a log line for a request with an email shows it redacted.
+- Check: send a request with an email and see the log line redacted.
 - Review question: "What personal data could reach a log from this slice, and where is it redacted?"
