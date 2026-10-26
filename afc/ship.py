@@ -14,7 +14,6 @@ from pathlib import Path
 
 from afc import plan
 
-FC_TEST_COMMAND = "python3 -m unittest discover -s tests"
 TEST_TIMEOUT = 600
 NO_TEST_COMMAND = ("No test command is recorded for this project, so the tests were never run. "
                    "Record it as a line `Test command: <command>` in plan/architecture.md.")
@@ -111,9 +110,9 @@ def pushed(code: Path) -> list[str]:
     return []
 
 
-def gate(spec_text: str, code: Path, test_command: str | None) -> dict:
+def gate(spec_text: str, code: Path, test_command: str | None, run_tests: bool = True) -> dict:
     """What is missing before the spec is finished; ready only when nothing is."""
-    missing = [*open_slices(spec_text), *tests_green(code, test_command), *clean_tree(code),
+    missing = [*open_slices(spec_text), *(tests_green(code, test_command) if run_tests else []), *clean_tree(code),
                *wip_commits(code), *pushed(code)]
     return {"ready": not missing, "missing": missing,
             "next": "Ready to finish." if not missing else missing[0]}

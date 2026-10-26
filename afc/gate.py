@@ -23,7 +23,7 @@ def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def quick_gate(root: Path, spec: Path, number: int, base: str) -> dict:
-    """Check one built slice: tagged commit, ticked box, its tests, no secrets, files in the repo."""
+    """Check one built slice: tagged commit, ticked box, no secrets, files in the repo."""
     problems = []
 
     def add(problem: str, quotes: str) -> None:
