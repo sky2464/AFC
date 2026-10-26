@@ -1,6 +1,6 @@
 # FC-030 — Tests only when asked
 
-Size: M · Status: next
+Size: M · Status: next, ready for build
 
 Asked for on 2026-10-25. FC-013 (right-sized tests) and FC-019 (checks only when needed) made the
 suite cheaper to run, but it kept growing, and test talk still fills every reply. Where it stands
@@ -93,6 +93,62 @@ Changing what the guards, secret check or path rules do. Adding a new test tool.
 - [ ] 5. Specs say "you'll see it by" — you'll see it by the spec template, `CONTRIBUTING.md` and
       the open specs in Next all using it
 
+## Tasks
+
+Slice 1, five core tests:
+- Write `tests/test_core.py` with the five tests from the design notes. Each builds its own
+  temporary `AFC_HOME` and code folder, with no shared fixtures.
+- Delete every other `tests/test_*.py`, plus `tests/helpers.py` and `tests/fixtures/` if
+  `test_core.py` doesn't use them.
+- `afc/cli_test.py`: `sh bin/afc test` runs `tests/` in one process, prints `{"passed": n,
+  "failed": n}` plus any failure's last lines, and drops `--changed`.
+- Delete `afc/testrun.py` and its uses (`afc/cli_test.py`, `afc/gate.py`).
+
+Slice 2, building runs no tests:
+- `afc/gate.py`: remove the test pick and run. The gate checks the tagged commit, the ticked box,
+  that no line looks like a secret, and that files stay in the repo.
+- `.claude/workflows/afc-build-spec.js`: drop the "Final suite" phase and the `suite` fields from
+  both schemas. Builder and fix prompts no longer run tests; the checker prompt no longer runs the
+  suite, and `pass` depends only on its problems.
+- `.claude/agents/afc-builder.md`: replace "write the test first" and the test-run lines with "try
+  the change for real (run the command, start the hook) before committing".
+  `.claude/agents/afc-checker.md`: drop "run the full suite".
+- `afc/cli_ship.py` and `afc/ship.py`: the release path no longer runs `FC_TEST_COMMAND`. Remove
+  that constant.
+
+Slice 3, quiet replies and CI:
+- `.claude/commands/afc.md`: remove the `sh bin/afc ci` step from maintenance mode. Delete
+  `afc/ci_status.py` and the `ci` command in `afc/cli.py` and `afc/cli_parser.py`.
+- `.github/workflows/`: delete `ci.yml`. In `tests.yml`, run `sh bin/afc test` on `ubuntu-latest`
+  only, on `pull_request` to `main`.
+- `.github/pull_request_template.md`: drop the "Tests pass locally" box.
+- `CLAUDE.md`: under Simple by default, add one line: "Never mention tests or test counts unless the
+  user asked for a run, or a run they asked for failed."
+- `docs/master-plan.md`: drop "and the full suite passing" from the intro.
+
+Slice 4, projects test only when asked:
+- `.claude/skills/afc-slice/SKILL.md`: replace the test lines (49–55, 70–76) with this: show a slice
+  once it works in a live run; write or run tests only when the user asks; a bug gets a hypothesis
+  and a live reproduction. Keep the skill at its size limit or under.
+- `afc/ship.py`: delivery no longer calls `tests_green` and no longer needs `NO_TEST_COMMAND` or
+  `recorded_test_command`. Remove them and the `Test command:` lookup.
+- `rules/architecture.md`, `rules/api.md`, `rules/data.md` and any other `rules/*.md` "Tests:"
+  line: change each to a "Check:" line saying what to try live. Keep the safety rule itself.
+- `.claude/skills/afc-interview/SKILL.md`: the slice line format drops "(tests: <what>)".
+
+Slice 5, "you'll see it by":
+- `templates/workspace/spec.md`, `.claude/skills/afc-interview/SKILL.md`,
+  `.claude/agents/afc-plan.md` and `CONTRIBUTING.md` (slice line, Tests section, release steps):
+  "you'll check it by <test>" becomes "you'll see it by <live run or command output>". The Tests
+  section in `CONTRIBUTING.md` becomes three lines: the five tests, `sh bin/afc test`, run when
+  asked.
+- Rewrite the slice lines of the open specs in Next (FC-031) to match.
+
 ## Decisions
+
+- 2026-10-25: applies to the user's projects too. No tests in an app unless the user asks, and
+  delivery doesn't need a test command (slice 4).
+- 2026-10-25: five tests, not zero, so the guards that protect user data still have a check when
+  someone asks for one.
 
 ## Shipped
