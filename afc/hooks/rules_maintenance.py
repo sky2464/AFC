@@ -10,6 +10,7 @@ A-FC folder itself (reading git is always fine). In that folder, whatever the mo
 fast-forward and checkout/switch must land on a local branch (never a detached HEAD).
 """
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -145,6 +146,9 @@ _SAFE_AFC = {"maintain", "status", "plan", "check"}
 _FIND_UNSAFE = {"-exec", "-execdir", "-ok", "-okdir", "-delete", "-fprint", "-fprint0", "-fprintf",
                 "-fls"}
 _PUNCTUATION = set("();<>|&")
+# sort writes files through -o/-T/-S and through any abbreviation of --output, so only clusters of
+# single-letter flags (no value-taking letter, no `--` option at all) are on the list; a file to read is fine.
+_SORT_FLAGS = re.compile(r"-[rnufbhVsc]+")
 
 
 def _safe_options(name: str, args: list[str]) -> bool:
@@ -154,8 +158,7 @@ def _safe_options(name: str, args: list[str]) -> bool:
             return False
         if name == "rg" and arg.startswith(("--pre", "--hostname-bin")):
             return False
-        if name == "sort" and (arg.startswith(("--output", "--compress-program", "-T", "--temporary"))
-                               or (arg[:1] == "-" and arg[1:2] != "-" and "o" in arg)):
+        if name == "sort" and arg.startswith("-") and not _SORT_FLAGS.fullmatch(arg):
             return False
     return True
 
@@ -182,10 +185,12 @@ def _safe_simple(words: list[str]) -> bool:
     if name == "git":
         return _safe_git(words)
     if name == "sh":  # the Flight Control launcher: sh <any path>/bin/afc maintain|status|plan|check
-        return (len(words) >= 3 and words[2] in _SAFE_AFC
-                and (words[1] == "bin/afc" or words[1].endswith("/bin/afc")))
-    if name == "python3":  # python3 -m afc maintain ..., as before
-        return words[1:4] == ["-m", "afc", "maintain"]
+        if not (len(words) >= 3 and words[2] in _SAFE_AFC
+                and (words[1] == "bin/afc" or words[1].endswith("/bin/afc"))):
+            return False
+        # `plan` only reads when it has no subcommand: add, goal, rename, drop, move, start and
+        # done all write the project's workspace.
+        return words[2] != "plan" or len(words) == 3
     return name in _SAFE_PLAIN and _safe_options(name, words[1:])
 
 

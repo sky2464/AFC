@@ -310,7 +310,9 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
                 "The welcome already introduced Flight Control: do not introduce it again. "
                 f"The welcome asked: 1 = {one}, 2 = {two}. "
                 "If the user's first message is 1 or 2, treat it as their answer — do not ask that "
-                "question again. If they said hi or asked something else, answer briefly, then ask "
+                "question again — unless the conversation already holds a question with its own "
+                "numbered answers: a bare 1 or 2 then answers that question, not the welcome's "
+                "(if unclear which, ask one question). If they said hi or asked something else, answer briefly, then ask "
                 f"one question: 1 = {one} (recommended) or 2 = {two}."
             )
         message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}{_connectors_line(reg, afc_root(), home)}", 1)

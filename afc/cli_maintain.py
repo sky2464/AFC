@@ -24,15 +24,17 @@ def register(sub) -> None:
 
 
 def cmd_maintain(args: argparse.Namespace) -> dict:
+    from afc.cli import CliError  # late import: afc.cli imports this module
+
     home = afc_home()
     session = current_session()
     if args.state in ("on", "off"):
         if session is None:  # off must not look like success while the question stays open
-            return {"error": NO_SESSION}
+            raise CliError(NO_SESSION)  # prints {"error": ...} and exits 1, like every command
         try:
             set_maintain(home, args.state == "on", session)
         except ValueError as exc:
-            return {"error": str(exc)}
+            raise CliError(str(exc)) from exc
     scope = maintain_scope(home, session)
     result: dict = {"maintain": scope != "off", "scope": scope}
     return result

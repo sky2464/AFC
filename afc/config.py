@@ -37,8 +37,9 @@ def valid_session(value: object) -> str | None:
 
 
 def current_session() -> str | None:
-    """The session a command runs in: the ID the startup hook saved, else Claude Code's own."""
-    for name in ("AFC_SESSION", "CLAUDE_CODE_SESSION_ID"):
+    """The session a command runs in: Claude Code's own ID, else the one the startup hook saved.
+    A plain fork no longer runs the hook's save, so AFC_SESSION can be the parent's; the live ID wins."""
+    for name in ("CLAUDE_CODE_SESSION_ID", "AFC_SESSION"):
         found = valid_session(os.environ.get(name, "").strip())
         if found:
             return found
