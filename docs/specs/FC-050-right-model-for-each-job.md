@@ -1,6 +1,7 @@
 # FC-050 — Right model for each job
 
 Size: M · Status: next, ready for build · Started: - · Done: -
+Area: tokens
 
 Asked for on 2026-10-26: architecture changes only by the newest Opus at high effort ("the most
 critical piece"), unless the user overrules it; spec planning and interviews by Opus; builds by

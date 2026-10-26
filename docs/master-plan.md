@@ -48,6 +48,17 @@ Every change must reach the apps Flight Control builds for users.
 | FC-038 | Light first start | 2026-10-25 | [FC-038](specs/archive/FC-038-light-first-start.md) |  |  |
 | FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |  |  |
 
+## Areas
+
+Where the work is going. Each spec names its area so nothing drifts.
+
+| Area | Target | Scoreboard |
+|---|---|---|
+| flow | first start < 50k tokens; zero questions before the first slice | First-start tokens |
+| tokens | < 0.15M tokens per slice | Tokens per slice |
+| safety | guards catch all known failure modes; no secrets in files | — |
+| updates | self-update in < 60 s with no manual steps | — |
+
 ## Scoreboard
 
 | Measure | Now | Before | Source |

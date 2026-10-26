@@ -1,6 +1,7 @@
 # FC-046 — Findings, parked and waiting in one place
 
 Size: M · Status: next · Started: - · Done: -
+Area: flow
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose roadmap index says every item must end
 as shipped, a manual task, a backlog spec, or an explicit parked or rejected decision.
@@ -90,7 +91,7 @@ State. Rewriting specs to add an area (only the ones in Next).
 - [x] 5. Findings close themselves — you'll see it by a scratch spec with `Fixes: F-001` moving the
       finding to in progress on `plan start` and to fixed on `plan done`, `plan` showing the
       one-line count and the unplanned ones, and a typo ID refused (proves A7, A8, A9)
-- [ ] 6. Areas — you'll see it by the four rows with their Scoreboard numbers and the Next specs naming
+- [x] 6. Areas — you'll see it by the four rows with their Scoreboard numbers and the Next specs naming
       their area (proves A6)
 
 ## Tasks
