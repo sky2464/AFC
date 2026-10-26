@@ -7,6 +7,7 @@ afc-connectors.json) and "named" (the user asked for it). Nothing is guessed bey
 
 import json
 import os
+import re
 from pathlib import Path
 
 from afc import git_ops
@@ -118,36 +119,68 @@ HELD_KEY = "afcBlockedConnectors"  # connector names Flight Control blocked (the
 PREFIX = "claude.ai "
 
 
-def known(claude_json: Path | None = None) -> list[str]:
-    """The account connectors Claude Code has seen, as full names ('claude.ai Gmail'). Empty when
-    the file can't be read: then nothing is blocked."""
+def known(root: Path | None = None) -> list[str]:
+    """The account connectors this session reports at start, as full names ('claude.ai Gmail'),
+    read from `claude mcp list`. Empty when it can't be read: then nothing is blocked."""
+    import subprocess
+
+    try:
+        out = subprocess.run(["claude", "mcp", "list"], cwd=str(root) if root else None,
+                             capture_output=True, text=True, timeout=20, stdin=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if out.returncode != 0:
+        return []
+    found: list[str] = []
+    for line in out.stdout.splitlines():
+        m = re.match(r"^(claude\.ai [^:]+?):\s", line)
+        if m and m.group(1) not in found:
+            found.append(m.group(1))
+    return found
+
+
+def _user_set(root: Path, key: str, claude_json: Path | None = None) -> set[str]:
     path = claude_json or (Path.home() / ".claude.json")
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        seen = data["claudeAiMcpEverConnected"]
-    except (OSError, ValueError, KeyError, TypeError):
-        return []
-    if not isinstance(seen, list):
-        return []
-    return [n for n in dict.fromkeys(seen) if isinstance(n, str) and n.startswith(PREFIX)]
-
-
-def user_off(root: Path, claude_json: Path | None = None) -> set[str]:
-    """Connectors the user already switched off in /mcp for this folder; left alone."""
-    path = claude_json or (Path.home() / ".claude.json")
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        off = data["projects"][str(root)]["disabledMcpServers"]
-        return {n for n in off if isinstance(n, str)}
+        vals = data["projects"][str(root)][key]
+        return {n for n in vals if isinstance(n, str)}
     except (OSError, ValueError, KeyError, TypeError):
         return set()
 
 
+def user_off(root: Path, claude_json: Path | None = None) -> set[str]:
+    """Connectors the user switched off in /mcp for this folder; left alone."""
+    return _user_set(root, "disabledMcpServers", claude_json)
+
+
+def user_on(root: Path, claude_json: Path | None = None) -> set[str]:
+    """Connectors the user switched on in /mcp for this folder; never blocked."""
+    return _user_set(root, "enabledMcpServers", claude_json)
+
+
+def held_now(root: Path) -> list[str]:
+    """Connectors Flight Control already blocks here; a blocked connector no longer shows in the
+    session's report, so it stays a candidate."""
+    from afc.session_dirs import _read_settings, settings_path
+
+    mine = _read_settings(settings_path(root)).get(HELD_KEY, [])
+    return [n for n in mine if isinstance(n, str)] if isinstance(mine, list) else []
+
+
 def to_hold(listed: list[str], root: Path, claude_json: Path | None = None) -> list[str]:
-    """Connectors to block: seen, not on the project's list, not already off by the user's choice."""
+    """Connectors to block: reported by the session (or already held), not on the project's list,
+    not switched on or off by the user in /mcp."""
     keep = {n.lower() for n in listed}
-    off = user_off(root, claude_json)
-    return [n for n in known(claude_json) if n[len(PREFIX):].lower() not in keep and n not in off]
+    skip = user_off(root, claude_json) | user_on(root, claude_json)
+    skip |= {PREFIX + _clean(n) for n in skip}
+    seen = known(root)
+    out = []
+    for n in dict.fromkeys(seen + held_now(root)):
+        if n[len(PREFIX):].lower() in keep or n in skip or n[len(PREFIX):] in skip:
+            continue
+        out.append(n)
+    return out
 
 
 def _entry_name(entry) -> str | None:
