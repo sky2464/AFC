@@ -65,7 +65,7 @@ behavior. Naming each connector in the welcome.
 - [x] 2. Say it again when it grows, and count down when asked — you'll see it by
       `sh bin/afc connectors add Gmail` followed by a start showing no line, then a commit adding a
       name to the tracked list followed by a start showing the line with the new N
-- [ ] 3. Cheap — you'll see it by `docs/measurements/token_usage.py` on the same scratch clone with
+- [x] 3. Cheap — you'll see it by `docs/measurements/token_usage.py` on the same scratch clone with
       and without the line, the difference at or under 60 tokens, both numbers in Decisions
 
 ## Tasks
@@ -84,5 +84,7 @@ Slice 3:
 - Run the measurement and write both numbers in Decisions.
 
 ## Decisions
+
+- Slice 3, measured with `docs/measurements/token_usage.py` (floor_context of a one-turn `claude -p` start on two scratch clones, each with its own empty `AFC_HOME`; the "without" clone was marked as told first, so only the line differs): with the line 43048 tokens, without 43045, a difference of 3 (limit 60). The line goes to the welcome message the user reads, not into the model's context. A first try that compared a first start with a second start read 56977 against 43047, but that gap came from other first-start content, not this line, so it was redone as above.
 
 ## Shipped
