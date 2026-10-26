@@ -13,7 +13,9 @@ MASTER = "master-plan.md"
 DONE_KEEP = 10
 LOG_KEEP = 100
 _LOG_HEADER = "| Date | Event |\n|---|---|\n"
-_DONE_HEADER = "| ID | Title | Done | Spec |\n|---|---|---|---|\n"
+_DONE_HEADER = "| ID | Title | Done | Spec | Release | Outcome |\n|---|---|---|---|---|---|\n"
+DONE_COLUMNS = 6  # ID, Title, Done, Spec, Release, Outcome; older rows and archives have only four
+_RELEASES_HEADER = ["| Release | Date | Specs |", "|---|---|---|"]
 
 
 @dataclass(frozen=True)
@@ -88,8 +90,51 @@ def write_rows(text: str, section: str, rows: list[list]) -> str:
     idx = [i for i in range(start, end) if lines[i].lstrip().startswith("|")]
     if len(idx) < 2:
         raise ValueError(f"The '{section}' section has no table.")
+    if section == "Done":  # old 4-column rows grow to the 6 the header now has
+        rows = [list(r) + [""] * (DONE_COLUMNS - len(r)) for r in rows]
+        lines[idx[0]], lines[idx[1]] = _DONE_HEADER.split("\n")[:2]
     new = ["| " + " | ".join(cell(c) for c in row) + " |" for row in rows]
     lines[idx[1] + 1 : idx[-1] + 1] = new
+    return "\n".join(lines)
+
+
+def stamp_release(text: str, ids, version_name: str) -> str:
+    """Put the version in the Release column of the Done rows for `ids` (rows with one are left alone)."""
+    wanted = set(ids)
+    out = []
+    for r in read_rows(text, "Done"):
+        r = list(r) + [""] * (DONE_COLUMNS - len(r))
+        if r[0] in wanted and not r[4]:
+            r[4] = version_name
+        out.append(r)
+    return write_rows(text, "Done", out)
+
+
+def releases_rows(text: str, tags: dict, pending: str = "") -> list[list[str]]:
+    """Releases table rows, newest first: one per tag (`tags` maps tag to date) plus an unreleased
+    version that Done rows already name. Specs come from the Done rows' Release column."""
+    from afc import version
+    by_release: dict[str, list[str]] = {}
+    for r in read_rows(text, "Done"):
+        if len(r) > 4 and r[4]:
+            by_release.setdefault(r[4], []).append(r[0])
+    names = set(tags) | set(by_release) | ({pending} if pending else set())
+    ordered = sorted((n for n in names if version.is_version(n)), key=version.key, reverse=True)
+    return [[n, tags.get(n, "not tagged yet"), ", ".join(sorted(by_release.get(n, []))) or "-"] for n in ordered]
+
+
+def set_releases(text: str, tags: dict, pending: str = "") -> str:
+    """Write the `## Releases` table, computed from tags and the Done rows; the section goes right
+    after `## Done` when the plan has none yet."""
+    rows = releases_rows(text, tags, pending)
+    body = _RELEASES_HEADER + ["| " + " | ".join(cell(c) for c in r) + " |" for r in rows]
+    lines = text.split("\n")
+    try:
+        start, end = _section_span(lines, "Releases")
+        lines[start:end] = [""] + body + [""]
+    except ValueError:
+        _, end = _section_span(lines, "Done")
+        lines[end:end] = ["## Releases", ""] + body + [""]
     return "\n".join(lines)
 
 

@@ -392,7 +392,7 @@ def cmd_drop(args: argparse.Namespace) -> dict:
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
     done_row = [sid, f"{row[1]} (dropped)", today]
     new = plan.write_rows(text, "Next", [r for r in waiting if r[0] != sid])
-    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})"]] + plan.read_rows(new, "Done"))
+    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", ""]] + plan.read_rows(new, "Done"))
     new = plan.log(new, today, f"{sid} dropped")
     shutil.move(str(spec_path), str(target))
     try:
@@ -504,7 +504,7 @@ def cmd_done(args: argparse.Namespace) -> dict:
     old_index = index_path.read_text(encoding="utf-8") if index_path.is_file() else None
     done_row = [sid, row[1], today]
     new = plan.write_rows(text, "Now", [])
-    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})"]] + plan.read_rows(new, "Done"))
+    new = plan.write_rows(new, "Done", [done_row + [f"[{sid}]({space.archive}/{name})", "", ""]] + plan.read_rows(new, "Done"))
     new = plan.log(new, today, f"{sid} done")
     body = plan.set_header(spec_text, status="done", done=today)
     body = _shipped(body, f"Shipped {today}. Slices: {len(slices)}. {_criteria_line(spec_text)}")

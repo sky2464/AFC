@@ -112,4 +112,22 @@ def prepare(root: Path, version_name: str, show: bool) -> dict:
     log.write_text(ship.add_to_changelog(current, section), encoding="utf-8")
     (root / "VERSION").write_text(version_name + "\n", encoding="utf-8")
     result["written"] = True
+    result["stamped"] = _stamp_plan(root, version_name, [n[:-3] for n in names])
     return result
+
+
+def _tags(root: Path) -> dict:
+    """Every release tag with the date it was made."""
+    return {t: _git(root, "log", "-1", "--format=%cs", t) or "" for t in (_git(root, "tag", "-l", "v*") or "").split()
+            if version.is_version(t)}
+
+
+def _stamp_plan(root: Path, version_name: str, stems: list[str]) -> bool:
+    """Write the version into the Release column of the Done rows it covers and refresh `## Releases`."""
+    path = plan.flight_control_space(root).master
+    if not path.is_file():
+        return False
+    ids = ["-".join(s.split("-")[:2]) for s in stems]
+    text = plan.stamp_release(path.read_text(encoding="utf-8"), ids, version_name)
+    path.write_text(plan.set_releases(text, _tags(root), version_name), encoding="utf-8")
+    return True

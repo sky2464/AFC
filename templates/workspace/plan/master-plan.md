@@ -14,8 +14,13 @@
 
 ## Done
 
-| ID | Title | Done | Spec |
-|---|---|---|---|
+| ID | Title | Done | Spec | Release | Outcome |
+|---|---|---|---|---|---|
+
+## Releases
+
+| Release | Date | Specs |
+|---|---|---|
 
 ## Update log
 

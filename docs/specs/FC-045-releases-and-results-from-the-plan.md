@@ -71,7 +71,7 @@ gives it. Deciding FC-040's fate (see Design notes). Measuring anything new beyo
 
 - [x] 1. Draft the release — you'll see it by `release prepare v0.07a --show` and then without `--show`
       on a scratch clone, and `--show` on the real `dev` listing the specs FC-040 misses (proves A1, A2)
-- [ ] 2. Releases table and Release column — you'll see it by a scratch plan showing the table and the
+- [x] 2. Releases table and Release column — you'll see it by a scratch plan showing the table and the
       stamped Done rows after `prepare` (proves A3)
 - [ ] 3. Outcome on Done rows — you'll see it by `plan done --outcome` and `plan drop` on scratch specs
       and FC-009's row backfilled (proves A4)
