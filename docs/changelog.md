@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.04a
+
+- Add-ons that aren't on Flight Control's list are now really switched off in its sessions, so a start costs about a fifth fewer tokens (measured with 28 add-ons).
+- The welcome says once, in one line, when it switches add-ons off.
+- The health check no longer lists add-ons Flight Control already switched off.
+- After an update the summary is one sentence: everything checks out, or what needs a look.
+- The first reply no longer introduces Flight Control a second time.
+
 ## 2026-10-25 — FC-028 Welcome says it once
 
 After the welcome, the first reply never repeats it. A greeting gets a short hello and the welcome's own question, without a second introduction.
