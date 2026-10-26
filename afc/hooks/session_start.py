@@ -133,13 +133,13 @@ def _addons_line(root: Path) -> str:
             f"{'It still works' if one else 'They still work'} everywhere else.\n")
 
 
-def _connectors_line(reg, root: Path, home: Path | None = None) -> str:
+def _connectors_line(reg, root: Path, home: Path | None = None, ignore_project: bool = False) -> str:
     """Block the account connectors the active project doesn't use, and say so once. Empty when
     nothing new was held back or anything failed: the settings are then as they were."""
     try:
         from afc import connectors
 
-        active = reg.active()
+        active = None if ignore_project else reg.active()
         if active is None:
             new, _ = connectors.hold_for_workspace(root, home or afc_home())
         else:
@@ -212,12 +212,16 @@ def _branch(root: Path) -> str:
         return "unknown"
 
 
-def _maintenance_output() -> dict:
+def _maintenance_output(home: Path | None = None) -> dict:
     """The welcome for a maintenance session: Flight Control itself, no projects offered."""
     root = afc_root()
     branch = _branch(root)
+    try:  # maintenance sets projects aside, so it counts as no active project
+        held = _connectors_line(None, root, home, ignore_project=True)
+    except Exception:
+        held = ""
     message = (
-        f"{INTRO}\n{_addons_line(root)}🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
+        f"{INTRO}\n{_addons_line(root)}{held}🔧 Maintenance: working on Flight Control itself · {root.name} · {branch}\n"
         "Projects are set aside. Type /afc mm off to go back to them."
     )
     context = (
@@ -241,7 +245,7 @@ def _wrap(message: str, context: str) -> dict:
 def build_output(home: Path, session: str | None = None, now: float | None = None) -> dict:
     if maintain_enabled(home, session):
         try:
-            return _maintenance_output()
+            return _maintenance_output(home)
         except Exception:  # the welcome must never break
             pass
     try:
