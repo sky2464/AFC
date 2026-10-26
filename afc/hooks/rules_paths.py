@@ -52,9 +52,19 @@ def _spellings(root: Path) -> list[str]:
     return forms
 
 
+def _expand_home(token: str) -> str:
+    """Spell out a leading ~, $HOME or ${HOME} so `cd ~` and `"$HOME"/.A-FC` are seen."""
+    home = str(Path.home())
+    for form in ("${HOME}", "$HOME", "~"):
+        if token == form or token.startswith(form + "/"):
+            return home + token[len(form):]
+    return token
+
+
 def _command_tokens(command: str) -> list[str]:
     """Words of a shell command, also split at ; & | < > = and parentheses, so a relative
     spelling like `ls ../.A-FC` or `cat x>../.A-FC/f` is seen."""
+    command = re.sub(r"([;&|<>()])", r" \1 ", command)
     try:
         words = shlex.split(command, posix=True)
     except ValueError:
@@ -84,9 +94,15 @@ def check_foreign_home(event: dict, ctx: Context) -> str | None:
                 return FOREIGN_REASON
     command = tool_input.get("command")
     if event.get("tool_name") == "Bash" and isinstance(command, str):
+        here = cwd
+        prev = ""
         for token in _command_tokens(command):
-            if token in (".", "..") or "/" in token:
-                path = resolve_path(token, cwd)
+            token = _expand_home(token)
+            if prev in ("cd", "pushd") and token and not token.startswith("-"):
+                here = str(resolve_path(token, here))
+            prev = token
+            if token in (".", "..") or "/" in token or here != cwd:
+                path = resolve_path(token, here)
                 if any(path == r or path.is_relative_to(r) for r in roots):
                     return FOREIGN_REASON
     for text in string_values(tool_input):
