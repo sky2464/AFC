@@ -109,4 +109,25 @@ Slice 5:
 
 ## Decisions
 
+- Checked 2026-10-26 on scratch clones of `dev` (own `AFC_HOME`; the real plan untouched):
+  - Slice 1 (A1): a plan broken five ways gave one plain sentence each in `check`: two specs in Now,
+    a row with no spec file, a spec header that disagrees with its section (three cases), an archive
+    file not in the index, and a row with the wrong number of cells.
+  - Slice 2 (A2): `repair` added `FC-097-orphan.md` to the archive index and left the others, with the
+    reason ("which spec stays in progress is your call…").
+  - Slice 3 (A3): `plan set FC-046 --size L` and `--depends FC-045` changed the header and row;
+    `plan start FC-046` refused ("waits for FC-045, which is not done yet"); `plan reopen FC-043`
+    brought a finished spec back (and took its changelog entry out); `plan reopen FC-045` refused
+    because it is not finished.
+  - Slice 4 (A4): the build workflow was not run end to end. Its git step was replayed on a scratch
+    clone: after `plan start FC-045` the tree was dirty (plan and spec), the workflow's own command
+    committed it as `docs: FC-045 started`, the tree was then clean, and running it again with nothing
+    to commit made no second commit. The `done` commit is the same helper and is untested; it also
+    cannot run until `dev` is pushed, because `plan done` waits for that.
+  - Slices 1 and 5 (A5, A6) on the real repo: `check` reports `plan_uncommitted` while the plan has
+    uncommitted edits and says nothing about `docs/superpowers`.
+- Found by the new check on the real repo: `FC-018-leaner-spec-builds.md` is in the archive but not in
+  `archive/index.md`. `repair` adds it; not done here (it changes the plan).
+- Known and left: `commitPlan` returns "committed" even when nothing was staged. It is only a label.
+
 ## Shipped
