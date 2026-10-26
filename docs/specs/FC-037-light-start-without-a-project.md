@@ -1,6 +1,6 @@
 # FC-037 — Light start without a project
 
-Size: S · Status: in progress
+Size: S · Status: done
 
 Found on 2026-10-25 in the same fresh clone as FC-036. "hi" cost 73,197 tokens. FC-034 measured a
 "hi" at 42,818, but only on a second start with an active project. The connector hold-back in
@@ -67,7 +67,7 @@ step to the README's two-command install, so it needs its own decision.
       in one line
 - [x] 2. Ask for one with no project — you'll see it by "I need Gmail" with no active project putting
       Gmail in `~/.A-FC/connectors.json` (scratch home) and taking it out of `deniedMcpServers`
-- [ ] 3. Live check — you'll see it by two `claude -p hi` starts in a scratch copy of `dev` with an
+- [x] 3. Live check — you'll see it by two `claude -p hi` starts in a scratch copy of `dev` with an
       empty workspace, the second at or under 45,000 tokens, both numbers in Decisions
 
 ## Tasks
@@ -87,5 +87,11 @@ Slice 3:
 - Run the measurement and write both numbers in Decisions.
 
 ## Decisions
+
+- Live check (2026-10-25): scratch clone of `dev` at 9827ba0, empty workspace, add-ons off, two
+  `claude -p hi` starts, measured with `docs/measurements/token_usage.py` (first prompt).
+  First start: 73,275 tokens (settings read before the hook, so everything loads, as expected).
+  Second start: 42,241 tokens, under the 45,000 target and under FC-034's 42,818. The second start
+  printed the warning that the 10 claude.ai connectors were held back.
 
 ## Shipped
