@@ -156,6 +156,16 @@ const sliceFiles = {}
 const todo = slices.filter(s => s.number >= start && !alreadyBuilt.has(s.number))
 log(`Building ${todo.length} slice(s) of ${spec}`)
 
+// The build moves the plan itself: the spec goes to Now before the first slice and to Done after the
+// last gate passes. A spec already in Now (a resumed build) makes start say so; the build goes on.
+const specId = (String(spec).match(/FC-\d+/) || [''])[0]
+let plan = null
+if (specId) {
+  const started = await sh(`sh bin/afc plan start ${specId}`)
+  plan = { start: started.code === 0 ? 'started' : 'not started: ' + String(started.out).slice(-200) }
+  log(`Plan: ${specId} ${plan.start}`)
+}
+
 for (const s of todo) {
   phase('Build')
   const base = ((await sh('git rev-parse HEAD')).out.match(/[0-9a-f]{40}/) || [''])[0]
@@ -198,4 +208,13 @@ for (const s of todo) {
   }
 }
 
-return { spec, results, passed: results.filter(r => r.pass).map(r => r.slice) }
+const passed = results.filter(r => r.pass).map(r => r.slice)
+// Done only when every slice of the spec passed in this run or was built before it.
+const allPassed = slices.every(s => alreadyBuilt.has(s.number) || passed.includes(s.number))
+if (specId && allPassed) {
+  const closed = await sh(`sh bin/afc plan done ${specId}`)
+  plan = { ...plan, done: closed.code === 0 ? 'done' : 'not done: ' + String(closed.out).slice(-200) }
+  log(`Plan: ${specId} ${plan.done}`)
+}
+
+return { spec, results, passed, plan }

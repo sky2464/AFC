@@ -58,7 +58,7 @@ written.
 
 - [x] 1. Close what's built — you'll see it by `plan` showing FC-030, FC-031 and FC-032 in Done and
       their specs archived
-- [ ] 2. The build moves the plan — you'll see it by a build of a one-line FC slice moving its spec
+- [x] 2. The build moves the plan — you'll see it by a build of a one-line FC slice moving its spec
       to Now at the start and to Done at the end with no manual call
 - [ ] 3. One plan wherever you stand — you'll see it by `sh bin/afc plan` run in a worktree showing
       `dev`'s plan, and `plan start` there changing `dev`'s file
