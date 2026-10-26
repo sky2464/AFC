@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-040 | Ready for v0.06a | 2026-10-26 | FC-040-ready-for-v0-06a.md |
 | FC-041 | Maintenance mode survives a new session | 2026-10-26 | FC-041-maintenance-mode-survives-a-new-session.md |
 | FC-042 | Review asks for tests only when asked | 2026-10-26 | FC-042-review-asks-for-tests-only-when-asked.md |
 | FC-039 | Welcome counts held-back connectors | 2026-10-26 | FC-039-welcome-counts-held-back-connectors.md |

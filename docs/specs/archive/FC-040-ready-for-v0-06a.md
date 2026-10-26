@@ -1,6 +1,6 @@
 # FC-040 — Ready for v0.06a
 
-Size: S · Status: in progress
+Size: S · Status: done
 
 Asked for on 2026-10-26. Four specs reached `dev` after v0.05b (FC-036 to FC-039), all from the
 fresh-clone review: a stuck maintenance switch and heavy starts for new users. Same shape as FC-035.
@@ -69,3 +69,5 @@ Slice 1:
 - 2026-10-26 slice 1: VERSION is v0.06a; `sh bin/afc version` printed {"version": "v0.06a"}. The `## v0.06a` section has 6 bullets (6 lines, plus heading), covering the four bullets plus FC-041 and FC-042 and the workspace backup (merged into the first bullet). Numbers checked: FC-037 second start 42,241; FC-038 first start 56,247 from 73,310. `workspace_upgrade.upgrade` on a scratch layout-0 workspace with a `maintain` file returned upgraded: true, layout 1, steps [1], with a backup folder made and `maintain` gone. `sh bin/afc release check` on dev, before the commit, said ready: false, problems: "You are not on main (you are on dev)." and "There are uncommitted changes." (the second was this slice's own edits).
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 1.

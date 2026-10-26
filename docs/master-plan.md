@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-040 | Ready for v0.06a | S | [FC-040](specs/FC-040-ready-for-v0-06a.md) | 2026-10-26 |
 
 ## Next
 
@@ -31,6 +30,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-040 | Ready for v0.06a | 2026-10-26 | [FC-040](specs/archive/FC-040-ready-for-v0-06a.md) |
 | FC-041 | Maintenance mode survives a new session | 2026-10-26 | [FC-041](specs/archive/FC-041-maintenance-mode-survives-a-new-session.md) |
 | FC-042 | Review asks for tests only when asked | 2026-10-26 | [FC-042](specs/archive/FC-042-review-asks-for-tests-only-when-asked.md) |
 | FC-039 | Welcome counts held-back connectors | 2026-10-26 | [FC-039](specs/archive/FC-039-welcome-counts-held-back-connectors.md) |
@@ -40,7 +40,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-035 | Ready for v0.05b | 2026-10-25 | [FC-035](specs/archive/FC-035-ready-for-v0-05b.md) |
 | FC-034 | Connectors load only when needed | 2026-10-25 | [FC-034](specs/archive/FC-034-connectors-load-only-when-needed.md) |
 | FC-033 | Master plan, one truth | 2026-10-25 | [FC-033](specs/archive/FC-033-master-plan-one-truth.md) |
-| FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -126,8 +125,6 @@ same day showed the rest.
 
 | Date | Event |
 |---|---|
-| 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
-| 2026-10-24 | FC-002 done |
 | 2026-10-24 | FC-014 added |
 | 2026-10-24 | FC-015 added |
 | 2026-10-24 | FC-014 and FC-015 specced and sliced (5 slices each): review folded into building a slice, ship folded into finishing a spec; deploys and history rewrites left as the user's own actions |
@@ -227,3 +224,4 @@ same day showed the rest.
 | 2026-10-26 | FC-047 added |
 | 2026-10-26 | FC-041 done |
 | 2026-10-26 | FC-040 started |
+| 2026-10-26 | FC-040 done |

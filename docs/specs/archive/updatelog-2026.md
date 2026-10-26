@@ -14,3 +14,5 @@
 | 2026-10-24 | FC-001 started |
 | 2026-10-24 | FC-001 done |
 | 2026-10-24 | FC-002 started |
+| 2026-10-24 | FC-013 Right-sized tests specced and sliced (3 slices); queued last in Next |
+| 2026-10-24 | FC-002 done |

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-26 — FC-040 Ready for v0.06a
+
+`main` can be released as v0.06a: `VERSION` says `v0.06a`, the release notes are in plain words, and `sh bin/afc release check` on `main` says `ready: true`. The user merges, tags and publishes.
+
+- Ready for v0.06a
+
 ## 2026-10-26 — FC-041 Maintenance mode survives a new session
 
 A new session never guesses which world the user is in. When a fork or /clear follows recent maintenance work, it asks one question first and shields every project until the user answers. A bare number always answers the question just asked.
