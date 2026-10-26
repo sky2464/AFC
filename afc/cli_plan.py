@@ -61,6 +61,11 @@ def register(sub) -> None:
     q.add_argument("--outcome", nargs=2, metavar=("RESULT", "WHY"),
                    help='what it reached: met, partly or not-met, then the number or reason')
     q.set_defaults(handler=cmd_done)
+    q = psub.add_parser("score", help="update one Scoreboard measure and log it")
+    q.add_argument("name")
+    q.add_argument("value")
+    q.add_argument("--keep-before", action="store_true", help="move the old value to Before")
+    q.set_defaults(handler=cmd_score)
 
 
 def _cli():
@@ -551,3 +556,17 @@ def cmd_done(args: argparse.Namespace) -> dict:
     nxt = plan.read_rows(path.read_text(encoding="utf-8"), "Next")
     suggest = {"id": nxt[0][0], "title": nxt[0][1]} if nxt else None
     return {"done": sid, "archived": str(target), "suggest_next": suggest}
+
+
+def cmd_score(args: argparse.Namespace) -> dict:
+    space, _, text = _load(write=True)
+    try:
+        new, old = plan.set_score(text, args.name, args.value.strip())
+        if args.keep_before:
+            new, _ = plan.set_score(text, args.name, args.value.strip(), keep_before=True)
+    except ValueError as e:
+        raise _error(str(e))
+    note = f"Scoreboard: {args.name.strip()} {old} -> {args.value.strip()}" + (" (old value kept as before)" if args.keep_before else "")
+    new = plan.log(new, _cli()._today(), note)
+    space.master.write_text(new, encoding="utf-8")
+    return {"scored": args.name.strip(), "now": args.value.strip(), "was": old, "kept_before": bool(args.keep_before)}

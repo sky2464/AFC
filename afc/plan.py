@@ -393,6 +393,21 @@ def header_size(spec_text: str) -> str:
     return ""
 
 
+def set_score(text: str, name: str, value: str, keep_before: bool = False) -> tuple[str, str]:
+    """Replace the Now cell of the Scoreboard row called `name` (case-blind). The old value moves to
+    Before only when `keep_before` is true. Returns (new text, old value)."""
+    rows = read_rows(text, "Scoreboard")
+    for r in rows:
+        if r[0].lower() == name.strip().lower():
+            old = r[1]
+            r += [""] * (4 - len(r))
+            r[1] = value
+            if keep_before:
+                r[2] = old
+            return write_rows(text, "Scoreboard", rows), old
+    raise ValueError(f"The Scoreboard has no measure called '{name}'. It has: " + ", ".join(r[0] for r in rows) + ".")
+
+
 def log(text: str, date: str, event: str) -> str:
     """Append a row to the Update log (oldest first)."""
     rows = read_rows(text, "Update log")

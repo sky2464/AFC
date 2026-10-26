@@ -41,6 +41,14 @@ Every change must reach the apps Flight Control builds for users.
 | FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |
 | FC-036 | Maintenance mode never sticks | 2026-10-25 | [FC-036](specs/archive/FC-036-maintenance-mode-never-sticks.md) |
 
+## Scoreboard
+
+| Measure | Now | Before | Source |
+|---|---|---|---|
+| First-start tokens | 56,247 | 73,310 | FC-038 |
+| Tokens per slice | 0.25M | 7.5M | FC-018 |
+| Full-suite runs per slice | 5.0 | 8.7 | FC-018 |
+
 ## Findings from the first live run (2026-10-23)
 
 The php-vuln-checker test session surfaced 21 findings. Each maps to a spec:
