@@ -5,11 +5,14 @@ written down; a missing tool counts as neither. The verdict is blocked while any
 critical, and ok otherwise. The report is written whatever the verdict, so every slice leaves
 a trail. Later slices of FC-014 add their own checks to the same list.
 
-Two checks are the review's own. A changed file over 500 lines is critical and named. A line of
-the active spec's "You'll know it works when" list that no test mentions is critical and quoted
-in full. A line is covered when one test file holds most of its words.
+One check is the review's own. A changed file over 500 lines is critical and named.
 
-A third check is a warning. The spec and plan/decisions.md may name a word to avoid, written as
+The test checks run only when the review is asked for them (tests=True, the --tests option), for
+a user who asked for tests. A line of the active spec's "You'll know it works when" list that no
+test mentions is then critical and quoted in full; a line is covered when one test file holds
+most of its words. A slice labelled fix, bug or hotfix needs a changed test that names a regression.
+
+A second check is a warning. The spec and plan/decisions.md may name a word to avoid, written as
 "customer (not user)" or "use customer, not user". A changed code file whose names (snake_case or
 camelCase, test files left out) contain the avoided word gets a warning naming both words.
 """
@@ -144,12 +147,14 @@ def naming_checks(code: Path, pairs: dict[str, str]) -> list[Check]:
     return checks
 
 
-def run_review(code_path: Path, workspace_path: Path, label: str) -> dict:
+def run_review(code_path: Path, workspace_path: Path, label: str, tests: bool = False) -> dict:
     """Run the checks on the code folder, write the report, and return the verdict and counts."""
     code = Path(code_path)
-    checks = scan.run_checks(code) + file_size_checks(code) + regression_checks(code, label)
+    checks = scan.run_checks(code) + file_size_checks(code)
+    if tests:
+        checks += regression_checks(code, label)
     spec = active_spec(Path(workspace_path))
-    if spec:
+    if spec and tests:
         checks += acceptance_checks(code, spec)
     texts = [p.read_text(encoding="utf-8") for p in
              (spec, Path(workspace_path) / "plan" / "decisions.md") if p and p.is_file()]

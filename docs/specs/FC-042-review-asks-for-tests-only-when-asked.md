@@ -1,6 +1,6 @@
 # FC-042 — Review asks for tests only when asked
 
-Size: S · Status: next, ready for build
+Size: S · Status: in progress
 
 Found on 2026-10-26. In php-vuln-checker, `sh bin/afc review --slice "3 …"` came back `blocked`
 with five critical findings, every one "no test behind: <a line of the spec>". The slice worked in
@@ -58,7 +58,7 @@ behind the flag.
 
 ## Slices
 
-- [ ] 1. No test demand by default — you'll see it by a scratch project with a spec of five
+- [x] 1. No test demand by default — you'll see it by a scratch project with a spec of five
       acceptance lines and no test files giving `verdict: ok`, no "untested acceptance line" in the
       report, and the same for a slice labelled "2 fix login"
 - [ ] 2. Tests when asked — you'll see it by the same scratch project with `--tests` giving
