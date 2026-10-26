@@ -75,7 +75,7 @@ maintenance mode allows once it is on. The guard rules themselves.
 - [x] 2. Cleared by the update — you'll see it by `workspace_upgrade.upgrade` (what an update runs)
       taking a scratch workspace at layout 0 with a `maintain` file to layout 1, with the file gone
       and a backup made
-- [ ] 3. Never on main — you'll see it by `sh bin/afc maintain on` on a scratch clone of `main`
+- [x] 3. Never on main — you'll see it by `sh bin/afc maintain on` on a scratch clone of `main`
       refusing in one line, while on `dev` it prints `"scope": "session"`
 - [ ] 4. Live check — you'll see it by a fresh `git clone --depth 1` of `dev` into a scratch folder,
       switched to a branch named `main`, starting with `claude -p hi` against a home that has a

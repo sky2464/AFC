@@ -44,9 +44,22 @@ def _flags(home: Path) -> Path:
     return home / "maintain.d"
 
 
+ON_MAIN = "Flight Control is changed in the developer copy on dev, not here"
+
+
+def on_main() -> bool:
+    """True when this copy of Flight Control is on the `main` branch (the daily folder)."""
+    from afc.update import _branch  # late import: update imports this module
+
+    return _branch(afc_root()) == "main"
+
+
 def maintain_scope(home: Path, session: str | None = None) -> str:
-    """'session' (this session only) or 'off'. A leftover global `maintain` file is ignored."""
+    """'session' (this session only) or 'off'. A leftover global `maintain` file is ignored, and
+    a copy on `main` is always off."""
     session = valid_session(session)
+    if on_main():
+        return "off"
     return "session" if session and (_flags(home) / session).exists() else "off"
 
 
@@ -64,6 +77,8 @@ def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
     raises ValueError; there is no global switch."""
     session = valid_session(session)
     flags = _flags(home)
+    if on and on_main():
+        raise ValueError(ON_MAIN)
     if on:
         if not session:
             raise ValueError(NO_SESSION)
