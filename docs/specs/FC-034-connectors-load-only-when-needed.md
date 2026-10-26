@@ -1,6 +1,6 @@
 # FC-034 — Connectors load only when needed
 
-Size: M · Status: next
+Size: M · Status: in progress
 
 Found on 2026-10-25 (finding R7 in the master plan). With the account add-ons switched off, a
 plain "hi" in a Flight Control session still loads 350 tools, 107 skills and 60,291 tokens (FC-027,
@@ -71,7 +71,7 @@ at start).
 
 ## Slices
 
-- [ ] 1. Where the tokens go — you'll see it by a written breakdown of a "hi" start by part, and a
+- [x] 1. Where the tokens go — you'll see it by a written breakdown of a "hi" start by part, and a
       restart showing a `deniedMcpServers` entry really removes that connector's tools
 - [ ] 2. A connector list per project — you'll see it by `sh bin/afc` showing a project's connector
       list, filled from what the project shows, and adding one by name
@@ -114,5 +114,21 @@ Slice 5:
 
 - 2026-10-25: Not off for everyone. Load only the connectors that mean something for the project,
   chosen automatically, and add more on request (user's choice).
+
+- 2026-10-25 (slice 1): Where the 60k goes, measured with `docs/measurements/start_parts.py` (new:
+  runs `claude -p hi` with one part switched off at a time, first turn only, on `dev`, add-ons off).
+  The "hi" start is 59,687 tokens (350 tools, 107 skills, 10 connectors). Share: connector tools
+  17,392 (29%, 319 of the 350 tools); built-in tools, their instructions and project text 33,437
+  (56%); skill listing 1,317 (2%); bare floor 7,541 (13%). Tool search is already on: connector
+  tools are listed by name only. With it off (`--tools ""` run) the same start was 318,336 tokens,
+  so full connector schemas would cost about 300k. So the most blocking can save is about 17k of
+  59.7k (29%), not most of it; the goal "clearly fewer than 60,291" is still met, but the spec should
+  not promise more. Slice 5 judges the real number.
+- 2026-10-25 (slice 1): Restart check. A start with `deniedMcpServers: [{"serverName": "claude.ai
+  Notion"}]` (passed as session settings) went from 350 tools / 10 connectors / 59,685 tokens to 285
+  tools / 9 connectors / 57,491 tokens, and Notion was gone from the connector list: 65 tools and
+  about 2,200 tokens for one connector. The entry works by connector name and takes effect at the
+  next start. Note the entry is an object with `serverName`, not a bare string. Not yet tried from
+  `.claude/settings.local.json` itself (slice 3 does it).
 
 ## Shipped

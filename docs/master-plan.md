@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-034 | Connectors load only when needed | M | [FC-034](specs/FC-034-connectors-load-only-when-needed.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-034 | Connectors load only when needed | M | [FC-034](specs/FC-034-connectors-load-only-when-needed.md) |
 
 ## Done
 
@@ -212,3 +212,4 @@ same day showed the rest.
 | 2026-10-25 | FC-033 started |
 | 2026-10-25 | FC-033 done |
 | 2026-10-25 | FC-034 added and specced (5 slices): connectors load only when needed, per project |
+| 2026-10-25 | FC-034 started |
