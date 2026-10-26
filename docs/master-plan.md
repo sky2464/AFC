@@ -15,6 +15,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-048 | MM: prefix turns maintenance mode on | S | [spec](specs/FC-048-mm-prefix-turns-maintenance-mode-on.md) | 2026-10-26 |
 
 ## Next
 
@@ -224,3 +225,5 @@ same day showed the rest.
 | 2026-10-26 | FC-040 done |
 | 2026-10-26 | FC-043 started |
 | 2026-10-26 | FC-043 done |
+| 2026-10-26 | FC-048 added |
+| 2026-10-26 | FC-048 started |
