@@ -1,6 +1,6 @@
 # FC-050 — Right model for each job
 
-Size: M · Status: next, ready for build · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-26 · Done: -
 Area: tokens
 
 Asked for on 2026-10-26: architecture changes only by the newest Opus at high effort ("the most
@@ -116,7 +116,7 @@ and Vertex.
 
 ## Slices
 
-- [ ] 1. Six roles with effort — you'll see it by `sh bin/afc agents` on a scratch project printing
+- [x] 1. Six roles with effort — you'll see it by `sh bin/afc agents` on a scratch project printing
       six roles with model and effort, `agents set architect sonnet` changing only that agent file,
       and the effort line accepted by a live `claude -p` call on each model (proves A1, A2)
 - [ ] 2. Architecture goes to the architect — you'll see it by the skill sentences, and a scratch
@@ -172,5 +172,8 @@ Slice 6:
   write them in Decisions. Never use a real project.
 
 ## Decisions
+
+- 2026-10-26 (slice 1): scratch `install_code_agents` writes six agents; `agents set architect sonnet` rewrites only
+  `afc-architect.md`. Live `claude -p` accepts `--effort low` on haiku, default on sonnet, and `--effort high` on opus.
 
 ## Shipped

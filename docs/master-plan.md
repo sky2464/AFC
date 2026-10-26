@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) |
 
 
 ## Waiting on you

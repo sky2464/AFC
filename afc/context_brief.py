@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 from afc import plan
-from afc.role_agents import load_routing, routing_summary
+from afc.role_agents import ROLES, load_routing, routing_summary
 
 BRIEF_NAME = "afc-brief.md"
 INTENT = "intent.md"
@@ -39,6 +39,14 @@ def refresh(workspace: Path, profile: str = "personal") -> dict:
         spec_line = ""
     routing = load_routing(ws)
     models = routing_summary(routing, profile)["roles"]
+
+    def _role_line(role: str) -> str:
+        info = models[role]
+        text = f"{role}={info['model']}"
+        if info.get("effort"):
+            text += f"@{info['effort']}"
+        return text
+
     lines = [
         "# Project brief (Flight Control)",
         "",
@@ -54,7 +62,7 @@ def refresh(workspace: Path, profile: str = "personal") -> dict:
         spec_line or "(no spec in Now — run sh bin/afc plan)",
         "",
         "## Role models",
-        ", ".join(f"{role}={models[role]}" for role in models),
+        ", ".join(_role_line(role) for role in ROLES),
         "",
         "After deliver, run `sh bin/afc context refresh` if intent or architecture changed.",
     ]
