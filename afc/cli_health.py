@@ -26,7 +26,14 @@ ADDONS = ("addon_not_allowed", "addon_unblock")
 PLAN_KINDS = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs", "plan_two_in_now",
               "plan_no_spec_file", "plan_status_mismatch", "plan_archive_not_indexed", "plan_table_broken",
               "plan_uncommitted")
-PLAN_CLOSES = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs")  # the ones repair acts on today
+PLAN_CLOSES = ("plan_all_ticked_in_now", "plan_built_in_next", "plan_copy_differs")  # closing a spec in the plan
+PLAN_WHY_LEFT = {
+    "plan_two_in_now": "which spec stays in progress is your call",
+    "plan_no_spec_file": "only you know whether the spec was dropped or the file moved",
+    "plan_status_mismatch": "either the plan or the spec header is right, and that needs your decision",
+    "plan_table_broken": "a row with the wrong number of cells could lose text if it were guessed at",
+    "plan_uncommitted": "committing is yours to approve",
+}
 ROOT_BRANCHES = ("main", "dev")
 GIT_TIMEOUT = 3  # seconds: the welcome runs this check, so it must stay quick
 
@@ -262,7 +269,13 @@ def _repair_plan(home: Path, found: list[dict]) -> list[str]:
     out: list[str] = []
     if not found:
         return out
-    found = [p for p in found if p["kind"] in PLAN_CLOSES]  # the other kinds only report (slice 2 adds one fix)
+    for p in [p for p in found if p["kind"] == "plan_archive_not_indexed"]:
+        out.append(_repair_archive_index(home, p))
+    left = {p["kind"] for p in found if p["kind"] in PLAN_WHY_LEFT}
+    if left:
+        why = "; ".join(PLAN_WHY_LEFT[k] for k in PLAN_WHY_LEFT if k in left)
+        out.append(f"Left the other plan problems as they are, because they need a decision: {why}.")
+    found = [p for p in found if p["kind"] in PLAN_CLOSES]
     ordered = sorted(found, key=lambda p: p["kind"] != "plan_all_ticked_in_now")
     for p in ordered:
         if p["kind"] == "plan_copy_differs":
@@ -282,6 +295,25 @@ def _repair_plan(home: Path, found: list[dict]) -> list[str]:
         except cli.CliError as exc:
             out.append(f"Could not close {p['project']} in the plan: {exc}")
     return out
+
+
+def _repair_archive_index(home: Path, p: dict) -> str:
+    """Add the row for an archived spec that the archive index lacks, read from the spec file itself."""
+    from afc import cli_plan
+
+    path = Path(p["path"])
+    if not p.get("project") and not maintain_enabled(home, current_session()):
+        return (f"{path.name} is missing from the archive index; adding it changes Flight Control's own "
+                "plan, so it needs maintenance mode (/afc mm).")
+    text = path.read_text(encoding="utf-8")
+    sid = re.match(r"([A-Za-z]+-\d+)", path.name).group(1)
+    title = re.search(r"^#\s*\S+\s*[—-]\s*(.+?)\s*$", text, re.MULTILINE)
+    done = re.search(r"Done:\s*(\d{4}-\d{2}-\d{2})", text)
+    row = [sid, title.group(1) if title else path.stem, done.group(1) if done else "-", path.name]
+    index = path.parent / "index.md"
+    old = index.read_text(encoding="utf-8") if index.is_file() else ""
+    index.write_text(cli_plan._archive_index(old, row), encoding="utf-8")
+    return f"Added {path.name} to the archive index."
 
 
 def switch_addons(root: Path, found: list[dict]) -> tuple[int, int]:
