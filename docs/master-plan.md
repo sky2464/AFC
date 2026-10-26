@@ -13,12 +13,12 @@ safe slices, with as few questions and as little noise as possible.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-029 | Ready for v0.04a | S | [spec](specs/FC-029-ready-for-v0-04a.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-029 | Ready for v0.04a | S | [spec](specs/FC-029-ready-for-v0-04a.md) |
 
 ## Done
 
@@ -199,3 +199,4 @@ same day showed the rest.
 | 2026-10-25 | FC-028 started |
 | 2026-10-25 | FC-028 done |
 | 2026-10-25 | FC-029 added |
+| 2026-10-25 | FC-029 started |

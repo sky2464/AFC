@@ -1,6 +1,6 @@
 # FC-029 — Ready for v0.04a
 
-Size: S · Status: next · Started: - · Done: -
+Size: S · Status: in progress · Started: 2026-10-25 · Done: -
 
 Asked for on 2026-10-25. Two specs reached `dev` after v0.03a: FC-027 (add-ons really switched off at
 session start, a quiet health check, a short update summary) and FC-028 (the first reply no longer
