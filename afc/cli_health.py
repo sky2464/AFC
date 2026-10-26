@@ -6,6 +6,7 @@ at its code folder after the user moved it. Nothing is ever deleted.
 """
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -103,6 +104,13 @@ def cmd_repair(args: argparse.Namespace) -> dict:
         elif p["kind"] == "old_plan_format":
             _upgrade_plan(Path(p["path"]))
             repaired.append(f"Upgraded {p['project']} to a master plan.")
+        elif p["kind"] == "routing_drift" and p["project"] in reg.projects:
+            from afc.project_agents import sync_project_agents
+
+            note = f"Rewrote {p['project']}'s agents from its routing."
+            if note not in repaired:
+                sync_project_agents(reg.projects[p["project"]])
+                repaired.append(note)
         elif p["kind"] == "decisions_no_log":
             path = Path(p["path"])
             path.write_text(path.read_text(encoding="utf-8").rstrip("\n") + "\n" + LOG_SECTION, encoding="utf-8")
@@ -407,6 +415,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     problems += plan_problems(fc_space)
     problems += _findings_problems(fc_space)
     problems += architecture_fc_problems(cli.afc_root())
+    problems += _routing_overridden_problems()
     for p in reg.projects.values():
         if Path(p.workspace_path).is_dir():
             proj_space = plan.project_space(Path(p.workspace_path))
@@ -437,6 +446,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
                 detail=f"{p.name}: still uses the old progress list; repair upgrades it to a master plan."))
         problems += _decisions_problems(p)
         problems += _architecture_problems(p)
+        problems += _routing_drift_problems(p)
     projects_dir = home / "projects"
     if projects_dir.is_dir():
         for d in sorted(projects_dir.iterdir()):
@@ -485,6 +495,45 @@ def _decisions_problems(project) -> list[dict]:
     return [_problem("decisions_no_log", str(path), True, project=project.name,
                      detail=f"{project.name}: decisions.md has no Log section; repair adds one so "
                             "decisions stop landing under the always/never rules.")]
+
+
+ROUTING_ENV = ("CLAUDE_CODE_SUBAGENT_MODEL", "CLAUDE_CODE_SUBAGENT_MODEL_FORCE", "CLAUDE_CODE_EFFORT_LEVEL")
+
+
+def _routing_overridden_problems() -> list[dict]:
+    """`routing_overridden` for each environment variable that would replace the agent files' model or
+    effort. Read from this process, which shares the session's environment."""
+    return [_problem("routing_overridden", name, False,
+                     detail=f"{name} is set ({os.environ[name]}), so it can replace the model or effort "
+                            "each agent file sets. Unset it to let the routing apply.")
+            for name in ROUTING_ENV if os.environ.get(name)]
+
+
+def _routing_drift_problems(project) -> list[dict]:
+    """`routing_drift` for each installed role agent whose model or effort differs from the workspace
+    routing. Fixable: repair (or `agents sync`) rewrites the agent files."""
+    from afc.role_agents import (PROJECT_AGENT, load_routing, parse_agent_effort, parse_agent_model,
+                                 resolve_effort, resolve_model)
+
+    agents = Path(project.code_path) / ".claude" / "agents"
+    if not agents.is_dir() or not Path(project.workspace_path).is_dir():
+        return []
+    routing = load_routing(Path(project.workspace_path))
+    profile = project.profile or "personal"
+    found = []
+    for role, name in PROJECT_AGENT.items():
+        path = agents / f"{name}.md"
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        want = (resolve_model(role, routing, profile=profile), resolve_effort(role, routing, profile=profile))
+        have = (parse_agent_model(text), parse_agent_effort(text))
+        if want != have:
+            found.append(_problem("routing_drift", str(path), True, project=project.name,
+                                  detail=f"{project.name}: {name} runs {have[0]} at effort {have[1] or 'default'}, "
+                                         f"but the routing says {want[0]} at effort {want[1] or 'default'}; "
+                                         "repair (or sh bin/afc agents sync) rewrites it."))
+    return found
 
 
 def architecture_is_bare(path: Path) -> bool:
