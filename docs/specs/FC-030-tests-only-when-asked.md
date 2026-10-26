@@ -29,6 +29,11 @@ No tests run, and none are mentioned, unless the user asks. Flight Control keeps
 for itself, all on the things that can hurt a user if they break silently. Building is faster and
 replies are cleaner.
 
+## Reaches the apps
+
+Changes `afc-slice`, `afc-interview` and the delivery gate in a user's project: slices are shown and
+delivered without running or requiring tests unless the user asks.
+
 ## You'll know it works when
 
 - `tests/` holds at most five tests, and `sh bin/afc test` runs them in a few seconds. The others

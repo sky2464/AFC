@@ -39,7 +39,7 @@ Rewriting finished specs. Judging whether the stated path is good. Any change to
 
 ## Slices
 
-- [ ] 1. The rule and the section — you'll see it by the master plan Goal line, the new template
+- [x] 1. The rule and the section — you'll see it by the master plan Goal line, the new template
       section, and the `afc-plan` rule all being there
 - [ ] 2. Plan flags missing sections — you'll see it by `sh bin/afc plan` marking FC-031 as not
       ready until its section is filled, then ready

@@ -38,6 +38,11 @@ A test copy runs today's Flight Control and stays inside its own test workspace.
 quiet: no red errors, no repeated lines, and any health problem is named in plain words with its
 fix.
 
+## Reaches the apps
+
+Does not reach the apps, because it only concerns Flight Control's own test copy and the `/afc`
+start; no skill, rule or template in a user's project changes.
+
 ## You'll know it works when
 
 - A session in a test copy that is behind `dev` says so once, in one plain line, and offers to

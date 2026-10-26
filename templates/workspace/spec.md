@@ -4,6 +4,8 @@ Size: {size} · Status: next · Started: - · Done: -
 
 ## Goal
 
+## Reaches the apps
+
 ## You'll know it works when
 
 ## Out of scope

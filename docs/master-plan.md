@@ -9,6 +9,8 @@ per slice, with maintenance mode on while editing.
 A calm co-pilot inside Claude Code that turns what someone wants to build into small, working,
 safe slices, with as few questions and as little noise as possible.
 
+Every change must reach the apps Flight Control builds for users.
+
 ## Now
 
 | ID | Title | Size | Spec | Started |
