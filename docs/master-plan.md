@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-036 | Maintenance mode never sticks | S | [FC-036](specs/FC-036-maintenance-mode-never-sticks.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-036 | Maintenance mode never sticks | S | [FC-036](specs/FC-036-maintenance-mode-never-sticks.md) |
 | FC-037 | Light start without a project | S | [FC-037](specs/FC-037-light-start-without-a-project.md) |
 | FC-038 | Light first start | M | [FC-038](specs/FC-038-light-first-start.md) |
 
@@ -218,3 +218,4 @@ same day showed the rest.
 | 2026-10-25 | FC-034 done |
 | 2026-10-25 | FC-035 started |
 | 2026-10-25 | FC-035 done |
+| 2026-10-25 | FC-036 started |
