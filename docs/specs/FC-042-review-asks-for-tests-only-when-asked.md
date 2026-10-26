@@ -61,7 +61,7 @@ behind the flag.
 - [x] 1. No test demand by default — you'll see it by a scratch project with a spec of five
       acceptance lines and no test files giving `verdict: ok`, no "untested acceptance line" in the
       report, and the same for a slice labelled "2 fix login"
-- [ ] 2. Tests when asked — you'll see it by the same scratch project with `--tests` giving
+- [x] 2. Tests when asked — you'll see it by the same scratch project with `--tests` giving
       `verdict: blocked` and five "untested acceptance line" findings, and `afc-slice` carrying the
       sentence about when to use it
 - [ ] 3. Live on the app that was blocked — you'll see it by `sh bin/afc review --slice "3 …"` on a
