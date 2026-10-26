@@ -126,6 +126,16 @@ def _goal(text: str) -> str:
     return " ".join(para)  # the first paragraph, which may wrap over several lines
 
 
+def _ready(space: plan.Space, row: list[str]) -> dict:
+    """Flight Control specs are not ready while their 'Reaches the apps' section is missing or empty."""
+    if space.prefix != "FC":
+        return {}
+    path = _spec_path(space, row)
+    if not path.is_file():
+        return {"ready": False}
+    return {"ready": plan.section_filled(path.read_text(encoding="utf-8"), "Reaches the apps")}
+
+
 def cmd_plan(args: argparse.Namespace) -> dict:
     space, owner, text = _load()
     now_rows = plan.read_rows(text, "Now")
@@ -137,7 +147,7 @@ def cmd_plan(args: argparse.Namespace) -> dict:
         now = {"id": row[0], "title": row[1], "spec": str(_spec_path(space, row)), "next_slice": open_[0] if open_ else None}
         if plan.unreadable_slices(spec_text):
             now["slices"] = UNREADABLE
-    nxt = [{"id": r[0], "title": r[1], "size": r[2]} for r in plan.read_rows(text, "Next")[:2]]
+    nxt = [{"id": r[0], "title": r[1], "size": r[2], **_ready(space, r)} for r in plan.read_rows(text, "Next")[:2]]
     return {"for": owner, "goal": _goal(text), "now": now, "next": nxt,
             "done_count": len(plan.read_rows(text, "Done"))}
 

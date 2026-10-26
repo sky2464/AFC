@@ -158,6 +158,16 @@ def unreadable_slices(spec_text: str) -> list[str]:
     return found
 
 
+def section_filled(spec_text: str, section: str) -> bool:
+    """True when `## section` exists and has some text under it."""
+    lines = spec_text.split("\n")
+    try:
+        start, end = _section_span(lines, section)
+    except ValueError:
+        return False
+    return any(ln.strip() for ln in lines[start:end])
+
+
 def open_slices(spec_text: str) -> list[str]:
     """Labels of the unticked slices, in order."""
     return [label for done, label in all_slices(spec_text) if not done]

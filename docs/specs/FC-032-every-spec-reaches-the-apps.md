@@ -12,6 +12,11 @@ so a spec can be about Flight Control alone and nobody notices (FC-031's first s
 Every FC spec says how its change reaches the apps Flight Control builds, or says plainly that it
 can't. The rule is written into Flight Control itself, not left in notes.
 
+## Reaches the apps
+
+Does not reach the apps, because it only changes how Flight Control's own specs are written and
+checked; project specs and their skills stay as they are.
+
 ## You'll know it works when
 
 - The master plan's Goal ends with one line: every change must reach the apps Flight Control builds
@@ -41,7 +46,7 @@ Rewriting finished specs. Judging whether the stated path is good. Any change to
 
 - [x] 1. The rule and the section — you'll see it by the master plan Goal line, the new template
       section, and the `afc-plan` rule all being there
-- [ ] 2. Plan flags missing sections — you'll see it by `sh bin/afc plan` marking FC-031 as not
+- [x] 2. Plan flags missing sections — you'll see it by `sh bin/afc plan` marking FC-031 as not
       ready until its section is filled, then ready
 
 ## Tasks
