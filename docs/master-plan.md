@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-039 | Welcome counts held-back connectors | S | [FC-039](specs/FC-039-welcome-counts-held-back-connectors.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-039 | Welcome counts held-back connectors | S | [FC-039](specs/FC-039-welcome-counts-held-back-connectors.md) |
 
 ## Done
 
@@ -221,3 +221,4 @@ same day showed the rest.
 | 2026-10-25 | FC-037 done |
 | 2026-10-25 | FC-038 started |
 | 2026-10-25 | FC-038 done |
+| 2026-10-26 | FC-039 started |

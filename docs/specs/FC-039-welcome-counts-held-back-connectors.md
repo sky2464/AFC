@@ -1,6 +1,6 @@
 # FC-039 — Welcome counts held-back connectors
 
-Size: S · Status: next, ready for build
+Size: S · Status: in progress
 
 Left open by FC-038 on 2026-10-25. FC-038 ships a list of 12 claude.ai connectors in the tracked
 `.claude/settings.json` (`tracked_deny` in `afc-connectors.json`), so they are held back from the
