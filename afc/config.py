@@ -73,9 +73,17 @@ NO_SESSION = ("Maintenance mode needs this session's ID; open Flight Control in 
               "and try again")
 
 
+def undecided(home: Path, session: str | None = None) -> bool:
+    """True while this session was asked "Flight Control or your project?" and hasn't answered
+    (maintain.d/<id>.ask exists). A copy on `main` is never undecided."""
+    session = valid_session(session)
+    return bool(session) and not on_main() and (_flags(home) / f"{session}.ask").exists()
+
+
 def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
-    """Turn maintenance mode on or off for one session. Turning it on with no usable session ID
-    raises ValueError; there is no global switch."""
+    """Turn maintenance mode on or off for one session; either answer ends "undecided" (removes
+    the .ask file). Turning it on with no usable session ID raises ValueError; there is no
+    global switch."""
     session = valid_session(session)
     flags = _flags(home)
     if on and on_main():
@@ -88,6 +96,8 @@ def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
         _prune(flags)
     elif session:
         (flags / session).unlink(missing_ok=True)
+    if session:
+        (flags / f"{session}.ask").unlink(missing_ok=True)
 
 
 def _prune(flags: Path) -> None:

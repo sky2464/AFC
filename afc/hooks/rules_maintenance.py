@@ -2,8 +2,9 @@
 and Flight Control's own folder only changes while maintenance mode is on.
 
 In maintenance mode, writes into any registered project's code or workspace folder, and git
-commands that run in or point at those folders, are blocked. Reading stays allowed. Outside
-maintenance mode `check_maintenance` does nothing; `check_own_copy` blocks git that changes the
+commands that run in or point at those folders, are blocked. Reading stays allowed. While a
+session has not yet answered "Flight Control or your project?", `check_undecided` blocks the same
+reach, and nothing else. Outside maintenance mode `check_maintenance` does nothing; `check_own_copy` blocks git that changes the
 A-FC folder itself (reading git is always fine). In that folder, whatever the mode, merges must
 fast-forward and checkout/switch must land on a local branch (never a detached HEAD).
 """
@@ -99,10 +100,12 @@ def _git_locations(words: list[str], base: Path) -> list[Path]:
     return found
 
 
-def check_maintenance(event: dict, ctx: Context) -> str | None:
-    """Return a block reason when maintenance mode would reach into a project, else None."""
-    if not ctx.maintain:
-        return None
+UNDECIDED_REASON = "choose Flight Control or your project first"
+
+
+def _reach(event: dict, ctx: Context) -> tuple[str, Path, str] | None:
+    """('write' or 'git', path, project name) when the call writes into, or runs git in or
+    pointing at, a project's code or workspace folder; else None."""
     folders = _project_folders(ctx)
     if not folders:
         return None
@@ -110,7 +113,7 @@ def check_maintenance(event: dict, ctx: Context) -> str | None:
     if tool in WRITE_TOOLS:
         target = target_path(event)
         owner = _owner(target, folders) if target is not None else None
-        return _write_reason(target, owner) if owner else None
+        return ("write", target, owner) if owner else None
     if tool != "Bash":
         return None
     tool_input = event.get("tool_input")
@@ -121,16 +124,37 @@ def check_maintenance(event: dict, ctx: Context) -> str | None:
     for raw in bash_write_targets_or_none(command, cwd) or []:
         owner = _owner(Path(raw), folders)
         if owner:
-            return _write_reason(Path(raw), owner)
+            return "write", Path(raw), owner
     for words, base in simple_commands(command, cwd) or []:
         if parse_git(words) is None:
             continue
         for where in _git_locations(words, base):
             owner = _owner(where, folders)
             if owner:
-                return (f"maintenance mode is on, so git can't run in {where} (project {owner}) "
-                        "— project work needs maintenance mode off")
+                return "git", where, owner
     return None
+
+
+def check_undecided(event: dict, ctx: Context) -> str | None:
+    """Until the session answers "Flight Control or your project?", block project writes and git.
+    Flight Control's own folder, `afc maintain on|off` and reading stay allowed."""
+    if not ctx.undecided:
+        return None
+    return UNDECIDED_REASON if _reach(event, ctx) else None
+
+
+def check_maintenance(event: dict, ctx: Context) -> str | None:
+    """Return a block reason when maintenance mode would reach into a project, else None."""
+    if not ctx.maintain:
+        return None
+    reach = _reach(event, ctx)
+    if reach is None:
+        return None
+    kind, path, owner = reach
+    if kind == "write":
+        return _write_reason(path, owner)
+    return (f"maintenance mode is on, so git can't run in {path} (project {owner}) "
+            "— project work needs maintenance mode off")
 
 
 def _write_reason(path: Path, owner: str) -> str:

@@ -82,7 +82,7 @@ be asked, 2026-10-26).
       and an unseen ID gives a context with "Mode: undecided" and the one question, and the same
       event again (ID now seen), `source: startup`, a flag 13 hours old, and no flag at all each
       give the normal welcome
-- [ ] 3. Nothing touches a project until answered — you'll see it by the pretool hook, in that
+- [x] 3. Nothing touches a project until answered — you'll see it by the pretool hook, in that
       scratch home with the `.ask` file present, blocking a Write into the project's code folder and
       a `git status` there with the "choose first" line, `maintain on` or `maintain off` removing
       the file, and the same Write then allowed after `maintain off`
@@ -136,5 +136,24 @@ is what source the incident's session sent. Stopped here as the slice says.
   cannot tell by itself whether it continues maintenance work, so the user chose to be asked first
   over carrying the mode silently: one question at the start, and project work blocked until it is
   answered. Slices 2 to 4 rewritten to match.
+
+Slice 3, tried 2026-10-26 with the pretool hook in a scratch home (one registered scratch project
+with a git folder, `maintain.d/other` as the recent flag, `maintain.d/sess1.ask` present):
+
+- With `sess1.ask`: a Write into the project's code folder, `git status` in it, and
+  `git -C <project> status` run from the A-FC folder were each stopped with exit 2 and "Flight
+  Control blocked: choose Flight Control or your project first". Reading a file in the project's
+  workspace (the plan) and `sh bin/afc maintain status|on|off` run from the A-FC folder were
+  allowed (exit 0). A session without an `.ask` file (`sess2`) writing to the project was allowed.
+- `AFC_SESSION=sess1 sh bin/afc maintain off` removed `sess1.ask` (and made no flag); the same
+  Write and `git status` were then allowed. `maintain on` also removed the file and left
+  `maintain.d/sess1`; the Write was then stopped by the normal maintenance-mode line instead.
+- The guard is a separate rule, `check_undecided`, placed before `check_paths` in the pretool list,
+  so the "choose first" line wins over other blocks. It reuses the project-reach test of
+  `check_maintenance` (now `_reach`), so the two cannot drift. `Context` has an `undecided` field.
+- Not mine, seen on the way: `sh bin/afc ...` typed with a project folder as the working directory is
+  "couldn't read this command safely" (by `check_paths`, with or without an `.ask` file). The
+  session runs the maintain commands from the A-FC folder, as `afc-start` does, so this does not
+  get in the way.
 
 ## Shipped
