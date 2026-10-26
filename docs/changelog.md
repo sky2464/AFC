@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-26 — FC-047 Apps close out cleanly, and a lean log
+
+A spec in a user's app cannot be started with no goal or finished with the architecture notes still empty; the plan answers "where are we" in one computed line; and the plan's log keeps only what cannot be worked out elsewhere, while the full event trail is kept in the workspace.
+
+- Done needs real architecture notes
+- Start needs a goal
+- Where we are
+- A short log and an event file
+- Clean up the log, and keep it clean
+- Live on a copy of the app that was flagged
+
 ## 2026-10-26 — FC-045 Releases and results from the plan
 
 A release is made from the plan, not from a spec. `sh bin/afc release prepare <version>` lists what is done since the last release, drafts the `## <version>` section (10 lines or fewer, plain words) from each spec's goal, and sets VERSION. Each Done row says which release it went out in and what it reached (met, partly, not met), and a small Scoreboard shows the few numbers the goal depends on.

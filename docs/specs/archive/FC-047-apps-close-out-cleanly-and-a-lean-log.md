@@ -1,6 +1,6 @@
 # FC-047 — Apps close out cleanly, and a lean log
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 
 Found on 2026-10-26, comparing this plan with AgToosa's and running `sh bin/afc check`.
 
@@ -121,3 +121,5 @@ Slice 6:
   remote none; last slice 2 address input page; folder php-vuln-checker". The real project was not touched.
 
 ## Shipped
+
+Shipped 2026-10-26. Slices: 6. Criteria: 0 of 8 proven.

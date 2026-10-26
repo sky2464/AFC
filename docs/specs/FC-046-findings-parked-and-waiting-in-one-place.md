@@ -1,6 +1,6 @@
 # FC-046 — Findings, parked and waiting in one place
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: in progress · Started: 2026-10-26 · Done: -
 Area: flow
 
 Found on 2026-10-26, comparing this plan with AgToosa's, whose roadmap index says every item must end
