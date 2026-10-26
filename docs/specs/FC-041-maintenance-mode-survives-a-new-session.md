@@ -159,9 +159,9 @@ with a git folder, `maintain.d/other` as the recent flag, `maintain.d/sess1.ask`
 Slice 4, tried 2026-10-26 with Claude Code 2.1.310. `afc-start` now has the "Mode: undecided" case
 (ask the one question; 1 runs `maintain on`, 2 runs `maintain off`; no project touched until
 answered) and one sentence on the bare number (a question with numbered answers already in the
-conversation is what a bare 1 or 2 answers; if unclear, ask one question). 40 lines to 45, limit 500.
+conversation is what a bare 1 or 2 answers; if unclear, ask one question). 40 lines to 44, limit 500.
 Live check in `/private/tmp/claude-501/.../scratchpad/fc041live` (a scratch copy of this repo on
-`dev`, a scratch `AFC_HOME` with one scratch project and a 0-minute-old flag `maintain.d/oldsession`;
+`dev`, a scratch `AFC_HOME` with one scratch project and a fresh flag `maintain.d/oldsession`;
 `AFC_SESSION` and `CLAUDE_CODE_SESSION_ID` unset for the child, so it could not inherit this
 session's ID). Step 1: `claude -p` with a prompt to reply only "1. Build FC-040 / 2. Go back to your
 projects". Step 2: `claude --continue --fork-session -p 1`.
