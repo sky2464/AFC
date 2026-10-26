@@ -1,6 +1,6 @@
 # FC-030 — Tests only when asked
 
-Size: M · Status: in progress
+Size: M · Status: done
 
 Asked for on 2026-10-25. FC-013 (right-sized tests) and FC-019 (checks only when needed) made the
 suite cheaper to run, but it kept growing, and test talk still fills every reply. Where it stands
@@ -157,3 +157,5 @@ Slice 5, "you'll see it by":
   someone asks for one.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.

@@ -1,6 +1,6 @@
 # FC-031 — Test copy stays current and separate
 
-Size: M · Status: next
+Size: M · Status: done
 
 Found on 2026-10-25 in an `A-FC-test` session (no projects, maintenance mode off). The user typed
 `/afc` twice, then asked "any project running?". What went wrong, in the order the user saw it:
@@ -95,3 +95,5 @@ php-vuln-checker. The welcome banner's text. Auto-running `repair` without the u
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 3.

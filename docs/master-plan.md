@@ -15,20 +15,20 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-030 | Tests only when asked | M | [FC-030](specs/FC-030-tests-only-when-asked.md) | 2026-10-25 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-032 | Every spec reaches the apps | S | [FC-032](specs/FC-032-every-spec-reaches-the-apps.md) |
 | FC-033 | Master plan, one truth | M | [FC-033](specs/FC-033-master-plan-one-truth.md) |
-| FC-031 | Test copy stays current and separate | M | [FC-031](specs/FC-031-test-copy-stays-current-and-separate.md) |
 
 ## Done
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
+| FC-031 | Test copy stays current and separate | 2026-10-25 | [FC-031](specs/archive/FC-031-test-copy-stays-current-and-separate.md) |
+| FC-030 | Tests only when asked | 2026-10-25 | [FC-030](specs/archive/FC-030-tests-only-when-asked.md) |
 | FC-029 | Ready for v0.04a | 2026-10-25 | [FC-029](specs/archive/FC-029-ready-for-v0-04a.md) |
 | FC-028 | Welcome says it once | 2026-10-25 | [FC-028](specs/archive/FC-028-welcome-says-it-once.md) |
 | FC-027 | Add-ons off at start, quiet health check | 2026-10-25 | [FC-027](specs/archive/FC-027-add-ons-off-at-start-quiet-health-check.md) |
@@ -36,9 +36,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
 | FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
 | FC-023 | Smoother flow and welcome fixes | 2026-10-25 | [FC-023](specs/archive/FC-023-smoother-flow-and-fixes.md) |
-| FC-022 | Project role agents, workflow and init | 2026-10-25 | [FC-022](specs/archive/FC-022-project-role-agents-and-workflow.md) |
-| FC-021 | Role agents and model routing | 2026-10-25 | [FC-021](specs/archive/FC-021-role-agents-and-model-routing.md) |
-| FC-020 | Trim skill text and plan bookkeeping | 2026-10-25 | [FC-020](specs/archive/FC-020-trim-skill-text-and-plan-bookkeeping.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -207,3 +204,8 @@ same day showed the rest.
 | 2026-10-25 | FC-029 started |
 | 2026-10-25 | FC-029 done |
 | 2026-10-25 | FC-030 started |
+| 2026-10-25 | FC-030 done |
+| 2026-10-25 | FC-031 started |
+| 2026-10-25 | FC-031 done |
+| 2026-10-25 | FC-032 started |
+| 2026-10-25 | FC-032 done |

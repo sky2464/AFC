@@ -1,6 +1,6 @@
 # FC-032 — Every spec reaches the apps
 
-Size: S · Status: next
+Size: S · Status: done
 
 Asked for on 2026-10-25: the goal of everything built in Flight Control, and of every improvement,
 is that it applies in the end to the apps Flight Control builds for users. Today that lives only in
@@ -61,3 +61,5 @@ missing or empty; `afc/cli_plan.py` prints `ready` per Next row.
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 2.
