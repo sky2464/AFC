@@ -93,7 +93,7 @@ folder gets the same instruction files; until then apps are unchanged.
   elsewhere, with no session ID set (proves A3)
 - [x] 5. Instruction files — you'll see it by `AGENTS.md` and the per-tool pointer files matching
   `CLAUDE.md`, and a check that fails when they drift (proves A4)
-- [ ] 6. Hook adapters — you'll see it by a blocked action in each tool that supports hooks (proves A5)
+- [x] 6. Hook adapters — you'll see it by a blocked action in each tool that supports hooks (proves A5)
 - [ ] 7. `/afc` flow and health line — you'll see it by `sh bin/afc check` listing each tool's state
   (proves A6, A7)
 
@@ -109,6 +109,14 @@ Slice 1:
 
 ## Shipped
 
+- Slice 6 (2026-10-26): `sh bin/afc hook adapter <cursor|codex|copilot|antigravity>` turns each tool's
+  payload into the event the Claude Code guard reads and answers in that tool's words; with no
+  Python or a bad `.afc-home` it blocks (exit 2). Hook files: `.cursor/hooks.json`,
+  `.codex/hooks.json`, `.github/hooks/flight-control.json`, `.agents/hooks.json`. Cursor blocks shell
+  commands and file reads (it has no hook before an edit); the others block shell and edits. Built
+  from each vendor's docs and tested with sample payloads, NOT yet run inside the real tools:
+  Codex needs the user to trust the hook once; Copilot's `toolArgs` shape and Antigravity's exit
+  codes are not documented, so a first real run in each tool should confirm them.
 - Slice 5 (2026-10-26): `sh bin/afc instructions` checks and `--write` regenerates `AGENTS.md` (a
   preface for non-Claude tools plus CLAUDE.md) and the Copilot pointer; a test fails when they drift,
   so CI catches it. Apps are unchanged: they get no instruction files yet.

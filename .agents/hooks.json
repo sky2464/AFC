@@ -1,0 +1,11 @@
+{
+  "flight-control": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "run_command|write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [{"type": "command", "command": "sh \"$(git rev-parse --show-toplevel)/bin/afc\" hook adapter antigravity", "timeout": 30}]
+      }
+    ]
+  }
+}
