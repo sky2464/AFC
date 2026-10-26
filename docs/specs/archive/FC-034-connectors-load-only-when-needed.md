@@ -1,6 +1,6 @@
 # FC-034 — Connectors load only when needed
 
-Size: M · Status: in progress
+Size: M · Status: done
 
 Found on 2026-10-25 (finding R7 in the master plan). With the account add-ons switched off, a
 plain "hi" in a Flight Control session still loads 350 tools, 107 skills and 60,291 tokens (FC-027,
@@ -138,3 +138,5 @@ Slice 5:
   start's welcome says nothing about connectors.
 
 ## Shipped
+
+Shipped 2026-10-25. Slices: 5.

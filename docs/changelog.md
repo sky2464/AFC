@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-25 — FC-034 Connectors load only when needed
+
+A Flight Control session starts with only the connectors that matter for the active project, and anything else is one plain request away. The start costs far fewer tokens, and nobody loses a connector they need.
+
+- Where the tokens go
+- A connector list per project
+- Hold back the rest at start
+- Ask for one in plain words
+- Live check
+
 ## 2026-10-25 — FC-033 Master plan, one truth
 
 There is one master plan: the one on `dev` (for Flight Control) or in the project's workspace (for an app). Starting, finishing and checking work updates it automatically, wherever the work runs, and no copy can disagree with it.
