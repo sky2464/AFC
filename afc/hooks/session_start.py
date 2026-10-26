@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 from afc import update, update_apply, version
-from afc.config import afc_home, afc_root, maintain_enabled, needs_choice, seen, valid_session
+from afc.config import afc_home, afc_root, maintain_enabled, needs_choice, seen, undecided as is_undecided, valid_session
 from afc.context_brief import brief_path
 from afc.registry import load_registry
 
@@ -271,14 +271,16 @@ CHOOSE = "1. Keep working on Flight Control (recommended)  2. Go to your project
 
 def _undecided_output() -> dict:
     """The welcome for a fork or clear that follows recent maintenance work: one question, nothing else."""
-    message = f"{INTRO}\nFlight Control work was under way here a moment ago.\n{CHOOSE}"
+    message = f"{INTRO}\n{CHOOSE}"
     context = (
         "Flight Control session. Mode: undecided — this session is a fork or a clear, and another "
         "session was doing maintenance work on Flight Control here less than 12 hours ago. Do not "
         "read, build or change any project, and ignore the active project, until the user answers. "
-        f"The welcome asked one question: {CHOOSE}. If the first message is 1, run sh bin/afc "
-        "maintain on; if it is 2, run sh bin/afc maintain off; then say in one plain line which "
-        "one is on. For anything else, ask that same question again and nothing more."
+        f"The welcome asked one question: {CHOOSE}. Unless the conversation already ends in a "
+        "question that has its own numbered answers (then ask that one question again and nothing "
+        "more), if the first message is 1, run sh bin/afc maintain on; if it is 2, run sh bin/afc "
+        "maintain off; then say in one plain line which one is on. For anything else, ask that same "
+        "question again and nothing more."
     )
     return _wrap(message, context)
 
@@ -360,7 +362,7 @@ def _save_session(session: str | None) -> None:
 
 
 def _source_in(stdin_text: str) -> str | None:
-    """The hook event's source (startup, resume, clear, compact) when it is a string."""
+    """The hook event's source (startup, resume, fork, clear, compact) when it is a string."""
     try:
         event = json.loads(stdin_text)
     except ValueError:
@@ -378,7 +380,9 @@ def main(stdout=None, stdin_text: str = "") -> int:
     except Exception:
         home = Path.home() / ".A-FC"
     try:
-        undecided = needs_choice(home, session, _source_in(stdin_text), seen(home, session))
+        was_seen = seen(home, session)
+        # a session that still has an unanswered question (any source) is asked once more
+        undecided = is_undecided(home, session) or needs_choice(home, session, _source_in(stdin_text), was_seen)
     except Exception:  # the welcome must never break
         undecided = False
     out = _with_home_note(build_output(home, session, undecided=undecided), home)

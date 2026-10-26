@@ -34,7 +34,7 @@ mistake (`afc/hooks/session_start.py`, `afc/hooks/rules_maintenance.py`, `afc/co
 
 ## You'll know it works when
 
-- A new session that starts as `resume` or `clear` with a session ID Flight Control hasn't seen
+- A new session that starts as `resume`, `fork` or `clear` with a session ID Flight Control hasn't seen
   before, in a copy where some other session turned maintenance mode on less than 12 hours ago,
   opens with one question and nothing else: "1. Keep working on Flight Control (recommended)
   2. Go to your project". A plain resume or compaction (same ID), a fresh `startup`, a flag older than 12 hours, or
@@ -58,13 +58,19 @@ be asked, 2026-10-26).
 
 ## Design notes
 
-- "A session ID Flight Control hasn't seen" is a file `~/.A-FC/sessions.d/<id>` the hook touches
-  at every start (pruned after 7 days like the maintenance flags). A plain resume or compaction keeps
-  its ID, so it finds the file and never asks.
+- "A session ID Flight Control hasn't seen" is an ID with no file `~/.A-FC/sessions.d/<id>` (touched
+  by the hook at every start, pruned after 30 days) and no maintenance flag or `.ask` file of its own.
+  A plain resume or compaction keeps its ID, so it finds one of them and never asks, including a
+  session that began before the marks existed. A resume whose ID was never seen cannot be told from
+  a fork, so only a genuinely unseen ID counts as new, and only with a flag under 12 hours old.
 - "Undecided" is a file `maintain.d/<id>.ask`. `maintain on` and `maintain off` both remove it.
   The pretool guard reads it before anything else and blocks project code writes and project git
   while it exists; Flight Control's own folder is not blocked, so the session can still run
   `maintain on`/`off` and read the plan.
+- An `.ask` file is never pruned by age with the flags. It ends when `maintain on|off` answers it, or
+  after 24 hours (`ASK_EXPIRES`): the question was never answered, so the block is lifted and the
+  session is plain project work. A session that starts again (any source) while its `.ask` is still
+  there is asked once more. `maintain on|off` with no session ID is an error, not a success.
 - The question's text comes from the welcome's context; it is not left to the model. `afc-start`
   has a case for it ("Mode: undecided"): ask the question, nothing else, answer 1 with
   `sh bin/afc maintain on`, 2 with `sh bin/afc maintain off`.
@@ -77,7 +83,7 @@ be asked, 2026-10-26).
 - [x] 1. See what a restart sends — you'll see it by a scratch copy whose hook writes each event's
       `source` and `session_id` to a scratch file for a real startup, `--continue` (resume), /clear
       and compaction, written in Decisions
-- [ ] 2. Ask when a fork or clear follows maintenance work — you'll see it by `sh bin/afc hook
+- [x] 2. Ask when a fork or clear follows maintenance work — you'll see it by `sh bin/afc hook
       session_start` run with a scratch home: another session's flag 1 hour old plus `source: resume`
       and an unseen ID gives a context with "Mode: undecided" and the one question, and the same
       event again (ID now seen), `source: startup`, a flag 13 hours old, and no flag at all each
@@ -95,8 +101,8 @@ be asked, 2026-10-26).
 
 Slice 2:
 - `afc/config.py`: `ASK_WITHIN = 12 * 3600`; `seen(home, session)` touches `sessions.d/<id>` and
-  returns whether it already existed (pruned at 7 days); `needs_choice(home, session, source,
-  now)` is true when `source` is `resume` or `clear`, the ID was unseen, this session has no
+  returns whether it already existed or the ID has a flag or `.ask` (marks pruned at 30 days);
+  `needs_choice(home, session, source, was_seen)` is true when `source` is `resume`, `fork` or `clear`, the ID was unseen, this session has no
   flag, and another session's flag is under `ASK_WITHIN` old. It writes `maintain.d/<id>.ask`.
 - `afc/hooks/session_start.py`: `main` reads `source`, calls `seen` and `needs_choice` before
   `build_output`; when true the context says "Mode: undecided" with the question and that no
@@ -123,7 +129,8 @@ discarded, nothing landed on `dev`):
 - `--continue` (resume): `source: resume`, the SAME ID (`5c170ff2`). `--resume <id>` the same.
 - compaction (`/compact`): `source: compact`, the SAME ID.
 - `/clear`: `source: clear`, a NEW ID (`56dc4aa8`).
-- `--continue --fork-session`: `source: resume`, a NEW ID (`c70a583f`).
+- `--continue --fork-session`: `source: resume`, a NEW ID (`c70a583f`). Later (slice 4, fix 1):
+  "resume" was seen in one headless run and "fork" in another; both are handled.
 
 So `source` is always sent, but the ID changes only on /clear and on a fork, not on a plain resume or
 compaction. Slice 2 as written (carry on resume, clear, compact) is still safe, but a plain resume

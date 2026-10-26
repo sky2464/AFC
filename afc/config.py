@@ -24,7 +24,12 @@ def afc_root() -> Path:
 
 SESSION_ID = re.compile(r"^[A-Za-z0-9_-]{1,100}$")
 STALE_AFTER = 7 * 86400  # a session's maintenance flag older than this is dropped
+SEEN_AFTER = 30 * 86400  # a session ID's "seen" mark (sessions.d) is dropped after this
 ASK_WITHIN = 12 * 3600  # a fork or clear is asked about when another session's flag is newer than this
+# An unanswered question (maintain.d/<id>.ask) expires after this. _prune never deletes .ask files:
+# the block is lifted only by `maintain on|off` (the answer) or, when the question was never
+# answered, by this expiry, after which the session is plain project work.
+ASK_EXPIRES = 24 * 3600
 
 
 def valid_session(value: object) -> str | None:
@@ -75,9 +80,20 @@ NO_SESSION = ("Maintenance mode needs this session's ID; open Flight Control in 
 
 def undecided(home: Path, session: str | None = None) -> bool:
     """True while this session was asked "Flight Control or your project?" and hasn't answered
-    (maintain.d/<id>.ask exists). A copy on `main` is never undecided."""
+    (maintain.d/<id>.ask exists and is under ASK_EXPIRES old). A copy on `main` is never undecided."""
     session = valid_session(session)
-    return bool(session) and not on_main() and (_flags(home) / f"{session}.ask").exists()
+    if not session or on_main():
+        return False
+    ask = _flags(home) / f"{session}.ask"
+    try:
+        if not ask.exists():
+            return False
+        if time.time() - ask.stat().st_mtime >= ASK_EXPIRES:
+            ask.unlink(missing_ok=True)  # never answered for a day: the block is lifted
+            return False
+    except OSError:
+        return False
+    return True
 
 
 def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
@@ -100,10 +116,13 @@ def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
         (flags / f"{session}.ask").unlink(missing_ok=True)
 
 
-def _prune(flags: Path) -> None:
-    cutoff = time.time() - STALE_AFTER
+def _prune(flags: Path, age: float = STALE_AFTER) -> None:
+    """Drop files older than `age`. Never touches .ask files: only an answer or ASK_EXPIRES ends those."""
+    cutoff = time.time() - age
     for flag in flags.iterdir():
         try:
+            if flag.name.endswith(".ask"):
+                continue
             if flag.stat().st_mtime < cutoff:
                 flag.unlink()
         except OSError:
@@ -112,17 +131,20 @@ def _prune(flags: Path) -> None:
 
 def seen(home: Path, session: str | None) -> bool:
     """Note that Flight Control has started this session ID, and say whether it already had.
-    Records live in sessions.d and are pruned like the maintenance flags. No usable ID counts as seen."""
+    An ID that has ANY mark (sessions.d), maintenance flag or .ask file counts as seen, so a session
+    that began before marks existed is not taken for new. Marks live in sessions.d and are pruned
+    after SEEN_AFTER (30 days), longer than the maintenance flags. No usable ID counts as seen."""
     session = valid_session(session)
     if not session:
         return True
     folder = home / "sessions.d"
     try:
         mark = folder / session
-        existed = mark.exists()
+        flags = _flags(home)
+        existed = mark.exists() or (flags / session).exists() or (flags / f"{session}.ask").exists()
         folder.mkdir(parents=True, exist_ok=True)
         mark.touch()
-        _prune(folder)
+        _prune(folder, SEEN_AFTER)
         return existed
     except OSError:
         return True  # never ask because of a file problem
@@ -130,12 +152,12 @@ def seen(home: Path, session: str | None) -> bool:
 
 def needs_choice(home: Path, session: str | None, source: object, was_seen: bool,
                  now: float | None = None) -> bool:
-    """True when this start is a fork or clear: source resume or clear, an ID not seen before
+    """True when this start is a fork or clear: source resume, fork or clear, an ID not seen before
     (`was_seen` is what `seen` returned), no flag for this session, and another session's flag
     under ASK_WITHIN old. Then maintain.d/<id>.ask is written: undecided until `maintain on` or
     `maintain off`. Never raises."""
     session = valid_session(session)
-    if not session or was_seen or source not in ("resume", "clear"):
+    if not session or was_seen or source not in ("resume", "fork", "clear"):
         return False
     try:
         if on_main():

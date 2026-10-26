@@ -22,7 +22,8 @@ situation's question.
 question. Anything else: answer briefly, then ask the update question. Never both in one message.
 - **Undecided** (`Mode: undecided`): ask only the one question from the context line, nothing else.
   1 runs `sh bin/afc maintain on`, 2 runs `sh bin/afc maintain off`, then carry on as that mode.
-  Until answered, touch no project.
+  Unless the conversation already ends in a question with its own numbered answers: then ask the one
+  question again and nothing more. Until answered, touch no project.
 - **Maintenance mode** (`Mode: maintenance`): this session is for working on
   Flight Control itself. Skip the start flow and never offer or open a project. Say in one line that
   maintenance mode is on and projects are set aside, then ask what to work on:
