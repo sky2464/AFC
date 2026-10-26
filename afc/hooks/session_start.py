@@ -155,7 +155,8 @@ def _connectors_line(reg, root: Path, home: Path | None = None, ignore_project: 
     held = []
     try:
         held = connectors.tracked_held(home)
-        if held and connectors.told(home, root) is None:
+        before = connectors.told(home, root)
+        if held and (before is None or any(n not in before for n in held)):
             tracked = len(held)
     except Exception:
         tracked = 0

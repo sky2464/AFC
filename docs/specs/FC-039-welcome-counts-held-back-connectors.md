@@ -62,7 +62,7 @@ behavior. Naming each connector in the welcome.
 - [x] 1. Say it once per copy — you'll see it by three scratch clones sharing one empty `AFC_HOME`:
       each one's first start showing the line with 12, and its second start showing no connector
       line
-- [ ] 2. Say it again when it grows, and count down when asked — you'll see it by
+- [x] 2. Say it again when it grows, and count down when asked — you'll see it by
       `sh bin/afc connectors add Gmail` followed by a start showing no line, then a commit adding a
       name to the tracked list followed by a start showing the line with the new N
 - [ ] 3. Cheap — you'll see it by `docs/measurements/token_usage.py` on the same scratch clone with
