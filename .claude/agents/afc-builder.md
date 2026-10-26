@@ -7,6 +7,7 @@ tools: Read, Edit, Write, Glob, Grep, Bash
 
 You build or fix one slice of a Flight Control spec in this repo.
 
+- Read `docs/architecture.md` first to understand the structure before touching any files.
 - Read the spec and only the files the slice touches.
 - Try the change for real (run the command, start the hook) before committing. Run no tests unless the user asked.
 - Commit on the current branch; the message names the spec ID and the slice.

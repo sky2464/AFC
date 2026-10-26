@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-049 | Architecture memory for Flight Control | M | [spec](specs/FC-049-architecture-memory-for-flight-control.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-049 | Architecture memory for Flight Control | M | [spec](specs/FC-049-architecture-memory-for-flight-control.md) |
 | FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) |
 
 

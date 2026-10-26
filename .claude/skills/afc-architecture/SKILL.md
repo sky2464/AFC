@@ -47,7 +47,9 @@ screen and the nightly export."
 ## After a slice
 
 When a slice changed structure, refresh the graph with `sh bin/afc index refresh`, then update
-`plan/architecture.md`. If nothing structural changed, leave both alone.
+`plan/architecture.md`. If a new module, skill, agent or workflow was added or removed, update the
+Key files cell in the Components table so `sh bin/afc check` finds no unmapped paths. If nothing
+structural changed, leave both alone.
 
 ## Checking the current architecture
 

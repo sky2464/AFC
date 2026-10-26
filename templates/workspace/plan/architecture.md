@@ -28,8 +28,8 @@ The main modules inside each container.
 
 ## 4. Containers and components
 
-| Name | Responsibility | Talks to |
-|---|---|---|
+| Name | Responsibility | Key files | Talks to |
+|---|---|---|---|
 
 ## 5. Data flow
 

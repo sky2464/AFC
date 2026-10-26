@@ -406,6 +406,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     fc_space = plan.flight_control_space(cli_plan._plan_root())
     problems += plan_problems(fc_space)
     problems += _findings_problems(fc_space)
+    problems += architecture_fc_problems(cli.afc_root())
     for p in reg.projects.values():
         if Path(p.workspace_path).is_dir():
             proj_space = plan.project_space(Path(p.workspace_path))
@@ -496,13 +497,80 @@ def architecture_is_bare(path: Path) -> bool:
 
 def _architecture_problems(project) -> list[dict]:
     """A project with a done slice whose architecture.md is still the bare template (whitespace
-    aside). Claude fills it from the code, so it is reported, never auto-fixed."""
+    aside), or whose Key files cells name paths missing from the code folder. Claude fills and
+    fixes the notes, so both are reported, never auto-fixed."""
     path = Path(project.workspace_path) / "plan" / "architecture.md"
-    if not project.last_slice or not architecture_is_bare(path):
+    if project.last_slice and architecture_is_bare(path):
+        return [_problem("architecture_empty", str(path), False, project=project.name,
+                         detail=f"{project.name}: slices are done but architecture.md is still the empty "
+                                "template; Claude fills it in from the code.")]
+    return _architecture_pointer_problems(path, Path(project.code_path), project=project.name)
+
+
+def _key_files(text: str) -> list[tuple[str, str]]:
+    """(row name, path) for each backticked path in a table column headed "Key files"."""
+    found: list[tuple[str, str]] = []
+    col = None
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            col = None
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if col is None:
+            col = cells.index("Key files") if "Key files" in cells else -1
+        elif col >= 0 and col < len(cells) and not set(cells[col]) <= set("-: "):
+            found += [(cells[0], raw.strip()) for raw in re.findall(r"`([^`]+)`", cells[col]) if raw.strip()]
+    return found
+
+
+def _architecture_pointer_problems(path: Path, base: Path, project: str = "") -> list[dict]:
+    """`architecture_dead_pointer` for each Key files path not found under `base`. A path ending in
+    `/` must be a folder. Filesystem only, no git, so the check stays quick."""
+    if not path.is_file():
         return []
-    return [_problem("architecture_empty", str(path), False, project=project.name,
-                     detail=f"{project.name}: slices are done but architecture.md is still the empty "
-                            "template; Claude fills it in from the code.")]
+    found = []
+    for row, entry in _key_files(path.read_text(encoding="utf-8")):
+        target = base / entry
+        if target.is_dir() if entry.endswith("/") else target.exists():
+            continue
+        prefix = f"{project}: " if project else ""
+        found.append(_problem("architecture_dead_pointer", str(path), False, project=project,
+                              detail=f"{prefix}architecture.md row \"{row}\" names `{entry}`, "
+                                     "which does not exist."))
+    return found
+
+
+def _architecture_unmapped_problems(root: Path) -> list[dict]:
+    """`architecture_unmapped` for each `afc/` module, skill, agent or workflow in Flight Control
+    that no Key files cell in `docs/architecture.md` names, directly or through its folder."""
+    arch = root / "docs" / "architecture.md"
+    if not arch.is_file():
+        return []
+    named = {entry for _, entry in _key_files(arch.read_text(encoding="utf-8"))}
+
+    def covered(rel: str) -> bool:
+        parts = rel.rstrip("/").split("/")
+        return rel in named or any("/".join(parts[:i]) + "/" in named for i in range(1, len(parts)))
+
+    afc_dir, claude = root / "afc", root / ".claude"
+    paths = [f.relative_to(root).as_posix() for f in sorted(afc_dir.rglob("*.py"))
+             if "__pycache__" not in f.parts and f.name not in ("__init__.py", "__main__.py")] \
+        if afc_dir.is_dir() else []
+    for folder, dirs in (("skills", True), ("agents", False), ("workflows", False)):
+        here = claude / folder
+        if here.is_dir():
+            paths += [f".claude/{folder}/{d.name}" + ("/" if dirs else "") for d in sorted(here.iterdir())
+                      if (d.is_dir() if dirs else d.is_file()) and not d.name.startswith(".")]
+    return [_problem("architecture_unmapped", str(arch), False,
+                     detail=f"docs/architecture.md has no Key files entry covering `{rel}`; "
+                            "add it to the Components table.")
+            for rel in paths if not covered(rel)]
+
+
+def architecture_fc_problems(root: Path) -> list[dict]:
+    """Dead pointers and unmapped modules in Flight Control's own `docs/architecture.md`."""
+    return _architecture_pointer_problems(root / "docs" / "architecture.md", root) \
+        + _architecture_unmapped_problems(root)
 
 
 def _findings_problems(space) -> list[dict]:
