@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-033 | Master plan, one truth | M | [FC-033](specs/FC-033-master-plan-one-truth.md) | 2026-10-25 |
 
 ## Next
 
@@ -26,6 +25,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-033 | Master plan, one truth | 2026-10-25 | [FC-033](specs/archive/FC-033-master-plan-one-truth.md) |
 | FC-032 | Every spec reaches the apps | 2026-10-25 | [FC-032](specs/archive/FC-032-every-spec-reaches-the-apps.md) |
 | FC-031 | Test copy stays current and separate | 2026-10-25 | [FC-031](specs/archive/FC-031-test-copy-stays-current-and-separate.md) |
 | FC-030 | Tests only when asked | 2026-10-25 | [FC-030](specs/archive/FC-030-tests-only-when-asked.md) |
@@ -35,7 +35,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-026 | Release check and v0.03a | 2026-10-25 | [FC-026](specs/archive/FC-026-release-check-and-v0-03a.md) |
 | FC-025 | Token usage cost by model | 2026-10-25 | [FC-025](specs/archive/FC-025-token-usage-by-model.md) |
 | FC-024 | Optional TypeSafe Jev (stub; research idea only, not part of main) | 2026-10-25 | [FC-024](specs/archive/FC-024-optional-jev.md) |
-| FC-023 | Smoother flow and welcome fixes | 2026-10-25 | [FC-023](specs/archive/FC-023-smoother-flow-and-fixes.md) |
 
 ## Findings from the first live run (2026-10-23)
 
@@ -210,3 +209,4 @@ same day showed the rest.
 | 2026-10-25 | FC-032 started |
 | 2026-10-25 | FC-032 done |
 | 2026-10-25 | FC-033 started |
+| 2026-10-25 | FC-033 done |

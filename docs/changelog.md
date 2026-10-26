@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-25 — FC-033 Master plan, one truth
+
+There is one master plan: the one on `dev` (for Flight Control) or in the project's workspace (for an app). Starting, finishing and checking work updates it automatically, wherever the work runs, and no copy can disagree with it.
+
+- Close what's built
+- The build moves the plan
+- One plan wherever you stand
+- A stale plan is found and fixed
+- Apps stay current
+
 ## 2026-10-25 — FC-032 Every spec reaches the apps
 
 Every FC spec says how its change reaches the apps Flight Control builds, or says plainly that it can't. The rule is written into Flight Control itself, not left in notes.
