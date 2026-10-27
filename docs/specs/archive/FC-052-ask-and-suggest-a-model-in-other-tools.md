@@ -1,6 +1,6 @@
 # FC-052 — Ask and suggest a model in other tools
 
-Size: M · Status: in progress · Started: 2026-10-27 · Done: -
+Size: M · Status: done · Started: 2026-10-27 · Done: 2026-10-27
 Area: tokens
 
 Asked for on 2026-10-27. FC-050 gives every job its model (architect Opus high, plan Opus, build
@@ -273,3 +273,5 @@ Slice 5:
   heavy-job question), second architect and `build` each `ask: false` (0).
 
 ## Shipped
+
+Shipped 2026-10-27. Slices: 5. Criteria: 0 of 9 proven.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-27 — FC-052 Ask and suggest a model in other tools
+
+When Flight Control runs in a tool other than Claude Code, it asks in plain words which model to use for this project, once. If the user already has a model in that tool's settings, it can suggest keeping it or switching to a better fit those settings show. If the user does not know which model to pick (or no model is shown), it checks the local environment and a short public look-up for what is current, then offers three numbered choices: top tier (premium), best for cost, and hybrid (best balance of quality and cost). "Cost" here means what that tool usually includes on a subscription plan (Cursor, Copilot, Codex, Antigravity and the like), not pay-per-token API keys. For heavy jobs (architecture and spec planning) it asks again if the chosen model is a light one. It never changes the tool's settings itself; the user switches in the tool's own model picker.
+
+- Read the tool and its model
+- Three options when they don't know
+- Ask once and remember
+- Ask again for the heavy jobs
+- Health line and live run
+
 ## 2026-10-27 — FC-052 slice 3 Ask once and remember
 
 In a tool other than Claude Code, when a project starts and no model is kept for that tool, Flight Control asks one question. If the tool already shows a model, that question is to keep it or switch to one suggestion. If nothing is shown, that question is three options: premium, best cost, and hybrid. The answer is written to the workspace `agents/routing.json` under `tools.<tool>.model` and `seen`; a second session on the same project and tool does not ask again unless the tool's settings show a different model. The preface bullet and `afc-start` ask only after the welcome question is answered.

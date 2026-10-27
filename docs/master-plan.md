@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-052 | Ask and suggest a model in other tools | M | [spec](specs/FC-052-ask-and-suggest-a-model-in-other-tools.md) | 2026-10-27 |
 
 ## Next
 
@@ -32,6 +31,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) |  |  |
 | FC-051 | Flight Control works in other AI tools | 2026-10-27 | [FC-051](specs/archive/FC-051-flight-control-works-in-other-ai-tools.md) |  |  |
 | FC-050 | Right model for each job | 2026-10-27 | [FC-050](specs/archive/FC-050-right-model-for-each-job.md) |  |  |
 | FC-049 | Architecture memory for Flight Control | 2026-10-26 | [FC-049](specs/archive/FC-049-architecture-memory-for-flight-control.md) |  |  |
@@ -41,7 +41,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |  |  |
 | FC-048 | MM: prefix turns maintenance mode on | 2026-10-26 | [FC-048](specs/archive/FC-048-mm-prefix-turns-maintenance-mode-on.md) |  |  |
 | FC-043 | Ready means ready | 2026-10-26 | [FC-043](specs/archive/FC-043-ready-means-ready.md) |  |  |
-| FC-040 | Ready for v0.06a | 2026-10-26 | [FC-040](specs/archive/FC-040-ready-for-v0-06a.md) |  |  |
 
 ## Areas
 
