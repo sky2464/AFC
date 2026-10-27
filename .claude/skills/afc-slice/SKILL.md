@@ -40,7 +40,7 @@ nothing, never create a branch in the app to make the request fit.
 3. If the slice changes structure (a new module, boundary, dependency or outside call), hand it to
    the `afc-architect` agent first: it adds a short design note to the spec's Design notes, and after
    the build it writes the `architecture.md` row and the `--architecture` note; never the main
-   session or the builder.
+   session or the builder. Never pass `model` or `effort` when you call an agent; the agent file decides.
 4. A mini threat check, at most five rows, kept internal:
 
 | Threat | Category | Mitigation |
@@ -53,7 +53,7 @@ Elevation of privilege.
 
 - Try the change for real as you build. Write or run tests only when the user asks.
 - Changelog and release wording, README edits, findings intake and plan bookkeeping text go to the
-  `afc-docs` agent, never the builder.
+  `afc-docs` agent, never the builder. Never pass `model` or `effort` when you call an agent; the agent file decides.
 - Code goes only into the active project's code path. If a guard blocks you
   ("Flight Control blocked …"), fix the cause or say so; never work around it.
   A guard that should have fired is a full stop.
