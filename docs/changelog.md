@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-27 — FC-052 slice 3 Ask once and remember
+
+In a tool other than Claude Code, when a project starts and no model is kept for that tool, Flight Control asks one question. If the tool already shows a model, that question is to keep it or switch to one suggestion. If nothing is shown, that question is three options: premium, best cost, and hybrid. The answer is written to the workspace `agents/routing.json` under `tools.<tool>.model` and `seen`; a second session on the same project and tool does not ask again unless the tool's settings show a different model. The preface bullet and `afc-start` ask only after the welcome question is answered.
+
+- `model choose <model>` writes `tools.<tool>` in the workspace `agents/routing.json`
+- `model` reports `ask: true/false` from kept state and tool settings
+- PREFACE and `afc-start` ask after the welcome; three options when present
+- Claude Code never asks; the model points to role agents and FC-050
+
 ## 2026-10-27 — FC-052 slice 2 Three-option model lookup from local and vendor docs
 
 When a tool like Cursor does not show the user a current model, `sh bin/afc model --options` now checks local settings and fetches current models for that tool from public vendor docs. It returns exactly three options (premium, best cost, hybrid) with one-line reasons aimed at subscription users. The look-up has an 8-second timeout, fails soft to a per-machine cache under `~/.A-FC/model-options/`, and never invents model IDs. `AFC_MODEL_LOOKUP=off` skips the fetch and uses the cache or local settings only.

@@ -129,7 +129,7 @@ Nothing personal or secret is logged. Session output stays in Claude Code's own 
 - 2026-10-27 FC-050 slice 6: no structural change
 - 2026-10-27 FC-052 slice 1: `afc/tool_model.py` reads tool and local model; `afc/cli_model.py` prints them
 - 2026-10-27 FC-052 slice 2: `afc/tool_model.py` adds timed public look-up (allow-listed docs, no keys) cached in `~/.A-FC/model-options/`; `afc/cli_model.py` gains `--role`, `--options`
-- 2026-10-27 FC-052 slice 2: Timed public look-up (allow-listed vendor docs, no keys) cached in ~/.A-FC/model-options/; cli_model gains --role and --options
+- 2026-10-27 FC-052 slice 3: workspace `agents/routing.json` gains `tools.<tool>.model` / `.seen` via `model choose`; `load_routing` / `save_routing` keep it; `model` returns `ask` (false in Claude Code)
 
 ## 10. Maintenance rules
 
