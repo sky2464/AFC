@@ -179,7 +179,7 @@ Nothing is written into the app's code folder.
 - [x] 4. Ask again for the heavy jobs — you'll see it by an architecture request in Cursor on a
       light kept model asking once, a build request asking 0 times, and a second architecture request
       in the same session asking 0 times (proves A6)
-- [ ] 5. Health line and live run — you'll see it by `sh bin/afc check` listing the shown and kept
+- [x] 5. Health line and live run — you'll see it by `sh bin/afc check` listing the shown and kept
       model on each tool's line, and the live Cursor "don't know" run's three options and choice
       written in Decisions (proves A8, A9)
 
@@ -263,5 +263,13 @@ Slice 5:
   first `model --role architect` returned `ask: true` with `suggest` `claude-fable-5-1`; second
   `model --role architect` returned `ask: false`; `model --role build` returned `ask: false`.
   Session marker under `model.d/` prevents a second heavy ask in the same session.
+
+- 2026-10-27 slice 5 (Cursor, scratch `fc052-s5b` / `fc052-s5c`, isolated `AFC_HOME`, `CURSOR_AGENT=1`):
+  `sh bin/afc check` `other_tools` lines now include `model shown` (per machine) and `kept` (active
+  project or `n/a`). `model --options` returned three choices: (1) premium `claude-fable-5-1`, (2)
+  cost `Composer 2.5`, (3) hybrid `claude-sonnet-5-5` (recommended), from the Cursor models doc;
+  `model choose claude-sonnet-5-5` kept hybrid; second `model` had `ask: false` (0 start questions).
+  On `fc052-s5c` with light kept `composer-2.5`: first `model --role architect` `ask: true` (1
+  heavy-job question), second architect and `build` each `ask: false` (0).
 
 ## Shipped

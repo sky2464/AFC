@@ -131,6 +131,7 @@ Nothing personal or secret is logged. Session output stays in Claude Code's own 
 - 2026-10-27 FC-052 slice 2: `afc/tool_model.py` adds timed public look-up (allow-listed docs, no keys) cached in `~/.A-FC/model-options/`; `afc/cli_model.py` gains `--role`, `--options`
 - 2026-10-27 FC-052 slice 3: workspace `agents/routing.json` gains `tools.<tool>.model` / `.seen` via `model choose`; `load_routing` / `save_routing` keep it; `model` returns `ask` (false in Claude Code)
 - 2026-10-27 FC-052 slice 4: `model --role architect|plan` may return `ask: true` once per session when kept model is light; marker in `~/.A-FC/model.d/`
+- 2026-10-27 FC-052 slice 5: `tool_coverage` health lines add model shown and kept; `cli_health.check` passes active routing
 
 ## 10. Maintenance rules
 
