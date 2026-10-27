@@ -22,6 +22,7 @@ Every change must reach the apps Flight Control builds for users.
 | ID | Title | Size | Spec |
 |---|---|---|---|
 | FC-051 | Flight Control works in other AI tools | L | [spec](specs/FC-051-flight-control-works-in-other-ai-tools.md) |
+| FC-052 | Ask and suggest a model in other tools | M | [spec](specs/FC-052-ask-and-suggest-a-model-in-other-tools.md) |
 
 
 ## Waiting on you

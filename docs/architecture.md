@@ -125,6 +125,8 @@ Nothing personal or secret is logged. Session output stays in Claude Code's own 
 
 - The `## Decisions` section of each spec in `docs/specs/` (archived ones in `docs/specs/archive/`)
 - `docs/changelog.md` for what each release changed; `docs/findings.md` for open findings
+- 2026-10-27 FC-050 slice 5: no structural change
+- 2026-10-27 FC-050 slice 6: no structural change
 
 ## 10. Maintenance rules
 
