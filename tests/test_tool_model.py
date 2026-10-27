@@ -46,11 +46,14 @@ class ToolModelHomeTests(unittest.TestCase):
     def test_role_switch_suggest_ignores_afc_workspace_for_locals(self, _lookup):
         shown = {"tool": "cursor", "model": "composer-2.5-fast", "shown": True}
         with mock.patch("pathlib.Path.home", return_value=self.user_home):
-            wrong = role_switch_suggest("architect", {}, shown=shown, home=self.afc_workspace)
-            right = role_switch_suggest("architect", {}, shown=shown)
-        self.assertIsNone(wrong)
-        self.assertIsNotNone(right)
-        self.assertEqual(right["model"], "claude-opus-5-5-medium")
+            with_workspace = role_switch_suggest(
+                "architect", {}, shown=shown, home=self.afc_workspace
+            )
+            without = role_switch_suggest("architect", {}, shown=shown)
+        self.assertIsNotNone(with_workspace)
+        self.assertIsNotNone(without)
+        self.assertEqual(with_workspace["model"], "claude-opus-5-5-medium")
+        self.assertEqual(without["model"], "claude-opus-5-5-medium")
 
 
 if __name__ == "__main__":
