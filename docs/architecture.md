@@ -64,11 +64,11 @@ See section 4.
 | Workspace and registry | Create, relocate and look up project workspaces; load the active project | `afc/workspace.py`, `afc/workspace_upgrade.py`, `afc/registry.py`, `afc/config.py`, `afc/session_dirs.py` |
 | Update and release | Fetch and apply updates from origin; numbered upgrade steps for workspace layout changes | `afc/update.py`, `afc/update_apply.py`, `afc/cli_version.py`, `afc/release.py`, `afc/upgrade_001.py`, `afc/version.py` |
 | Add-ons and connectors | Track the allowed MCP server list; swap a project's tools in and out per session | `afc/addons.py`, `afc/connectors.py`, `afc/cli_connectors.py`, `afc/tools.py`, `afc/cli_tools.py`, `afc-addons.json` |
-| CLI dispatch and support | Entry points, parser, project setup, slice recording, delivery, settings, ship | `afc/cli.py`, `afc/cli_parser.py`, `afc/cli_project_setup.py`, `afc/cli_slice.py`, `afc/cli_delivery.py`, `afc/cli_settings.py`, `afc/cli_ship.py`, `afc/cli_home.py`, `afc/cli_maintain.py`, `afc/cli_projects.py`, `afc/cli_defaults.py`, `afc/cli_awake.py`, `afc/cli_test.py`, `afc/cli_context.py`, `afc/cli_agents.py`, `afc/ship.py`, `afc/git_ops.py`, `afc/undo.py`, `afc/profile.py`, `afc/rules.py`, `afc/secrets.py`, `afc/fingerprint.py`, `afc/jev.py`, `afc/context_brief.py`, `afc/codegraph.py`, `afc/project_agents.py`, `afc/role_agents.py` |
+| CLI dispatch and support | Entry points, parser, project setup, slice recording, delivery, settings, ship | `afc/cli.py`, `afc/cli_parser.py`, `afc/cli_project_setup.py`, `afc/cli_slice.py`, `afc/cli_delivery.py`, `afc/cli_settings.py`, `afc/cli_ship.py`, `afc/cli_home.py`, `afc/cli_maintain.py`, `afc/cli_model.py`, `afc/cli_projects.py`, `afc/cli_defaults.py`, `afc/cli_awake.py`, `afc/cli_test.py`, `afc/cli_context.py`, `afc/cli_agents.py`, `afc/ship.py`, `afc/git_ops.py`, `afc/undo.py`, `afc/profile.py`, `afc/rules.py`, `afc/secrets.py`, `afc/fingerprint.py`, `afc/jev.py`, `afc/context_brief.py`, `afc/codegraph.py`, `afc/project_agents.py`, `afc/role_agents.py` |
 | Skills | Skill dispatchers the Claude session reads: interview, slice, deliver, architecture, etc. | `.claude/skills/afc-architecture/`, `.claude/skills/afc-capabilities/`, `.claude/skills/afc-deliver/`, `.claude/skills/afc-drift/`, `.claude/skills/afc-enterprise/`, `.claude/skills/afc-interview/`, `.claude/skills/afc-profile/`, `.claude/skills/afc-remote/`, `.claude/skills/afc-setup/`, `.claude/skills/afc-slice/`, `.claude/skills/afc-start/` |
 | Agents and workflow | Sub-agent definitions and the build-spec orchestration workflow | `.claude/agents/afc-architect.md`, `.claude/agents/afc-builder.md`, `.claude/agents/afc-checker.md`, `.claude/agents/afc-docs.md`, `.claude/agents/afc-plan.md`, `.claude/agents/afc-research.md`, `.claude/workflows/afc-build-spec.js`, `templates/project/agents/` |
 | Templates and rules | Starter files for new projects; rule modules loaded per slice | `templates/`, `rules/` |
-| Measurements | Health check, code graph index, review and scan, findings | `afc/cli_health.py`, `afc/index.py`, `afc/cli_index.py`, `afc/review.py`, `afc/cli_review.py`, `afc/scan.py`, `afc/gate.py` |
+| Measurements | Health check, code graph index, review and scan, findings; which AI tool and model | `afc/cli_health.py`, `afc/index.py`, `afc/cli_index.py`, `afc/review.py`, `afc/cli_review.py`, `afc/scan.py`, `afc/gate.py`, `afc/tool_coverage.py`, `afc/tool_model.py` |
 
 ## 5. Data flow
 
@@ -127,6 +127,9 @@ Nothing personal or secret is logged. Session output stays in Claude Code's own 
 - `docs/changelog.md` for what each release changed; `docs/findings.md` for open findings
 - 2026-10-27 FC-050 slice 5: no structural change
 - 2026-10-27 FC-050 slice 6: no structural change
+- 2026-10-27 FC-052 slice 1: `afc/tool_model.py` reads tool and local model; `afc/cli_model.py` prints them
+- 2026-10-27 FC-052 slice 2: `afc/tool_model.py` adds timed public look-up (allow-listed docs, no keys) cached in `~/.A-FC/model-options/`; `afc/cli_model.py` gains `--role`, `--options`
+- 2026-10-27 FC-052 slice 2: Timed public look-up (allow-listed vendor docs, no keys) cached in ~/.A-FC/model-options/; cli_model gains --role and --options
 
 ## 10. Maintenance rules
 

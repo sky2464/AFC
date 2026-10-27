@@ -20,3 +20,9 @@ Claude Code warns when an environment variable or a drifted agent file overrides
 
 ### 2026-10-27 — FC-050 slice 6
 On a scratch project, live claude -p runs showed afc-architect on Opus, afc-build on Sonnet, and afc-docs on Haiku, matching the routing.
+
+### 2026-10-27 — FC-052 slice 1
+sh bin/afc model names the running tool and the model from its plain local settings: Cursor composer-2.5 from cli-config.json, Codex gpt-6.1-sol from config.toml, Copilot and Antigravity not shown. First four assumptions settled.
+
+### 2026-10-27 — FC-052 slice 2
+Three options (premium, best cost, hybrid) from local settings plus a timed public look-up, with machine cache fallback; never invent or ship model IDs.

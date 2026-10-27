@@ -5,6 +5,7 @@ import re
 
 from afc import (
     cli_agents,
+    cli_model,
     cli_awake,
     cli_context,
     cli_connectors,
@@ -117,6 +118,7 @@ def build_parser() -> argparse.ArgumentParser:
     cli_guard.register(sub)
     cli_instructions.register(sub)
     cli_maintain.register(sub)
+    cli_model.register(sub)
     cli_tools.register(sub)
     cli_plan.register(sub)
     cli_home.register(sub)

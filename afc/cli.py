@@ -30,6 +30,7 @@ from afc import (
     cli_index,
     cli_instructions,
     cli_maintain,
+    cli_model,
     cli_plan,
     cli_projects,
     cli_review,
@@ -82,6 +83,7 @@ COMMAND_NAMES = (
     *cli_test.NAMES,
     *cli_guard.NAMES,
     *cli_maintain.NAMES,
+    *cli_model.NAMES,
     *cli_version.NAMES,
     *cli_awake.NAMES,
 )

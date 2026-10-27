@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-052 | Ask and suggest a model in other tools | M | [spec](specs/FC-052-ask-and-suggest-a-model-in-other-tools.md) | 2026-10-27 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-052 | Ask and suggest a model in other tools | M | [spec](specs/FC-052-ask-and-suggest-a-model-in-other-tools.md) |
 
 
 ## Waiting on you

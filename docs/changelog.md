@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-27 — FC-052 slice 2 Three-option model lookup from local and vendor docs
+
+When a tool like Cursor does not show the user a current model, `sh bin/afc model --options` now checks local settings and fetches current models for that tool from public vendor docs. It returns exactly three options (premium, best cost, hybrid) with one-line reasons aimed at subscription users. The look-up has an 8-second timeout, fails soft to a per-machine cache under `~/.A-FC/model-options/`, and never invents model IDs. `AFC_MODEL_LOOKUP=off` skips the fetch and uses the cache or local settings only.
+
+- Three options from local lists and public look-up
+- `afc model --options` and `afc model --role <role>`
+- Per-machine cache under `~/.A-FC/model-options/<tool>.json`
+- Family rules (`opus` / `sonnet` / `haiku`-style words) classify models
+- Never invent or ship model IDs in the repo
+
 ## 2026-10-27 — FC-051 Flight Control works in other AI tools
 
 Someone can change Flight Control from Cursor, Codex, GitHub Copilot or Antigravity and get the same protection and the same plain-words flow as in Claude Code, with no step they must remember. Where a tool cannot block an action, a check at commit time catches it.
