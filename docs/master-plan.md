@@ -6,8 +6,8 @@ per slice, with maintenance mode on while editing.
 
 ## Goal
 
-A calm co-pilot inside Claude Code that turns what someone wants to build into small, working,
-safe slices, with as few questions and as little noise as possible.
+A calm co-pilot inside Claude Code or well known Agentic AI code developments that turns what someone wants to build into small, working,
+dynamic, smart safe slices, with as clarity questions and as little noise as possible.
 
 Every change must reach the apps Flight Control builds for users.
 
