@@ -1,6 +1,6 @@
 # FC-049 — Architecture memory for Flight Control
 
-Size: M · Status: next, ready for build · Started: - · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-26
 Area: flow
 
 Found on 2026-10-26, comparing this repository with AgToosa's `docs/Master-Architecture.md`, a single
@@ -68,14 +68,14 @@ finishing (FC-047 does that for apps when the file is still the bare template).
 
 ## Slices
 
-- [ ] 1. Write the file — you'll see it by `docs/architecture.md` with the ten sections and a
+- [x] 1. Write the file — you'll see it by `docs/architecture.md` with the ten sections and a
       Components table naming real files for the nine areas, under 500 lines (proves A1, A2, A6)
-- [ ] 2. Template and skill — you'll see it by the template's Components table with a Key files
+- [x] 2. Template and skill — you'll see it by the template's Components table with a Key files
       column, and `afc-architecture` saying to keep it current after a slice that adds or removes a
       module (proves part of A4)
-- [ ] 3. The check — you'll see it by `check` on a scratch copy of the repo with one dead pointer and
+- [x] 3. The check — you'll see it by `check` on a scratch copy of the repo with one dead pointer and
       one new `afc/` module giving both problems, and on the real repo giving neither (proves A3, A4)
-- [ ] 4. Wired into the flow — you'll see it by `plan done` on a scratch Flight Control spec printing
+- [x] 4. Wired into the flow — you'll see it by `plan done` on a scratch Flight Control spec printing
       the line when a problem exists, and `afc-builder` and `afc-plan` naming the file (proves A5)
 
 ## Tasks
@@ -98,4 +98,20 @@ Slice 4:
 
 ## Decisions
 
+- 2026-10-26: an app's dead-pointer check runs whether or not a slice is done; only the
+  `architecture_empty` report still waits for a done slice. The check also runs on test copies of
+  Flight Control, since a scratch copy is how slice 3 is proven.
+- Checked 2026-10-26 on scratch copies (real plan and workspace untouched):
+  - Slice 1 (A1, A2, A6): `docs/architecture.md` has ten sections and 133 lines; the Security table
+    was corrected against the code (only `check_paths`, `check_secrets` and `check_git` are in the
+    five core tests; the rest are live runs) and the registry is `projects.json`.
+  - Slice 3 (A3, A4): a repo copy with `afc/gone.py` in a Key files cell and a new `afc/newmod.py`
+    gave one `architecture_dead_pointer` (row and path) and one `architecture_unmapped`; the real
+    repo gave neither. A scratch app pointing at a missing `server/routes.py` gave one dead pointer,
+    and none once the file existed.
+  - Slice 4 (A5): `plan done` on a scratch copy closed the spec with no note when clean, and with
+    "docs/architecture.md has 1 problem(s)" when a module was unmapped; it never blocked.
+
 ## Shipped
+
+Shipped 2026-10-26. Slices: 4. Criteria: 0 of 6 proven.

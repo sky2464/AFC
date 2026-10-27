@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|apply_patch)$",
+        "hooks": [{"type": "command", "command": "sh \"$(git rev-parse --show-toplevel)/bin/afc\" hook adapter codex", "statusMessage": "Flight Control guard"}]
+      }
+    ]
+  }
+}

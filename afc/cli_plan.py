@@ -670,7 +670,14 @@ def cmd_done(args: argparse.Namespace) -> dict:
         raise
     nxt = plan.read_rows(path.read_text(encoding="utf-8"), "Next")
     suggest = {"id": nxt[0][0], "title": nxt[0][1]} if nxt else None
-    return {"done": sid, "archived": str(target), "suggest_next": suggest}
+    result: dict = {"done": sid, "archived": str(target), "suggest_next": suggest}
+    if space.prefix == "FC":
+        from afc.cli_health import architecture_fc_problems
+        arch = architecture_fc_problems(_cli().afc_root())
+        if arch:
+            result["architecture_note"] = (f"docs/architecture.md has {len(arch)} problem(s); "
+                                           "`sh bin/afc check` lists them.")
+    return result
 
 
 def cmd_tidy(args: argparse.Namespace) -> dict:

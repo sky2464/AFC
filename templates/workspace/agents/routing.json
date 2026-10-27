@@ -1,8 +1,9 @@
 {
   "roles": {},
   "notes": {
-    "main_session": "Keep the main Claude Code session on Sonnet or Opus, not Haiku.",
-    "providers": "On Bedrock or Vertex, set full model IDs under roles, e.g. {\"build\": {\"model\": \"anthropic.claude-sonnet-4-20250514-v1:0\"}}"
+    "main_session": "The main session starts on Opus (Flight Control's .claude/settings.json). /model or a model line in .claude/settings.local.json overrules it; never Haiku.",
+    "roles": "Each role is a model string or {\"model\": \"...\", \"effort\": \"low|medium|high|max\"}. Change one with sh bin/afc agents set <role> <model>; agents sync rewrites the agent files.",
+    "providers": "opus, sonnet and haiku mean the newest version on the Anthropic API. On Bedrock or Vertex an alias may be older: pin full model IDs under roles, e.g. {\"build\": {\"model\": \"anthropic.claude-sonnet-4-20250514-v1:0\"}}"
   },
   "jev": {
     "enabled": false,

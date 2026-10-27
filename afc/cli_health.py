@@ -6,14 +6,15 @@ at its code folder after the user moved it. Nothing is ever deleted.
 """
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
-from afc import addons, tools
-from afc.config import afc_home, current_session, maintain_enabled
+from afc import addons, instructions, tool_coverage, tools
+from afc.config import afc_home, afc_root as cli_root, current_session, maintain_enabled
 from afc.registry import load_registry, save_registry
 from afc.session_dirs import (GrantError, block_addons, blocked_addons, check_settings, drop_dirs, grant_dirs,
                               granted_now, settings_path)
@@ -62,6 +63,8 @@ def _cli():
 def cmd_check(args: argparse.Namespace) -> dict:
     problems = find_problems(afc_home())
     result = {"ok": not problems, "problems": problems}
+    other = tool_coverage.coverage(cli_root())
+    result["other_tools"] = tool_coverage.lines(other)
     note = root_git_note()
     if note:
         result["note"] = note
@@ -103,6 +106,13 @@ def cmd_repair(args: argparse.Namespace) -> dict:
         elif p["kind"] == "old_plan_format":
             _upgrade_plan(Path(p["path"]))
             repaired.append(f"Upgraded {p['project']} to a master plan.")
+        elif p["kind"] == "routing_drift" and p["project"] in reg.projects:
+            from afc.project_agents import sync_project_agents
+
+            note = f"Rewrote {p['project']}'s agents from its routing."
+            if note not in repaired:
+                sync_project_agents(reg.projects[p["project"]])
+                repaired.append(note)
         elif p["kind"] == "decisions_no_log":
             path = Path(p["path"])
             path.write_text(path.read_text(encoding="utf-8").rstrip("\n") + "\n" + LOG_SECTION, encoding="utf-8")
@@ -406,6 +416,8 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     fc_space = plan.flight_control_space(cli_plan._plan_root())
     problems += plan_problems(fc_space)
     problems += _findings_problems(fc_space)
+    problems += architecture_fc_problems(cli.afc_root())
+    problems += _routing_overridden_problems()
     for p in reg.projects.values():
         if Path(p.workspace_path).is_dir():
             proj_space = plan.project_space(Path(p.workspace_path))
@@ -436,6 +448,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
                 detail=f"{p.name}: still uses the old progress list; repair upgrades it to a master plan."))
         problems += _decisions_problems(p)
         problems += _architecture_problems(p)
+        problems += _routing_drift_problems(p)
     projects_dir = home / "projects"
     if projects_dir.is_dir():
         for d in sorted(projects_dir.iterdir()):
@@ -451,6 +464,7 @@ def find_problems(home: Path, with_addons: bool = True) -> list[dict]:
     if with_addons:
         problems += addon_problems(cli.afc_root())
     problems += _tools_problems(cli.afc_root(), reg)
+    problems += _instruction_problems(cli.afc_root())
     problems += _tracked_deny_problems(cli.afc_root())
     wanted = _wanted(reg)
     foreign = foreign_roots_for(home, reg)
@@ -486,23 +500,147 @@ def _decisions_problems(project) -> list[dict]:
                             "decisions stop landing under the always/never rules.")]
 
 
+ROUTING_ENV = ("CLAUDE_CODE_SUBAGENT_MODEL", "CLAUDE_CODE_SUBAGENT_MODEL_FORCE", "CLAUDE_CODE_EFFORT_LEVEL")
+
+
+def _routing_overridden_problems() -> list[dict]:
+    """`routing_overridden` for each environment variable that would replace the agent files' model or
+    effort. Read from this process, which shares the session's environment."""
+    return [_problem("routing_overridden", name, False,
+                     detail=f"{name} is set ({os.environ[name]}), so it can replace the model or effort "
+                            "each agent file sets. Unset it to let the routing apply.")
+            for name in ROUTING_ENV if os.environ.get(name)]
+
+
+def _routing_drift_problems(project) -> list[dict]:
+    """`routing_drift` for each installed role agent whose model or effort differs from the workspace
+    routing. Fixable: repair (or `agents sync`) rewrites the agent files."""
+    from afc.role_agents import (PROJECT_AGENT, load_routing, parse_agent_effort, parse_agent_model,
+                                 resolve_effort, resolve_model)
+
+    agents = Path(project.code_path) / ".claude" / "agents"
+    if not agents.is_dir() or not Path(project.workspace_path).is_dir():
+        return []
+    routing = load_routing(Path(project.workspace_path))
+    profile = project.profile or "personal"
+    found = []
+    for role, name in PROJECT_AGENT.items():
+        path = agents / f"{name}.md"
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        want = (resolve_model(role, routing, profile=profile), resolve_effort(role, routing, profile=profile))
+        have = (parse_agent_model(text), parse_agent_effort(text))
+        if want != have:
+            found.append(_problem("routing_drift", str(path), True, project=project.name,
+                                  detail=f"{project.name}: {name} runs {have[0]} at effort {have[1] or 'default'}, "
+                                         f"but the routing says {want[0]} at effort {want[1] or 'default'}; "
+                                         "repair (or sh bin/afc agents sync) rewrites it."))
+    return found
+
+
+# The Components table gained a Key files column in FC-049. Projects created before that still
+# hold the earlier empty template, and that file is empty too.
+_COMPONENTS_NOW = "| Name | Responsibility | Key files | Talks to |\n|---|---|---|---|"
+_COMPONENTS_BEFORE = "| Name | Responsibility | Talks to |\n|---|---|---|"
+
+
+def _same_words(left: str, right: str) -> bool:
+    return " ".join(left.split()) == " ".join(right.split())
+
+
 def architecture_is_bare(path: Path) -> bool:
-    """True when the project's architecture.md is still the empty template (whitespace aside)."""
+    """True when architecture.md is still an empty template, apart from whitespace.
+
+    The current template and the previous one (no Key files column) both count, so a project
+    created before that column still gets the empty-file warning."""
     template = _cli().afc_root() / "templates" / "workspace" / "plan" / "architecture.md"
     if not path.is_file() or not template.is_file():
         return False
-    return " ".join(path.read_text(encoding="utf-8").split()) == " ".join(template.read_text(encoding="utf-8").split())
+    current = template.read_text(encoding="utf-8")
+    have = path.read_text(encoding="utf-8")
+    if _same_words(have, current):
+        return True
+    previous = current.replace(_COMPONENTS_NOW, _COMPONENTS_BEFORE, 1)
+    return previous != current and _same_words(have, previous)
 
 
 def _architecture_problems(project) -> list[dict]:
     """A project with a done slice whose architecture.md is still the bare template (whitespace
-    aside). Claude fills it from the code, so it is reported, never auto-fixed."""
+    aside), or whose Key files cells name paths missing from the code folder. Claude fills and
+    fixes the notes, so both are reported, never auto-fixed."""
     path = Path(project.workspace_path) / "plan" / "architecture.md"
-    if not project.last_slice or not architecture_is_bare(path):
+    if project.last_slice and architecture_is_bare(path):
+        return [_problem("architecture_empty", str(path), False, project=project.name,
+                         detail=f"{project.name}: slices are done but architecture.md is still the empty "
+                                "template; Claude fills it in from the code.")]
+    return _architecture_pointer_problems(path, Path(project.code_path), project=project.name)
+
+
+def _key_files(text: str) -> list[tuple[str, str]]:
+    """(row name, path) for each backticked path in a table column headed "Key files"."""
+    found: list[tuple[str, str]] = []
+    col = None
+    for line in text.splitlines():
+        if not line.lstrip().startswith("|"):
+            col = None
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if col is None:
+            col = cells.index("Key files") if "Key files" in cells else -1
+        elif col >= 0 and col < len(cells) and not set(cells[col]) <= set("-: "):
+            found += [(cells[0], raw.strip()) for raw in re.findall(r"`([^`]+)`", cells[col]) if raw.strip()]
+    return found
+
+
+def _architecture_pointer_problems(path: Path, base: Path, project: str = "") -> list[dict]:
+    """`architecture_dead_pointer` for each Key files path not found under `base`. A path ending in
+    `/` must be a folder. Filesystem only, no git, so the check stays quick."""
+    if not path.is_file():
         return []
-    return [_problem("architecture_empty", str(path), False, project=project.name,
-                     detail=f"{project.name}: slices are done but architecture.md is still the empty "
-                            "template; Claude fills it in from the code.")]
+    found = []
+    for row, entry in _key_files(path.read_text(encoding="utf-8")):
+        target = base / entry
+        if target.is_dir() if entry.endswith("/") else target.exists():
+            continue
+        prefix = f"{project}: " if project else ""
+        found.append(_problem("architecture_dead_pointer", str(path), False, project=project,
+                              detail=f"{prefix}architecture.md row \"{row}\" names `{entry}`, "
+                                     "which does not exist."))
+    return found
+
+
+def _architecture_unmapped_problems(root: Path) -> list[dict]:
+    """`architecture_unmapped` for each `afc/` module, skill, agent or workflow in Flight Control
+    that no Key files cell in `docs/architecture.md` names, directly or through its folder."""
+    arch = root / "docs" / "architecture.md"
+    if not arch.is_file():
+        return []
+    named = {entry for _, entry in _key_files(arch.read_text(encoding="utf-8"))}
+
+    def covered(rel: str) -> bool:
+        parts = rel.rstrip("/").split("/")
+        return rel in named or any("/".join(parts[:i]) + "/" in named for i in range(1, len(parts)))
+
+    afc_dir, claude = root / "afc", root / ".claude"
+    paths = [f.relative_to(root).as_posix() for f in sorted(afc_dir.rglob("*.py"))
+             if "__pycache__" not in f.parts and f.name not in ("__init__.py", "__main__.py")] \
+        if afc_dir.is_dir() else []
+    for folder, dirs in (("skills", True), ("agents", False), ("workflows", False)):
+        here = claude / folder
+        if here.is_dir():
+            paths += [f".claude/{folder}/{d.name}" + ("/" if dirs else "") for d in sorted(here.iterdir())
+                      if (d.is_dir() if dirs else d.is_file()) and not d.name.startswith(".")]
+    return [_problem("architecture_unmapped", str(arch), False,
+                     detail=f"docs/architecture.md has no Key files entry covering `{rel}`; "
+                            "add it to the Components table.")
+            for rel in paths if not covered(rel)]
+
+
+def architecture_fc_problems(root: Path) -> list[dict]:
+    """Dead pointers and unmapped modules in Flight Control's own `docs/architecture.md`."""
+    return _architecture_pointer_problems(root / "docs" / "architecture.md", root) \
+        + _architecture_unmapped_problems(root)
 
 
 def _findings_problems(space) -> list[dict]:
@@ -573,6 +711,15 @@ def _wanted(reg) -> list[str]:
         return []
     dirs = [Path(active.code_path), Path(active.workspace_path)]
     return [str(d.resolve()) for d in dirs if d.is_dir()]
+
+
+def _instruction_problems(root: Path) -> list[dict]:
+    """AGENTS.md or the Copilot pointer no longer matches CLAUDE.md. Silent when they were never made."""
+    if not (root / "AGENTS.md").exists():
+        return []
+    return [_problem("instructions_out_of_date", str(path), False,
+                     detail="this file no longer matches CLAUDE.md; run: sh bin/afc instructions --write")
+            for path in instructions.out_of_date(root)]
 
 
 def _tracked_deny_problems(root: Path) -> list[dict]:

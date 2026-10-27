@@ -1,4 +1,4 @@
-"""Install per-project role agents and routing at init (FC-022)."""
+"""Install per-project role agents and routing at init (FC-022, FC-050)."""
 
 import json
 import shutil
@@ -7,10 +7,12 @@ from pathlib import Path
 from afc.config import afc_root
 from afc.role_agents import (
     PROJECT_AGENT,
-    ROUTING_NAME,
     ROLES,
+    ROUTING_NAME,
+    resolve_effort,
     resolve_model,
     routing_path,
+    set_agent_effort,
     set_agent_model,
 )
 
@@ -36,25 +38,43 @@ def ensure_routing(workspace: Path) -> Path:
     return dest
 
 
+def _materialize_agent(text: str, role: str, routing: dict, profile: str) -> str:
+    model = resolve_model(role, routing, profile=profile)
+    effort = resolve_effort(role, routing, profile=profile)
+    text = set_agent_model(text, model)
+    return set_agent_effort(text, effort)
+
+
+def write_role_agent(code: Path, workspace: Path, profile: str, role: str) -> str | None:
+    """Rewrite one role agent from template and routing. Returns agent name or None if skipped."""
+    routing_file = ensure_routing(workspace)
+    routing = json.loads(routing_file.read_text(encoding="utf-8"))
+    name = PROJECT_AGENT.get(role)
+    if not name:
+        return None
+    src = TEMPLATE_AGENTS / f"{name}.md"
+    if not src.is_file():
+        return None
+    text = _materialize_agent(src.read_text(encoding="utf-8"), role, routing, profile)
+    agents_dir = Path(code) / ".claude" / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    dest = agents_dir / f"{name}.md"
+    dest.write_text(text, encoding="utf-8")
+    return name
+
+
 def install_code_agents(code: Path, workspace: Path, profile: str) -> dict:
     """Copy role agent templates into code/.claude/agents with resolved models."""
     routing_file = ensure_routing(workspace)
-    routing = json.loads(routing_file.read_text(encoding="utf-8"))
     agents_dir = Path(code) / ".claude" / "agents"
     workflows_dir = Path(code) / ".claude" / "workflows"
     agents_dir.mkdir(parents=True, exist_ok=True)
     workflows_dir.mkdir(parents=True, exist_ok=True)
     written = []
     for role in ROLES:
-        name = PROJECT_AGENT[role]
-        src = TEMPLATE_AGENTS / f"{name}.md"
-        if not src.is_file():
-            continue
-        text = src.read_text(encoding="utf-8")
-        model = resolve_model(role, routing, profile=profile)
-        dest = agents_dir / f"{name}.md"
-        dest.write_text(set_agent_model(text, model), encoding="utf-8")
-        written.append(name)
+        name = write_role_agent(code, workspace, profile, role)
+        if name:
+            written.append(name)
     wf_dest = workflows_dir / "afc-build-slice.js"
     if TEMPLATE_WORKFLOW.is_file() and not wf_dest.exists():
         shutil.copyfile(TEMPLATE_WORKFLOW, wf_dest)

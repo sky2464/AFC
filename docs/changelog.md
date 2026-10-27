@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-10-26 — FC-049 Architecture memory for Flight Control
+
+Flight Control has its own architecture memory, in the same shape it gives every app. Each part is tied to the files that hold it, and `sh bin/afc check` says when a pointer is dead or a module has no home in the notes.
+
+- Write the file
+- Template and skill
+- The check
+- Wired into the flow
+
+## 2026-10-26 — FC-046 Findings, parked and waiting in one place
+
+One findings file with a State for every item, a "Waiting on you" list and a "Parked" list (with a reason and when to look again) in every plan, one command to take a finding in, states that follow the specs on their own, and a few Areas that say where the work is going, each with a target.
+
+- Findings leave the plan
+- Take a finding in with one command
+- Parked and waiting
+- The check
+- Findings close themselves
+- Areas
+
+## 2026-10-26 — FC-047 Apps close out cleanly, and a lean log
+
+A spec in a user's app cannot be started with no goal or finished with the architecture notes still empty; the plan answers "where are we" in one computed line; and the plan's log keeps only what cannot be worked out elsewhere, while the full event trail is kept in the workspace.
+
+- Done needs real architecture notes
+- Start needs a goal
+- Where we are
+- A short log and an event file
+- Clean up the log, and keep it clean
+- Live on a copy of the app that was flagged
+
 ## 2026-10-26 — FC-045 Releases and results from the plan
 
 A release is made from the plan, not from a spec. `sh bin/afc release prepare <version>` lists what is done since the last release, drafts the `## <version>` section (10 lines or fewer, plain words) from each spec's goal, and sets VERSION. Each Done row says which release it went out in and what it reached (met, partly, not met), and a small Scoreboard shows the few numbers the goal depends on.

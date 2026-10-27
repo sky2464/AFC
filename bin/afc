@@ -4,6 +4,7 @@
 #   sh bin/afc <command> ...       the Flight Control command line
 #   sh bin/afc hook session_start  the SessionStart hook
 #   sh bin/afc hook pretool        the PreToolUse guard
+#   sh bin/afc hook adapter <tool> the same guard for cursor, codex, copilot or antigravity
 #
 # Works in macOS, Linux and Windows (Git Bash) shells. When no suitable Python exists it says so
 # in plain words instead of failing with "command not found", and the guard stays closed.
@@ -96,6 +97,10 @@ if [ -z "$PY" ]; then
 EOF
     exit 0
   fi
+  if [ "$1" = hook ] && [ "$2" = adapter ]; then
+    echo "Flight Control blocked: $LINE Its safety checks can't run, so this action is blocked until Python is installed." >&2
+    exit 2
+  fi
   if [ "$1" = hook ] && [ "$2" = pretool ]; then
     case "$(cat)" in
       *'"tool_name":"Bash"'* | *'"tool_name": "Bash"'*)
@@ -135,6 +140,10 @@ if [ -n "$HOME_PROBLEM" ]; then
 EOF
     exit 0
   fi
+  if [ "$1" = hook ] && [ "$2" = adapter ]; then
+    echo "Flight Control blocked: $HOME_PROBLEM" >&2
+    exit 2
+  fi
   if [ "$1" = hook ] && [ "$2" = pretool ]; then
     case "$(cat)" in
       *'"tool_name":"Bash"'* | *'"tool_name": "Bash"'*)
@@ -159,6 +168,7 @@ export PYTHONPATH
 if [ "$1" = hook ]; then
   case "$2" in
     session_start | pretool) exec $PY -m "afc.hooks.$2" ;;
+    adapter) exec $PY -m afc.hooks.adapter "$3" ;;
   esac
   echo "Flight Control blocked: unknown hook $2." >&2
   exit 2

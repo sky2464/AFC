@@ -22,7 +22,8 @@ def register(sub) -> None:
     q.add_argument("id")
     q.add_argument("slice", type=int)
     q.add_argument("--decision", required=True)
-    q.add_argument("--architecture", required=True)
+    q.add_argument("--architecture", required=True,
+                   help="afc-architect's one-line note for a structural slice, else 'no structural change'")
     q.set_defaults(handler=cmd_record)
 
 

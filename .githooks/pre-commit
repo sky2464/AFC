@@ -1,0 +1,4 @@
+#!/bin/sh
+# Flight Control commit check. Turn it on once with: git config core.hooksPath .githooks
+HERE=$(cd "$(dirname "$0")" && pwd)
+exec sh "$HERE/../bin/afc" guard --staged

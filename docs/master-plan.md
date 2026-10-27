@@ -15,15 +15,13 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-047 | Apps close out cleanly, and a lean log | M | [spec](specs/FC-047-apps-close-out-cleanly-and-a-lean-log.md) | 2026-10-26 |
+| FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) | 2026-10-26 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-046 | Findings, parked and waiting in one place | M | [spec](specs/FC-046-findings-parked-and-waiting-in-one-place.md) |
-| FC-049 | Architecture memory for Flight Control | M | [spec](specs/FC-049-architecture-memory-for-flight-control.md) |
-| FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) |
+| FC-051 | Flight Control works in other AI tools | L | [spec](specs/FC-051-flight-control-works-in-other-ai-tools.md) |
 
 
 ## Waiting on you
@@ -37,6 +35,9 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-049 | Architecture memory for Flight Control | 2026-10-26 | [FC-049](specs/archive/FC-049-architecture-memory-for-flight-control.md) |  |  |
+| FC-046 | Findings, parked and waiting in one place | 2026-10-26 | [FC-046](specs/archive/FC-046-findings-parked-and-waiting-in-one-place.md) |  |  |
+| FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
 | FC-045 | Releases and results from the plan | 2026-10-26 | [FC-045](specs/archive/FC-045-releases-and-results-from-the-plan.md) |  |  |
 | FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |  |  |
 | FC-048 | MM: prefix turns maintenance mode on | 2026-10-26 | [FC-048](specs/archive/FC-048-mm-prefix-turns-maintenance-mode-on.md) |  |  |
@@ -44,9 +45,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-040 | Ready for v0.06a | 2026-10-26 | [FC-040](specs/archive/FC-040-ready-for-v0-06a.md) |  |  |
 | FC-041 | Maintenance mode survives a new session | 2026-10-26 | [FC-041](specs/archive/FC-041-maintenance-mode-survives-a-new-session.md) |  |  |
 | FC-042 | Review asks for tests only when asked | 2026-10-26 | [FC-042](specs/archive/FC-042-review-asks-for-tests-only-when-asked.md) |  |  |
-| FC-039 | Welcome counts held-back connectors | 2026-10-26 | [FC-039](specs/archive/FC-039-welcome-counts-held-back-connectors.md) |  |  |
-| FC-038 | Light first start | 2026-10-25 | [FC-038](specs/archive/FC-038-light-first-start.md) |  |  |
-| FC-037 | Light start without a project | 2026-10-25 | [FC-037](specs/archive/FC-037-light-start-without-a-project.md) |  |  |
 
 ## Areas
 
