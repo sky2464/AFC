@@ -159,7 +159,7 @@ def cmd_model(args: argparse.Namespace) -> dict:
             out["kept"] = kept["model"]
         home = afc_home()
         if role in HEAVY_ROLES:
-            tip = role_switch_suggest(role, routing, shown=shown, profile=profile, home=home)
+            tip = role_switch_suggest(role, routing, shown=shown, profile=profile)
             if tip:
                 out["suggest"] = tip
             light_kept = kept and fit(kept["model"]) == "light"
