@@ -27,8 +27,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | # | Step | Added |
 |---|---|---|
-| 1 | R6: move A-FC-test to current code (973da0c is stale) | 2026-10-26 |
-| 2 | FC-040 release: make the v0.06a tag, push it, and publish release notes | 2026-10-26 |
 
 ## Done
 
