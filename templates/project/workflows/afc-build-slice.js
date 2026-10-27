@@ -92,7 +92,10 @@ for (const s of todo) {
     label: `build ${s.number}`, phase: 'Build', schema: WORK_RESULT,
     model: builderModel, agentType: 'afc-build',
   })
-  if (!built || !built.done) break
+  if (!built || !built.done) {
+    results.push({ slice: s.number, pass: false, stopped: 'builder did not finish', built })
+    break
+  }
   let architecture = null
   if (isStructural) {
     const mapped = await runArchitect(mapPrompt(s), `map ${s.number}`)
