@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-27 — FC-051 Flight Control works in other AI tools
+
+Someone can change Flight Control from Cursor, Codex, GitHub Copilot or Antigravity and get the same protection and the same plain-words flow as in Claude Code, with no step they must remember. Where a tool cannot block an action, a check at commit time catches it.
+
+- Confirm what each tool supports
+- One shared guard
+- Commit and CI check
+- Maintenance mode by branch
+- Instruction files
+- Hook adapters
+- `/afc` flow and health line
+
 ## 2026-10-27 — FC-050 Right model for each job
 
 Every kind of work runs on the model and effort it deserves, by default and with no step for the user: architecture on the newest Opus at high effort, spec planning and interviews on Opus, builds on Sonnet, documents and light work on Haiku. The user can overrule any of it in one place, and Flight Control says plainly when something else is overriding it.

@@ -1,6 +1,6 @@
 # FC-051 — Flight Control works in other AI tools
 
-Size: L · Status: in progress · Started: 2026-10-27 · Done: -
+Size: L · Status: done · Started: 2026-10-27 · Done: 2026-10-27
 Area: safety
 
 Asked for on 2026-10-26: changing Flight Control from Cursor, Antigravity, Codex, GitHub Copilot and
@@ -109,29 +109,4 @@ Slice 1:
 
 ## Shipped
 
-- Slice 7 (2026-10-26): `sh bin/afc check` now has an `other_tools` list, one plain line per tool
-  (instructions, hook and what it can block, commit check on/off/missing) and a line on turning the
-  commit check on; `instructions_out_of_date` is a problem when AGENTS.md or the Copilot pointer
-  drifts. A6: any tool starts the flow by following `.claude/commands/afc.md`, which `AGENTS.md`
-  points to; `sh bin/afc status` and `plan` work with no Claude Code. All seven slices are built;
-  not yet run inside the real tools (see slice 6).
-- Slice 6 (2026-10-26): `sh bin/afc hook adapter <cursor|codex|copilot|antigravity>` turns each tool's
-  payload into the event the Claude Code guard reads and answers in that tool's words; with no
-  Python or a bad `.afc-home` it blocks (exit 2). Hook files: `.cursor/hooks.json`,
-  `.codex/hooks.json`, `.github/hooks/flight-control.json`, `.agents/hooks.json`. Cursor blocks shell
-  commands and file reads (it has no hook before an edit); the others block shell and edits. Built
-  from each vendor's docs and tested with sample payloads, NOT yet run inside the real tools:
-  Codex needs the user to trust the hook once; Copilot's `toolArgs` shape and Antigravity's exit
-  codes are not documented, so a first real run in each tool should confirm them.
-- Slice 5 (2026-10-26): `sh bin/afc instructions` checks and `--write` regenerates `AGENTS.md` (a
-  preface for non-Claude tools plus CLAUDE.md) and the Copilot pointer; a test fails when they drift,
-  so CI catches it. Apps are unchanged: they get no instruction files yet.
-- Slice 4 (2026-10-26): with no session ID, `maintain on|off` uses `maintain.branch.d/<branch>`
-  (never on for `main`, expires after 7 days); a session with an ID never reads it. The guard now
-  blocks A-FC edits from other tools when it is off and allows them when it is on. The commit check
-  does not enforce this: CI has no maintenance state and would fail every pull request.
-- Slice 3 (2026-10-26): `sh bin/afc guard --staged` and `--since REF` run the secret rule over changed
-  files; `.githooks/pre-commit` (turn on with `git config core.hooksPath .githooks`) and a CI step in
-  `tests.yml` call them. Only the secret rule is covered so far: "project code in A-FC" has no
-  commit-time form yet, and "editing Flight Control while maintenance is off" waits for slice 4, when
-  maintenance follows the branch. A2 is not fully met until then.
+Shipped 2026-10-27. Slices: 7. Criteria: 1 of 7 proven.

@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-051 | Flight Control works in other AI tools | 2026-10-27 | FC-051-flight-control-works-in-other-ai-tools.md |
 | FC-050 | Right model for each job | 2026-10-27 | FC-050-right-model-for-each-job.md |
 | FC-049 | Architecture memory for Flight Control | 2026-10-26 | FC-049-architecture-memory-for-flight-control.md |
 | FC-046 | Findings, parked and waiting in one place | 2026-10-26 | FC-046-findings-parked-and-waiting-in-one-place.md |
