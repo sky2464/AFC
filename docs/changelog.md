@@ -1,5 +1,63 @@
 # Changelog
 
+## v0.07a
+
+- Each kind of work runs on the model and effort it deserves by default: architecture on the newest Opus at high effort, planning and interviews on Opus, builds on Sonnet, documents and light work on Haiku. You can overrule any of it in one place.
+- Cursor, Codex, GitHub Copilot, and Antigravity get the same guards and plain-words flow as Claude Code, with a shared check when a tool cannot block an action at commit time.
+- In those other tools, Flight Control asks once which model to use for the project (keep what the tool shows, or pick premium, best cost, or hybrid), remembers the choice, and asks again before heavy jobs if you picked a light model.
+
+## 2026-10-27 — FC-052 Ask and suggest a model in other tools
+
+When Flight Control runs in a tool other than Claude Code, it asks in plain words which model to use for this project, once. If the user already has a model in that tool's settings, it can suggest keeping it or switching to a better fit those settings show. If the user does not know which model to pick (or no model is shown), it checks the local environment and a short public look-up for what is current, then offers three numbered choices: top tier (premium), best for cost, and hybrid (best balance of quality and cost). "Cost" here means what that tool usually includes on a subscription plan (Cursor, Copilot, Codex, Antigravity and the like), not pay-per-token API keys. For heavy jobs (architecture and spec planning) it asks again if the chosen model is a light one. It never changes the tool's settings itself; the user switches in the tool's own model picker.
+
+- Read the tool and its model
+- Three options when they don't know
+- Ask once and remember
+- Ask again for the heavy jobs
+- Health line and live run
+
+## 2026-10-27 — FC-052 slice 3 Ask once and remember
+
+In a tool other than Claude Code, when a project starts and no model is kept for that tool, Flight Control asks one question. If the tool already shows a model, that question is to keep it or switch to one suggestion. If nothing is shown, that question is three options: premium, best cost, and hybrid. The answer is written to the workspace `agents/routing.json` under `tools.<tool>.model` and `seen`; a second session on the same project and tool does not ask again unless the tool's settings show a different model. The preface bullet and `afc-start` ask only after the welcome question is answered.
+
+- `model choose <model>` writes `tools.<tool>` in the workspace `agents/routing.json`
+- `model` reports `ask: true/false` from kept state and tool settings
+- PREFACE and `afc-start` ask after the welcome; three options when present
+- Claude Code never asks; the model points to role agents and FC-050
+
+## 2026-10-27 — FC-052 slice 2 Three-option model lookup from local and vendor docs
+
+When a tool like Cursor does not show the user a current model, `sh bin/afc model --options` now checks local settings and fetches current models for that tool from public vendor docs. It returns exactly three options (premium, best cost, hybrid) with one-line reasons aimed at subscription users. The look-up has an 8-second timeout, fails soft to a per-machine cache under `~/.A-FC/model-options/`, and never invents model IDs. `AFC_MODEL_LOOKUP=off` skips the fetch and uses the cache or local settings only.
+
+- Three options from local lists and public look-up
+- `afc model --options` and `afc model --role <role>`
+- Per-machine cache under `~/.A-FC/model-options/<tool>.json`
+- Family rules (`opus` / `sonnet` / `haiku`-style words) classify models
+- Never invent or ship model IDs in the repo
+
+## 2026-10-27 — FC-051 Flight Control works in other AI tools
+
+Someone can change Flight Control from Cursor, Codex, GitHub Copilot or Antigravity and get the same protection and the same plain-words flow as in Claude Code, with no step they must remember. Where a tool cannot block an action, a check at commit time catches it.
+
+- Confirm what each tool supports
+- One shared guard
+- Commit and CI check
+- Maintenance mode by branch
+- Instruction files
+- Hook adapters
+- `/afc` flow and health line
+
+## 2026-10-27 — FC-050 Right model for each job
+
+Every kind of work runs on the model and effort it deserves, by default and with no step for the user: architecture on the newest Opus at high effort, spec planning and interviews on Opus, builds on Sonnet, documents and light work on Haiku. The user can overrule any of it in one place, and Flight Control says plainly when something else is overriding it.
+
+- Six roles with effort
+- Architecture goes to the architect
+- Documents go to Haiku
+- Opus by default, one place to overrule
+- Nothing silently defeats it
+- Measured live
+
 ## 2026-10-26 — FC-049 Architecture memory for Flight Control
 
 Flight Control has its own architecture memory, in the same shape it gives every app. Each part is tied to the files that hold it, and `sh bin/afc check` says when a pointer is dead or a module has no home in the notes.

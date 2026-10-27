@@ -63,7 +63,7 @@ def routing_path(workspace: Path) -> Path:
 
 
 def load_routing(workspace: Path) -> dict:
-    """Return routing dict; missing file means defaults only."""
+    """Return routing dict; missing file means defaults only. Keeps a `tools` block when present."""
     path = routing_path(workspace)
     if not path.is_file():
         return {"roles": {}, "notes": {}}
@@ -83,10 +83,14 @@ def load_routing(workspace: Path) -> dict:
     jev = data.get("jev")
     if isinstance(jev, dict):
         out["jev"] = jev
+    tools = data.get("tools")
+    if isinstance(tools, dict):
+        out["tools"] = tools
     return out
 
 
 def save_routing(workspace: Path, routing: dict) -> Path:
+    """Write routing; preserve `tools` (and `jev`) so FC-052 choices survive role edits."""
     path = routing_path(workspace)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -95,8 +99,50 @@ def save_routing(workspace: Path, routing: dict) -> Path:
     }
     if "jev" in routing:
         payload["jev"] = routing["jev"]
+    tools = routing.get("tools")
+    if isinstance(tools, dict):
+        payload["tools"] = tools
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def tool_kept(routing: dict | None, tool: str) -> dict | None:
+    """Return {model, seen} kept for a tool, or None."""
+    if not routing or not tool:
+        return None
+    tools = routing.get("tools")
+    if not isinstance(tools, dict):
+        return None
+    entry = tools.get(tool)
+    if not isinstance(entry, dict):
+        return None
+    model = entry.get("model")
+    if not isinstance(model, str) or not model.strip():
+        return None
+    seen = entry.get("seen")
+    return {
+        "model": model.strip(),
+        "seen": seen.strip() if isinstance(seen, str) and seen.strip() else None,
+    }
+
+
+def set_tool_choice(routing: dict, tool: str, model: str, seen: str | None) -> dict:
+    """Set tools.<tool>.model and .seen; returns the updated routing dict."""
+    cleaned = (model or "").strip()
+    if not cleaned or len(cleaned) > 80 or "\n" in cleaned or "\r" in cleaned:
+        raise ValueError("model name must be a short single line")
+    if not re.fullmatch(r"[\w .+\-/@]+", cleaned):
+        raise ValueError("model name has characters Flight Control will not keep")
+    tools = dict(routing.get("tools") or {})
+    entry = {"model": cleaned}
+    if isinstance(seen, str) and seen.strip():
+        entry["seen"] = seen.strip()[:80]
+    else:
+        entry["seen"] = None
+    tools[tool] = entry
+    updated = dict(routing)
+    updated["tools"] = tools
+    return updated
 
 
 def _role_entry(routing: dict | None, role: str):

@@ -16,6 +16,11 @@ The rules below were written for Claude Code. In any other tool, read them like 
   and offer `sh bin/afc maintain on`. Never on `main`.
 - **Commits** are checked for secrets by `.githooks/pre-commit`
   (`git config core.hooksPath .githooks` turns it on) and in CI.
+- **Model ask:** after the welcome question is answered, run `sh bin/afc model`. When it says
+  `ask: true`, ask one question in that reply (never in the same message as the welcome). With
+  `options`, offer those three (premium / best cost / hybrid), recommended first. With a shown
+  model, offer keep it or the single `suggest`. Then `sh bin/afc model choose <model>`. Skip when
+  `ask: false` or the tool is Claude Code.
 
 ---
 

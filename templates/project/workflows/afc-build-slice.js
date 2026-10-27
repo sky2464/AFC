@@ -83,13 +83,19 @@ for (const s of todo) {
   const isStructural = structural.has(s.number)
   if (isStructural) {
     const design = await runArchitect(designPrompt(s), `design ${s.number}`)
-    if (!design || !design.done) break
+    if (!design || !design.done) {
+      results.push({ slice: s.number, pass: false, stopped: 'architect did not write the design note', design })
+      break
+    }
   }
   const built = await agent(buildPrompt(s), {
     label: `build ${s.number}`, phase: 'Build', schema: WORK_RESULT,
     model: builderModel, agentType: 'afc-build',
   })
-  if (!built || !built.done) break
+  if (!built || !built.done) {
+    results.push({ slice: s.number, pass: false, stopped: 'builder did not finish', built })
+    break
+  }
   let architecture = null
   if (isStructural) {
     const mapped = await runArchitect(mapPrompt(s), `map ${s.number}`)

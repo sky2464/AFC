@@ -57,5 +57,5 @@ open · in progress · fixed in FC-0xx · waiting on you · parked · no change 
 | R3 | The welcome said "a health check found 30 problems"; 28 were those add-ons | fixed in FC-027 | v0.03a update test 2026-10-25 |
 | R4 | The first reply to "hi" used 75,950 tokens, mostly the 28 add-ons loading | fixed in FC-027 | v0.03a update test 2026-10-25 |
 | R5 | After the welcome, the reply to "hi" introduced Flight Control again and re-asked the same 1/2 question | fixed in FC-028 | v0.03a update test 2026-10-25 |
-| R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | waiting on you | v0.03a update test 2026-10-25 |
+| R6 | `A-FC-test` sits on older code (973da0c, detached), so live tests there don't test the current release | fixed | v0.03a update test 2026-10-25 |
 | R7 | With add-ons off, a "hi" still loads 350 tools and about 60k tokens, mostly claude.ai connectors that `enabledPlugins` doesn't reach | fixed in FC-034 | v0.03a update test 2026-10-25 |

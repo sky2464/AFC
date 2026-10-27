@@ -63,7 +63,14 @@ def _cli():
 def cmd_check(args: argparse.Namespace) -> dict:
     problems = find_problems(afc_home())
     result = {"ok": not problems, "problems": problems}
-    other = tool_coverage.coverage(cli_root())
+    routing = None
+    reg = load_registry(afc_home())
+    active = reg.active()
+    if active is not None:
+        from afc.role_agents import load_routing
+
+        routing = load_routing(Path(active.workspace_path))
+    other = tool_coverage.coverage(cli_root(), routing=routing)
     result["other_tools"] = tool_coverage.lines(other)
     note = root_git_note()
     if note:

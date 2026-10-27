@@ -1,6 +1,6 @@
 # FC-050 — Right model for each job
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-27
 Area: tokens
 
 Asked for on 2026-10-26: architecture changes only by the newest Opus at high effort ("the most
@@ -127,10 +127,10 @@ and Vertex.
 - [x] 4. Opus by default, one place to overrule — you'll see it by `.claude/settings.json` setting
       the model, `agents` printing where to change it, and a `model` line in
       `.claude/settings.local.json` winning in a scratch start (proves A6)
-- [ ] 5. Nothing silently defeats it — you'll see it by `check` reporting `routing_overridden` with
+- [x] 5. Nothing silently defeats it — you'll see it by `check` reporting `routing_overridden` with
       the variable set and `routing_drift` with one edited agent file, `agents sync` clearing the
       second, and every calling instruction carrying the no-`model`-argument line (proves A7, A8)
-- [ ] 6. Measured live — you'll see it by a scratch project run for the three requests with the
+- [x] 6. Measured live — you'll see it by a scratch project run for the three requests with the
       model name and effort of each agent read from the session transcript and written in Decisions
       (proves A9)
 
@@ -186,5 +186,13 @@ Slice 6:
 - 2026-10-26 (slice 4): tracked `.claude/settings.json` sets `"model": "opus"`; `agents` prints `main_session`
   (model, the file or `ANTHROPIC_MODEL` that sets it, and how to change it). Scratch start: `settings.json` opus
   alone ran claude-opus-5-5; adding `{"model": "haiku"}` in `settings.local.json` ran claude-haiku-5-5.
+- 2026-10-27: Asking and suggesting a model in other tools, such as Cursor, is FC-052. This spec stays
+  Claude Code only.
+- 2026-10-27 (slice 6): scratch project `live` under `/tmp/afc-fc050-s6` with `claude -p --agent …`
+  and `stream-json` init events: architecture via `afc-architect` on claude-opus-5-5 (agent file
+  effort high; `per_turn_effort_active` in the transcript), slice build via `afc-build` on
+  claude-sonnet-5-5, changelog via `afc-docs` on claude-haiku-5-5 (agent file effort low).
 
 ## Shipped
+
+Shipped 2026-10-27. Slices: 6. Criteria: 0 of 9 proven.

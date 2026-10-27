@@ -41,6 +41,11 @@ question. Anything else: answer briefly, then ask the update question. Never bot
   something else?" 1. Continue (recommended) 2. Something else. On continue,
   run `sh bin/afc status`, then `afc-interview` (or `afc-slice` if the intent is agreed). On
   something else, ask: a new project or another of theirs?
+- **Model ask (other tools):** only after the welcome's question is answered, never in the same
+  message. Run `sh bin/afc model`. If `ask: true` and `options` is present, ask with those three
+  numbered answers (recommended first). If `ask: true` with a shown model, ask keep it or the
+  single `suggest`. Then `sh bin/afc model choose <model>`. If `ask: false` or tool is Claude Code,
+  ask nothing about the model.
 - **First run** (no projects): "Are you starting a new project, or working on one that already
   exists on this machine?" 1. A new project 2. One that already exists (both `afc-setup`).
 - **"Held back" connector line in the welcome**: if the user then names one ("I need Gmail"), follow

@@ -13,7 +13,10 @@ one first.
 
 Writing `plan/architecture.md` (or `docs/architecture.md` in maintenance) and every structure
 decision is the `afc-architect` agent's job, never the main session's or the builder's; reading the
-graph and answering questions stays here.
+graph and answering questions stays here. Never pass `model` or `effort` when you call an agent; the agent file decides.
+In a tool other than Claude Code, before architecture work run `sh bin/afc model --role architect`;
+when `ask` is true and `suggest` is set, ask once in this session whether to switch, then
+`sh bin/afc model choose <model>` if they take the switch.
 
 ## Keep architecture.md current
 
@@ -51,7 +54,7 @@ screen and the nightly export."
 ## After a slice
 
 When a slice changed structure, refresh the graph with `sh bin/afc index refresh`, then have
-`afc-architect` update `plan/architecture.md` and return a one-line note. If a new module, skill,
+`afc-architect` update `plan/architecture.md` and return a one-line note. Never pass `model` or `effort` when you call an agent; the agent file decides. If a new module, skill,
 agent or workflow was added or removed, it updates the Key files cell in the Components table so
 `sh bin/afc check` finds no unmapped paths. If nothing structural changed, leave both alone.
 
