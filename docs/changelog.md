@@ -5,6 +5,7 @@
 - Each kind of work runs on the model and effort it deserves by default: architecture on the newest Opus at high effort, planning and interviews on Opus, builds on Sonnet, documents and light work on Haiku. You can overrule any of it in one place.
 - Cursor, Codex, GitHub Copilot, and Antigravity get the same guards and plain-words flow as Claude Code, with a shared check when a tool cannot block an action at commit time.
 - In those other tools, Flight Control asks once which model to use for the project (keep what the tool shows, or pick premium, best cost, or hybrid), remembers the choice, and asks again before heavy jobs if you picked a light model.
+- Model ask in Cursor, Codex, and the like reads your tool's config from your home folder, not the Flight Control workspace.
 
 ## 2026-10-27 — FC-052 Ask and suggest a model in other tools
 
