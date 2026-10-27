@@ -23,7 +23,10 @@ TOOLS = ("claude", "cursor", "codex", "copilot", "antigravity")
 LOOKUP_URLS = {
     "cursor": ("https://cursor.com/docs/models", "https://cursor.com/docs/models-and-pricing"),
     "codex": ("https://developers.openai.com/codex",),
-    "copilot": ("https://docs.github.com/en/copilot",),
+    "copilot": (
+        "https://docs.github.com/en/copilot/using-github-copilot/ai-models/choosing-the-right-ai-model-for-your-task",
+        "https://docs.github.com/en/copilot",
+    ),
     "antigravity": ("https://antigravity.google/docs",),
 }
 
@@ -280,8 +283,10 @@ def _clean_model_name(raw: str) -> str | None:
         return None
     if _BAD_MODEL.search(name):
         return None
-    # Must include a digit or a known family qualifier word
     lower = name.lower()
+    if "system-card" in lower or lower.endswith("-card"):
+        return None
+    # Must include a digit or a known family qualifier word
     if not re.search(r"\d", name) and not any(
         w in lower for w in ("opus", "sonnet", "haiku", "fable", "flash", "pro", "max",
                              "mini", "nano", "composer", "wonder", "terra", "luna", "argon", "codex")
@@ -394,6 +399,25 @@ def _pick(candidates: list[str], want: str, prefer: list[str] | None = None) -> 
     )[0]
 
 
+def _candidate_models(tool: str, home: Path | None = None, *, fetch: bool = True) -> tuple[list[str], list[str], dict]:
+    """Model names from local settings plus look-up or cache; also returns the look-up result."""
+    local = local_models(tool, home)
+    looked = lookup_models(tool, home=home, fetch=fetch)
+    candidates: list[str] = []
+    for name in local + list(looked.get("models") or []):
+        if name and name not in candidates:
+            candidates.append(name)
+    return candidates, local, looked
+
+
+def _switch_reason(job: str) -> str:
+    return {
+        "strong": "stronger fit for architecture and planning on your plan",
+        "balanced": "a middle path for quality and cost on your plan",
+        "light": "lighter use of your plan for everyday work",
+    }[job]
+
+
 def suggest(role: str, routing: dict | None, shown: dict | None = None,
             profile: str = "personal", home: Path | None = None) -> dict | None:
     """One switch suggestion from models the tool already lists, or None."""
@@ -411,23 +435,34 @@ def suggest(role: str, routing: dict | None, shown: dict | None = None,
     pick = _pick(locals_, job, prefer=locals_)
     if not pick or pick == current:
         return None
-    reasons = {
-        "strong": "stronger fit for architecture and planning on your plan",
-        "balanced": "a middle path for quality and cost on your plan",
-        "light": "lighter use of your plan for everyday work",
-    }
-    return {"model": pick, "need": job, "reason": reasons[job]}
+    return {"model": pick, "need": job, "reason": _switch_reason(job)}
+
+
+def session_suggest(routing: dict | None, shown: dict | None = None,
+                    profile: str = "personal", home: Path | None = None) -> dict | None:
+    """One switch for the session-start ask: local settings first, then look-up or cache."""
+    shown = shown or shown_model(home=home)
+    current = shown.get("model")
+    if not current:
+        return None
+    tool = shown.get("tool") or detect_tool()
+    candidates, prefer, _looked = _candidate_models(tool, home)
+    for role in ("plan", "architect", "build"):
+        job = need(role, routing, profile=profile)
+        if fit(current) == job:
+            continue
+        if job == "balanced" and fit(current) != "light":
+            continue
+        pick = _pick(prefer, job, prefer=prefer) or _pick(candidates, job, prefer=prefer)
+        if pick and pick != current:
+            return {"model": pick, "need": job, "reason": _switch_reason(job), "role": role}
+    return None
 
 
 def three_options(tool: str | None = None, home: Path | None = None, *, fetch: bool = True) -> dict:
     """Exactly three options when possible: premium, best cost, hybrid — from local + look-up."""
     tool = tool or detect_tool()
-    local = local_models(tool, home)
-    looked = lookup_models(tool, home=home, fetch=fetch)
-    candidates: list[str] = []
-    for name in local + list(looked.get("models") or []):
-        if name and name not in candidates:
-            candidates.append(name)
+    candidates, local, looked = _candidate_models(tool, home, fetch=fetch)
 
     note_parts = []
     if looked.get("live"):

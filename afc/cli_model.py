@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from afc.tool_model import detect_tool, shown_model, suggest, three_options
+from afc.tool_model import detect_tool, session_suggest, shown_model, suggest, three_options
 
 NAMES = ("model",)
 
@@ -78,8 +78,7 @@ def _ask_payload(tool: str, shown: dict, routing: dict, profile: str) -> dict:
 
     out["ask"] = True
     if current:
-        # Session start: everyday "build" need — keep shown, or one switch from local settings.
-        tip = suggest("build", routing, shown=shown, profile=profile)
+        tip = session_suggest(routing, shown=shown, profile=profile)
         if tip:
             out["suggest"] = tip
     else:
