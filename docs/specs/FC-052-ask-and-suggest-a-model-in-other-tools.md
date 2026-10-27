@@ -243,4 +243,14 @@ Slice 5:
   API key. Advice and the three options are framed for plan users; Flight Control never asks for an
   API key and never ranks by token price.
 
+- 2026-10-27 slice 3 re-run (dev `dfe43d7`, scratch `AFC_HOME` only): Copilot with nothing shown —
+  first `sh bin/afc model --tool copilot` returned `ask: true` and three `options` (premium / cost /
+  hybrid) from the Copilot models doc; `model choose gpt-5-3-codex` wrote `tools.copilot` in the
+  scratch workspace `agents/routing.json`; a second `model` returned `ask: false` with the same
+  `kept`. Cursor with `CURSOR_AGENT=1` on a fresh scratch project — first `model` returned
+  `ask: true` with `suggest` (two-answer path for `composer-2.5` shown); `model choose composer-2.5`
+  wrote `tools.cursor` with `seen` `composer-2.5`; second `model` returned `ask: false`; `model
+  --tool claude` on that project returned `ask: false` and `agents: sh bin/afc agents`. Not measured
+  here: a live Cursor chat whose first reply asks the model question (that stays for slice 5).
+
 ## Shipped
