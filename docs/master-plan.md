@@ -64,7 +64,7 @@ Where the work is going. Each spec names its area so nothing drifts.
 
 ## Findings
 
-Findings: 1 open (R6 waiting on you). Full list and history in [docs/findings.md](findings.md).
+Findings: none open. Full list and history in [docs/findings.md](findings.md).
 
 ## Update log
 
