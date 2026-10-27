@@ -171,7 +171,7 @@ Nothing is written into the app's code folder.
       settings only and saying so (never inventing IDs), and by a run with a shown light model and
       `--role architect` still offering a single switch when settings list a strong one (proves A2,
       A3; settles the look-up assumption)
-- [ ] 3. Ask once and remember — you'll see it by a scratch project in Cursor whose first reply asks
+- [x] 3. Ask once and remember — you'll see it by a scratch project in Cursor whose first reply asks
       one question with three numbered answers when no model is shown (or two when one is),
       `model choose` writing `tools.cursor` in the scratch workspace's `agents/routing.json`, a
       second start asking 0 questions about the model, and a Claude Code start on the same project
@@ -250,7 +250,13 @@ Slice 5:
   `kept`. Cursor with `CURSOR_AGENT=1` on a fresh scratch project — first `model` returned
   `ask: true` with `suggest` (two-answer path for `composer-2.5` shown); `model choose composer-2.5`
   wrote `tools.cursor` with `seen` `composer-2.5`; second `model` returned `ask: false`; `model
-  --tool claude` on that project returned `ask: false` and `agents: sh bin/afc agents`. Not measured
-  here: a live Cursor chat whose first reply asks the model question (that stays for slice 5).
+  --tool claude` on that project returned `ask: false` and `agents: sh bin/afc agents`.
+
+- 2026-10-27 slice 3 live (Cursor, scratch `fc052-live`, `AFC_HOME`
+  `/private/tmp/afc-fc052-live-nmgcX7`): after welcome, `sh bin/afc model` with `CURSOR_AGENT=1`
+  returned `ask: true` and `suggest` `claude-fable-5-1` for shown `composer-2.5` (two-answer path).
+  First reply offered: 1 keep Composer 2.5, 2 switch to `claude-fable-5-1`; user chose 1;
+  `model choose composer-2.5` wrote `tools.cursor`; second `model` had `ask: false`; `model --tool
+  claude` had `ask: false`. Three-option path still covered by the Copilot re-run above.
 
 ## Shipped
