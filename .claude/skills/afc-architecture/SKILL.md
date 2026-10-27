@@ -14,6 +14,9 @@ one first.
 Writing `plan/architecture.md` (or `docs/architecture.md` in maintenance) and every structure
 decision is the `afc-architect` agent's job, never the main session's or the builder's; reading the
 graph and answering questions stays here. Never pass `model` or `effort` when you call an agent; the agent file decides.
+In a tool other than Claude Code, before architecture work run `sh bin/afc model --role architect`;
+when `ask` is true and `suggest` is set, ask once in this session whether to switch, then
+`sh bin/afc model choose <model>` if they take the switch.
 
 ## Keep architecture.md current
 

@@ -41,6 +41,9 @@ nothing, never create a branch in the app to make the request fit.
    the `afc-architect` agent first: it adds a short design note to the spec's Design notes, and after
    the build it writes the `architecture.md` row and the `--architecture` note; never the main
    session or the builder. Never pass `model` or `effort` when you call an agent; the agent file decides.
+   In a tool other than Claude Code, before that handoff or spec planning run
+   `sh bin/afc model --role architect` or `--role plan`; when `ask` is true and `suggest` is set, ask
+   once in this session whether to switch, then `sh bin/afc model choose <model>` if they take it.
 4. A mini threat check, at most five rows, kept internal:
 
 | Threat | Category | Mitigation |

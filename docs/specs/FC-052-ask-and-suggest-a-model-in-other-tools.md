@@ -176,7 +176,7 @@ Nothing is written into the app's code folder.
       `model choose` writing `tools.cursor` in the scratch workspace's `agents/routing.json`, a
       second start asking 0 questions about the model, and a Claude Code start on the same project
       asking none (proves A4, A5, A7)
-- [ ] 4. Ask again for the heavy jobs — you'll see it by an architecture request in Cursor on a
+- [x] 4. Ask again for the heavy jobs — you'll see it by an architecture request in Cursor on a
       light kept model asking once, a build request asking 0 times, and a second architecture request
       in the same session asking 0 times (proves A6)
 - [ ] 5. Health line and live run — you'll see it by `sh bin/afc check` listing the shown and kept
@@ -258,5 +258,10 @@ Slice 5:
   First reply offered: 1 keep Composer 2.5, 2 switch to `claude-fable-5-1`; user chose 1;
   `model choose composer-2.5` wrote `tools.cursor`; second `model` had `ask: false`; `model --tool
   claude` had `ask: false`. Three-option path still covered by the Copilot re-run above.
+
+- 2026-10-27 slice 4 (scratch `fc052-s4`, light kept `composer-2.5`, `AFC_SESSION=fc052-s4-test`):
+  first `model --role architect` returned `ask: true` with `suggest` `claude-fable-5-1`; second
+  `model --role architect` returned `ask: false`; `model --role build` returned `ask: false`.
+  Session marker under `model.d/` prevents a second heavy ask in the same session.
 
 ## Shipped

@@ -5,7 +5,19 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from afc.tool_model import detect_tool, session_suggest, shown_model, suggest, three_options
+from afc.tool_model import (
+    HEAVY_ROLES,
+    detect_tool,
+    fit,
+    heavy_job_asked,
+    mark_heavy_job_asked,
+    need,
+    role_switch_suggest,
+    session_suggest,
+    shown_model,
+    suggest,
+    three_options,
+)
 
 NAMES = ("model",)
 
@@ -132,6 +144,9 @@ def cmd_model(args: argparse.Namespace) -> dict:
         return out
 
     if role:
+        from afc.config import afc_home
+        from afc.role_agents import tool_kept
+
         out = {
             "tool": shown.get("tool") or tool,
             "model": shown.get("model"),
@@ -139,15 +154,25 @@ def cmd_model(args: argparse.Namespace) -> dict:
             "shown": shown.get("shown", False),
             "detail": shown.get("detail", "not shown"),
         }
-        tip = suggest(role, routing, shown=shown, profile=profile)
-        if tip:
-            out["suggest"] = tip
-        kept = None
-        from afc.role_agents import tool_kept
-
         kept = tool_kept(routing, tool)
         if kept:
             out["kept"] = kept["model"]
+        home = afc_home()
+        if role in HEAVY_ROLES:
+            tip = role_switch_suggest(role, routing, shown=shown, profile=profile, home=home)
+            if tip:
+                out["suggest"] = tip
+            light_kept = kept and fit(kept["model"]) == "light"
+            strong_job = need(role, routing, profile=profile) == "strong"
+            ask = bool(tip and light_kept and strong_job and not heavy_job_asked(home, tool))
+            out["ask"] = ask
+            if ask:
+                mark_heavy_job_asked(home, tool)
+        else:
+            tip = suggest(role, routing, shown=shown, profile=profile)
+            if tip:
+                out["suggest"] = tip
+            out["ask"] = False
         return out
 
     return _ask_payload(tool, shown, routing, profile)

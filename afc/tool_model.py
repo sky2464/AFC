@@ -18,6 +18,7 @@ from pathlib import Path
 from afc.config import afc_home
 
 TOOLS = ("claude", "cursor", "codex", "copilot", "antigravity")
+HEAVY_ROLES = frozenset({"architect", "plan"})
 
 # Public docs only (no API keys). URLs may change; model names are never listed here.
 LOOKUP_URLS = {
@@ -436,6 +437,67 @@ def suggest(role: str, routing: dict | None, shown: dict | None = None,
     if not pick or pick == current:
         return None
     return {"model": pick, "need": job, "reason": _switch_reason(job)}
+
+
+def role_switch_suggest(role: str, routing: dict | None, shown: dict | None = None,
+                        profile: str = "personal", home: Path | None = None) -> dict | None:
+    """One switch for a job role: local settings first, then look-up or cache."""
+    tip = suggest(role, routing, shown=shown, profile=profile, home=home)
+    if tip:
+        return tip
+    shown = shown or shown_model(home=home)
+    current = shown.get("model")
+    if not current:
+        return None
+    tool = shown.get("tool") or detect_tool()
+    job = need(role, routing, profile=profile)
+    if fit(current) == job:
+        return None
+    if job == "balanced" and fit(current) != "light":
+        return None
+    candidates, prefer, _looked = _candidate_models(tool, home)
+    pick = _pick(prefer, job, prefer=prefer) or _pick(candidates, job, prefer=prefer)
+    if pick and pick != current:
+        return {"model": pick, "need": job, "reason": _switch_reason(job)}
+    return None
+
+
+def _heavy_flag_path(home: Path, tool: str) -> Path | None:
+    """Per-session (or per-branch when there is no session id) marker for the heavy-job ask."""
+    from afc.config import afc_root, current_session
+
+    session = current_session()
+    root = home / "model.d"
+    if session:
+        return root / f"{session}.{tool}.heavy"
+    from afc.update import _branch  # late import: update imports config
+
+    branch = _branch(afc_root())
+    if not branch:
+        return None
+    safe = re.sub(r"[^A-Za-z0-9_-]", "_", branch)[:100]
+    return root / f"branch-{safe}.{tool}.heavy"
+
+
+def heavy_job_asked(home: Path, tool: str) -> bool:
+    path = _heavy_flag_path(home, tool)
+    if path is None:
+        return False
+    try:
+        return path.is_file()
+    except OSError:
+        return False
+
+
+def mark_heavy_job_asked(home: Path, tool: str) -> None:
+    path = _heavy_flag_path(home, tool)
+    if path is None:
+        return
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+    except OSError:
+        pass
 
 
 def session_suggest(routing: dict | None, shown: dict | None = None,
