@@ -1,6 +1,6 @@
 # FC-051 — Flight Control works in other AI tools
 
-Size: L · Status: next · Started: - · Done: -
+Size: L · Status: in progress · Started: 2026-10-27 · Done: -
 Area: safety
 
 Asked for on 2026-10-26: changing Flight Control from Cursor, Antigravity, Codex, GitHub Copilot and

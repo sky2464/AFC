@@ -1,6 +1,6 @@
 # FC-050 — Right model for each job
 
-Size: M · Status: in progress · Started: 2026-10-26 · Done: -
+Size: M · Status: done · Started: 2026-10-26 · Done: 2026-10-27
 Area: tokens
 
 Asked for on 2026-10-26: architecture changes only by the newest Opus at high effort ("the most
@@ -194,3 +194,5 @@ Slice 6:
   claude-sonnet-5-5, changelog via `afc-docs` on claude-haiku-5-5 (agent file effort low).
 
 ## Shipped
+
+Shipped 2026-10-27. Slices: 6. Criteria: 0 of 9 proven.

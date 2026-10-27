@@ -15,13 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-050 | Right model for each job | M | [spec](specs/FC-050-right-model-for-each-job.md) | 2026-10-26 |
+| FC-051 | Flight Control works in other AI tools | L | [spec](specs/FC-051-flight-control-works-in-other-ai-tools.md) | 2026-10-27 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-051 | Flight Control works in other AI tools | L | [spec](specs/FC-051-flight-control-works-in-other-ai-tools.md) |
 | FC-052 | Ask and suggest a model in other tools | M | [spec](specs/FC-052-ask-and-suggest-a-model-in-other-tools.md) |
 
 
@@ -36,6 +35,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-050 | Right model for each job | 2026-10-27 | [FC-050](specs/archive/FC-050-right-model-for-each-job.md) |  |  |
 | FC-049 | Architecture memory for Flight Control | 2026-10-26 | [FC-049](specs/archive/FC-049-architecture-memory-for-flight-control.md) |  |  |
 | FC-046 | Findings, parked and waiting in one place | 2026-10-26 | [FC-046](specs/archive/FC-046-findings-parked-and-waiting-in-one-place.md) |  |  |
 | FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
@@ -45,7 +45,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-043 | Ready means ready | 2026-10-26 | [FC-043](specs/archive/FC-043-ready-means-ready.md) |  |  |
 | FC-040 | Ready for v0.06a | 2026-10-26 | [FC-040](specs/archive/FC-040-ready-for-v0-06a.md) |  |  |
 | FC-041 | Maintenance mode survives a new session | 2026-10-26 | [FC-041](specs/archive/FC-041-maintenance-mode-survives-a-new-session.md) |  |  |
-| FC-042 | Review asks for tests only when asked | 2026-10-26 | [FC-042](specs/archive/FC-042-review-asks-for-tests-only-when-asked.md) |  |  |
 
 ## Areas
 

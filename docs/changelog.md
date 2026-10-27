@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-10-27 — FC-050 Right model for each job
+
+Every kind of work runs on the model and effort it deserves, by default and with no step for the user: architecture on the newest Opus at high effort, spec planning and interviews on Opus, builds on Sonnet, documents and light work on Haiku. The user can overrule any of it in one place, and Flight Control says plainly when something else is overriding it.
+
+- Six roles with effort
+- Architecture goes to the architect
+- Documents go to Haiku
+- Opus by default, one place to overrule
+- Nothing silently defeats it
+- Measured live
+
 ## 2026-10-26 — FC-049 Architecture memory for Flight Control
 
 Flight Control has its own architecture memory, in the same shape it gives every app. Each part is tied to the files that hold it, and `sh bin/afc check` says when a pointer is dead or a module has no home in the notes.
