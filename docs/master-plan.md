@@ -20,6 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-056 | Nothing about a project before you pick it | M | [spec](specs/FC-056-nothing-about-a-project-before-you-pick.md) |
 
 
 ## Waiting on you
