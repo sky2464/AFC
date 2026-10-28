@@ -6,7 +6,7 @@ tool's words. Anything it can't read blocks (fail closed), as the Claude Code ho
 
 What each tool can block before it happens (checked 2026-10-26): Cursor shell commands and file
 reads; Codex shell commands and apply_patch edits; Copilot shell and file edits; Antigravity shell
-and file edits. Cursor cannot block an edit in advance; the commit check covers that.
+and file edits. Cursor edits go through the Claude Code hook instead (pretool.py, FC-057).
 """
 
 import json
