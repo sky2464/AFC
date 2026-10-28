@@ -121,6 +121,16 @@ def apply(root: Path, home: Path) -> dict:
     if status is None:
         return _refuse(current, "Git could not read Flight Control's own copy, so nothing was changed.")
     if status.strip():
+        lines = [l for l in status.splitlines() if l.strip()]
+        if all(l.startswith("??") for l in lines):
+            paths = [l[3:].strip() for l in lines[:3]]
+            named = ", ".join(paths)
+            tail = f" ({named})" if named else ""
+            return _refuse(
+                current,
+                f"Flight Control's own copy has new files git is not tracking{tail},"
+                " so nothing was changed; put them away or remove them first.",
+            )
         return _refuse(current, "Flight Control's own copy has local edits, so nothing was changed; put them away first.")
     tag = update.remote_newest(root, FETCH_BUDGET)
     if tag is None:

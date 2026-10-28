@@ -31,6 +31,9 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-055 | Calm welcome, honest update check | 2026-10-27 | [FC-055](specs/archive/FC-055-calm-welcome-honest-update-check.md) | v0.08a |  |
+| FC-054 | Cursor and maintenance mode agree | 2026-10-27 | [FC-054](specs/archive/FC-054-cursor-and-maintenance-mode-agree.md) | v0.08a |  |
+| FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) | v0.08a |  |
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) | v0.07a |  |
 | FC-051 | Flight Control works in other AI tools | 2026-10-27 | [FC-051](specs/archive/FC-051-flight-control-works-in-other-ai-tools.md) | v0.07a |  |
 | FC-050 | Right model for each job | 2026-10-27 | [FC-050](specs/archive/FC-050-right-model-for-each-job.md) | v0.07a |  |
@@ -38,15 +41,13 @@ Every change must reach the apps Flight Control builds for users.
 | FC-046 | Findings, parked and waiting in one place | 2026-10-26 | [FC-046](specs/archive/FC-046-findings-parked-and-waiting-in-one-place.md) |  |  |
 | FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
 | FC-045 | Releases and results from the plan | 2026-10-26 | [FC-045](specs/archive/FC-045-releases-and-results-from-the-plan.md) |  |  |
-| FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |  |  |
-| FC-048 | MM: prefix turns maintenance mode on | 2026-10-26 | [FC-048](specs/archive/FC-048-mm-prefix-turns-maintenance-mode-on.md) |  |  |
-| FC-043 | Ready means ready | 2026-10-26 | [FC-043](specs/archive/FC-043-ready-means-ready.md) |  |  |
 
 ## Releases
 
 | Release | Date | Specs |
 |---|---|---|
-| v0.07a | not tagged yet | FC-050, FC-051, FC-052 |
+| v0.08a | not tagged yet | FC-053, FC-054, FC-055 |
+| v0.07a | 2026-10-27 | FC-050, FC-051, FC-052 |
 | v0.06a | 2026-10-26 | - |
 | v0.05b | 2026-10-25 | - |
 | v0.04a | 2026-10-25 | - |
@@ -89,3 +90,4 @@ Findings: none open. Full list and history in [docs/findings.md](findings.md).
 | 2026-10-25 | FC-027 renamed to Add-ons off at start, quiet health check |
 | 2026-10-26 | waiting: R6: move A-FC-test to current code (973da0c is stale) |
 | 2026-10-26 | waiting: FC-040 release: make the v0.06a tag, push it, and publish re |
+| 2026-10-27 | FC-053 done: archive index has FC-018 row (check 0 plan_archive_not_indexed); architecture.md maps four FC-051 modules (check 0 architecture_unmapped, 0 architecture_dead_pointer) |

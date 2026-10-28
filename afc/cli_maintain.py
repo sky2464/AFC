@@ -2,7 +2,8 @@
 
 Registered into the main parser by afc.cli through register(). Maintenance mode is per session:
 it is on only for the session that turned it on, so other sessions keep their usual guard. A tool that
-gives no session ID (Cursor, Codex, Copilot) uses a switch for the copy's branch instead.
+gives no session ID (Cursor, Codex, Copilot) uses a switch for the copy's branch instead. Cursor
+chats that expose a conversation ID still honour that branch switch (FC-054).
 """
 
 import argparse
@@ -10,6 +11,12 @@ import argparse
 from afc.config import afc_home, current_session, maintain_scope, set_maintain
 
 NAMES = ("maintain",)
+
+_SCOPE_WORDS = {
+    "session": "this chat only",
+    "branch": "this copy's branch (every Cursor chat on this branch)",
+    "off": "off",
+}
 
 
 def register(sub) -> None:
@@ -35,5 +42,11 @@ def cmd_maintain(args: argparse.Namespace) -> dict:
         except ValueError as exc:
             raise CliError(str(exc)) from exc
     scope = maintain_scope(home, session)
-    result: dict = {"maintain": scope != "off", "scope": scope}
+    result: dict = {
+        "maintain": scope != "off",
+        "scope": scope,
+        "applies": _SCOPE_WORDS.get(scope, scope),
+    }
+    if scope != "off":
+        result["note"] = "Never on main; type /afc mm off when finished."
     return result

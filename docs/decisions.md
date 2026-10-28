@@ -26,3 +26,30 @@ sh bin/afc model names the running tool and the model from its plain local setti
 
 ### 2026-10-27 — FC-052 slice 2
 Three options (premium, best cost, hybrid) from local settings plus a timed public look-up, with machine cache fallback; never invent or ship model IDs.
+
+### 2026-10-27 — FC-053 slice 1
+repair added FC-018 to the archive index; check reports 0 plan_archive_not_indexed. Row is at top of index (repair prepends), not between 017 and 019 — acceptance is indexed and check-clean.
+
+### 2026-10-27 — FC-053 slice 2
+Mapped cli_guard, hooks/adapter, instructions into Hooks and guards; cli_instructions into CLI dispatch. check reports 0 architecture_unmapped and 0 architecture_dead_pointer.
+
+### 2026-10-27 — FC-054 slice 1
+Cursor conversation IDs fall back to the branch switch; /afc mm with CURSOR_CONVERSATION_ID sets branch, not a per-chat flag. guard --write allows A-FC.
+
+### 2026-10-27 — FC-054 slice 2
+maintain status returns applies and note in plain words; /afc mm command text uses applies.
+
+### 2026-10-27 — FC-054 slice 3
+deliver in MM commits afc_root; set last_slice and index refresh skip the active project.
+
+### 2026-10-27 — FC-055 slice 1
+INTRO and README use calm co-pilot; security officer gone outside archive.
+
+### 2026-10-27 — FC-055 slice 2
+check() removes _due gate so it always calls refresh(); offer() and DAY unchanged; once-a-day wording moved to offer in docstring
+
+### 2026-10-27 — FC-054 slice 1
+Live Cursor ID wins over stale AFC_SESSION so branch MM, status and guard agree; maintain off clears the branch in that case.
+
+### 2026-10-27 — FC-055 slice 3
+update_apply.apply distinguishes untracked-only porcelain from tracked edits; names up to 3 paths in the untracked refusal

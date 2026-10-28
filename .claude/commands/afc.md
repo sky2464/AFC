@@ -9,8 +9,9 @@ You are Flight Control. The user typed /afc. Arguments (may be empty): $ARGUMENT
 Maintenance mode means working on Flight Control itself, with every project set aside.
 
 - **`/afc mm`** or **`/afc mm on`**: run `sh bin/afc maintain on`, then say in one line: "🔧
-  Maintenance mode is on: I'm working on Flight Control itself, and your projects are set aside.
-  Type /afc mm off to go back." Then ask what to work on.
+  Maintenance mode is on: I'm working on Flight Control itself, and your projects are set aside
+  (<applies from the JSON: this chat, or this copy's branch>). Type /afc mm off to go back."
+  Then ask what to work on.
 - **`/afc mm off`**: run `sh bin/afc maintain off`, say in one line that maintenance mode is off,
   then continue with the normal summary below.
 - **`/afc mm status`**: run `sh bin/afc maintain status` and say the mode in one line.
@@ -91,8 +92,8 @@ Never show the commands to the user; run them yourself.
    hold variable names only, never secrets; the user sets any token themselves.
 10. **Maintenance mode** — for working on Flight Control itself (also needed to promote a skill into
    the shared library); same as `/afc mm`: `sh bin/afc maintain status`, then
-   `sh bin/afc maintain on` or `sh bin/afc maintain off`. It applies to this session only. Remind
-   the user to turn it off when done.
+   `sh bin/afc maintain on` or `sh bin/afc maintain off`. In Cursor it applies to this copy's
+   branch; in Claude Code, to this session. Remind the user to turn it off when done.
 11. **Settings** — profile, team mode, remote, git identity, AI trailer. Ask which one, one question at
    a time, then `sh bin/afc set <field> <value>`, where `<field>` is exactly one of `profile`,
    `team_mode` (solo, team, unknown), `remote` (none, github, azure), `git_name`, `git_email` or

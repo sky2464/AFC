@@ -159,6 +159,7 @@ def shown_model(tool: str | None = None, home: Path | None = None) -> dict:
     """The model the tool's plain settings show, or not shown.
 
     Returns {tool, model, file, shown, detail}. detail is the model name or "not shown".
+    ``home`` is the OS user home for tool configs, never ``afc_home()``.
     """
     tool = tool or detect_tool()
     base = Path.home() if home is None else Path(home)
@@ -203,7 +204,12 @@ def need(role: str, routing: dict | None = None, profile: str = "personal") -> s
 
 
 def local_models(tool: str | None = None, home: Path | None = None) -> list[str]:
-    """Distinct model names listed in the tool's plain local settings."""
+    """Distinct model names listed in the tool's plain local settings.
+
+    ``home`` is the OS user home (tool configs like ``~/.cursor/``), never the Flight
+    Control workspace (``afc_home()`` / ``~/.A-FC``). Callers that only have a workspace
+    path must omit ``home`` so this uses ``Path.home()``.
+    """
     tool = tool or detect_tool()
     base = Path.home() if home is None else Path(home)
     found: list[str] = []
@@ -401,8 +407,12 @@ def _pick(candidates: list[str], want: str, prefer: list[str] | None = None) -> 
 
 
 def _candidate_models(tool: str, home: Path | None = None, *, fetch: bool = True) -> tuple[list[str], list[str], dict]:
-    """Model names from local settings plus look-up or cache; also returns the look-up result."""
-    local = local_models(tool, home)
+    """Model names from local settings plus look-up or cache; also returns the look-up result.
+
+    ``home`` is the Flight Control workspace (cache under ``~/.A-FC``). Tool settings are
+    always read from the OS user home via ``local_models``.
+    """
+    local = local_models(tool)
     looked = lookup_models(tool, home=home, fetch=fetch)
     candidates: list[str] = []
     for name in local + list(looked.get("models") or []):
@@ -421,8 +431,13 @@ def _switch_reason(job: str) -> str:
 
 def suggest(role: str, routing: dict | None, shown: dict | None = None,
             profile: str = "personal", home: Path | None = None) -> dict | None:
-    """One switch suggestion from models the tool already lists, or None."""
-    shown = shown or shown_model(home=home)
+    """One switch suggestion from models the tool already lists, or None.
+
+    ``home`` is accepted for API compatibility (workspace/cache) but is not used for
+    tool-config discovery; local settings always come from the OS user home.
+    """
+    del home  # workspace path must not become ~/.cursor base
+    shown = shown or shown_model()
     tool = shown.get("tool") or detect_tool()
     current = shown.get("model")
     if not current:
@@ -432,7 +447,7 @@ def suggest(role: str, routing: dict | None, shown: dict | None = None,
         return None
     if job == "balanced" and fit(current) != "light":
         return None
-    locals_ = local_models(tool, home)
+    locals_ = local_models(tool)
     pick = _pick(locals_, job, prefer=locals_)
     if not pick or pick == current:
         return None
@@ -441,11 +456,15 @@ def suggest(role: str, routing: dict | None, shown: dict | None = None,
 
 def role_switch_suggest(role: str, routing: dict | None, shown: dict | None = None,
                         profile: str = "personal", home: Path | None = None) -> dict | None:
-    """One switch for a job role: local settings first, then look-up or cache."""
-    tip = suggest(role, routing, shown=shown, profile=profile, home=home)
+    """One switch for a job role: local settings first, then look-up or cache.
+
+    ``home`` is the Flight Control workspace for look-up cache only; tool configs use
+    the OS user home.
+    """
+    tip = suggest(role, routing, shown=shown, profile=profile)
     if tip:
         return tip
-    shown = shown or shown_model(home=home)
+    shown = shown or shown_model()
     current = shown.get("model")
     if not current:
         return None
@@ -502,8 +521,12 @@ def mark_heavy_job_asked(home: Path, tool: str) -> None:
 
 def session_suggest(routing: dict | None, shown: dict | None = None,
                     profile: str = "personal", home: Path | None = None) -> dict | None:
-    """One switch for the session-start ask: local settings first, then look-up or cache."""
-    shown = shown or shown_model(home=home)
+    """One switch for the session-start ask: local settings first, then look-up or cache.
+
+    ``home`` is the Flight Control workspace for look-up cache only; tool configs use
+    the OS user home.
+    """
+    shown = shown or shown_model()
     current = shown.get("model")
     if not current:
         return None

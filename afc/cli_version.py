@@ -13,7 +13,7 @@ def register(sub) -> None:
     p = sub.add_parser("version", help="show the installed Flight Control version")
     p.set_defaults(handler=cmd_version)
     u = sub.add_parser("update", help="update Flight Control to the newest release")
-    u.add_argument("--check", action="store_true", help="only look for a newer release; nothing is updated")
+    u.add_argument("--check", action="store_true", help="look at origin now for a newer release; nothing is updated")
     u.add_argument("--skip", metavar="VERSION", help="stay quiet about this release")
     u.set_defaults(handler=cmd_update)
     r = sub.add_parser("release", help="check whether main is ready to tag; changes nothing")
