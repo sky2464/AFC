@@ -50,3 +50,6 @@ check() removes _due gate so it always calls refresh(); offer() and DAY unchange
 
 ### 2026-10-27 — FC-054 slice 1
 Live Cursor ID wins over stale AFC_SESSION so branch MM, status and guard agree; maintain off clears the branch in that case.
+
+### 2026-10-27 — FC-055 slice 3
+update_apply.apply distinguishes untracked-only porcelain from tracked edits; names up to 3 paths in the untracked refusal
