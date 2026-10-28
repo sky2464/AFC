@@ -4,6 +4,7 @@ Exit 0 allows the tool call; exit 2 blocks it and writes the reason to stderr.
 Any internal error, including a failed stdin read, blocks (fail closed).
 """
 
+import os
 import sys
 from collections.abc import Callable
 
@@ -36,9 +37,25 @@ def decide(event: dict, session_id: str | None = None) -> str | None:
     return None
 
 
+def _cursor_chat(event: dict) -> str | None:
+    """The chat ID when Cursor sent this event through the Claude Code hook, else None (FC-057).
+
+    Cursor runs this hook on its own edits but sets no CURSOR_CONVERSATION_ID, so the chat is only
+    known by Cursor's fields in the message (Claude Code sends neither)."""
+    if "cursor_version" not in event and "conversation_id" not in event:
+        return None
+    chat = event.get("conversation_id") or event.get("session_id")
+    return chat.strip() or None if isinstance(chat, str) else None
+
+
 def main(stdin_text: str, stderr) -> int:
     try:
-        reason = decide(read_event(stdin_text))
+        event = read_event(stdin_text)
+        chat = _cursor_chat(event)
+        if chat:
+            # Mark the chat as Cursor's so the branch-wide /afc mm applies, as in FC-054.
+            os.environ["CURSOR_CONVERSATION_ID"] = chat
+        reason = decide(event, chat)
         if reason:
             print(f"Flight Control blocked: {reason}", file=stderr)
             return 2

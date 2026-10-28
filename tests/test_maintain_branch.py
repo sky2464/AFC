@@ -11,6 +11,9 @@ from pathlib import Path
 from unittest import mock
 
 from afc import cli, config
+from afc.hooks import pretool
+
+OWN_FILE = str(config.afc_root() / "afc" / "config.py")
 
 
 class BranchMaintenanceTests(unittest.TestCase):
@@ -112,6 +115,27 @@ class BranchMaintenanceTests(unittest.TestCase):
         self.assertEqual(off["scope"], "off")
         os.environ.pop("AFC_SESSION", None)
         self.assertEqual(self.run_cli("maintain", "status")[1]["scope"], "off")
+
+    def edit(self, **fields):
+        """Exit code of the Claude Code edit guard for a write to a Flight Control file."""
+        event = {"tool_name": "Write", "tool_input": {"file_path": OWN_FILE, "content": "x"},
+                 "cwd": str(config.afc_root()), **fields}
+        return pretool.main(json.dumps(event), io.StringIO())
+
+    def test_cursor_edit_through_the_claude_hook_sees_the_branch_switch(self):
+        # FC-057: Cursor runs the Claude Code edit guard but sets no CURSOR_CONVERSATION_ID;
+        # its own fields in the message must still mark the chat as Cursor's.
+        self.run_cli("maintain", "on")
+        self.assertEqual(self.edit(session_id="cursor-chat-5", cursor_version="2.1.0"), 0)
+        self.assertEqual(self.edit(conversation_id="cursor-chat-6", cursor_version="2.1.0"), 0)
+        self.assertEqual(self.edit(conversation_id="cursor-chat-7"), 0)
+
+    def test_cursor_edit_is_still_blocked_with_the_branch_switch_off(self):
+        self.assertEqual(self.edit(conversation_id="cursor-chat-8", cursor_version="2.1.0"), 2)
+
+    def test_a_claude_edit_still_ignores_the_branch_switch(self):
+        self.run_cli("maintain", "on")
+        self.assertEqual(self.edit(session_id="claude-sess-1"), 2)
 
 
 if __name__ == "__main__":
