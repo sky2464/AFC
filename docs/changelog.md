@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-27 — FC-054 Cursor and maintenance mode agree
+
+In Cursor, the welcome, the guards and `sh bin/afc maintain status` agree on whether maintenance mode is on. With it on, delivering an FC slice commits Flight Control itself and leaves no bookkeeping aimed at the active project.
+
+- One mode answer in Cursor
+- Say which switch
+- Deliver Flight Control in maintenance mode
+
 ## v0.07a
 
 - Each kind of work runs on the model and effort it deserves by default: architecture on the newest Opus at high effort, planning and interviews on Opus, builds on Sonnet, documents and light work on Haiku. You can overrule any of it in one place.

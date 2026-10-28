@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-054 | Cursor and maintenance mode agree | M | [spec](specs/FC-054-cursor-and-maintenance-mode-agree.md) | 2026-10-27 |
 
 ## Next
 
@@ -32,6 +31,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-054 | Cursor and maintenance mode agree | 2026-10-27 | [FC-054](specs/archive/FC-054-cursor-and-maintenance-mode-agree.md) |  |  |
 | FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) |  |  |
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) | v0.07a |  |
 | FC-051 | Flight Control works in other AI tools | 2026-10-27 | [FC-051](specs/archive/FC-051-flight-control-works-in-other-ai-tools.md) | v0.07a |  |
@@ -41,8 +41,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
 | FC-045 | Releases and results from the plan | 2026-10-26 | [FC-045](specs/archive/FC-045-releases-and-results-from-the-plan.md) |  |  |
 | FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |  |  |
-| FC-048 | MM: prefix turns maintenance mode on | 2026-10-26 | [FC-048](specs/archive/FC-048-mm-prefix-turns-maintenance-mode-on.md) |  |  |
-| FC-043 | Ready means ready | 2026-10-26 | [FC-043](specs/archive/FC-043-ready-means-ready.md) |  |  |
 
 ## Releases
 

@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-054 | Cursor and maintenance mode agree | 2026-10-27 | FC-054-cursor-and-maintenance-mode-agree.md |
 | FC-053 | Health drift after a release | 2026-10-27 | FC-053-health-drift-after-a-release.md |
 | FC-018 | Leaner spec builds | 2026-10-25 | FC-018-leaner-spec-builds.md |
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | FC-052-ask-and-suggest-a-model-in-other-tools.md |

@@ -1,6 +1,6 @@
 # FC-054 — Cursor and maintenance mode agree
 
-Size: M · Status: in progress · Started: 2026-10-27 · Done: -
+Size: M · Status: done · Started: 2026-10-27 · Done: 2026-10-27
 Area: safety
 
 Found on 2026-10-27 while building FC-053 in Cursor (conversation on `dev`). Maintenance mode
@@ -102,3 +102,5 @@ Slice 3:
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-27. Slices: 3. Criteria: 0 of 3 proven.
