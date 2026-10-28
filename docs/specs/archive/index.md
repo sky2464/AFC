@@ -2,6 +2,7 @@
 
 | ID | Title | Done | Spec |
 |---|---|---|---|
+| FC-057 | Cursor edits see maintenance mode | 2026-10-28 | FC-057-cursor-edits-see-maintenance-mode.md |
 | FC-055 | Calm welcome, honest update check | 2026-10-27 | FC-055-calm-welcome-honest-update-check.md |
 | FC-054 | Cursor and maintenance mode agree | 2026-10-27 | FC-054-cursor-and-maintenance-mode-agree.md |
 | FC-053 | Health drift after a release | 2026-10-27 | FC-053-health-drift-after-a-release.md |

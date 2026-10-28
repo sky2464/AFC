@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-057 | Cursor edits see maintenance mode | S | [spec](specs/FC-057-cursor-edits-see-maintenance-mode.md) | 2026-10-28 |
 
 ## Next
 
@@ -33,6 +32,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-057 | Cursor edits see maintenance mode | 2026-10-28 | [FC-057](specs/archive/FC-057-cursor-edits-see-maintenance-mode.md) |  | met: Cursor edit to an A-FC file allowed on dev with /afc mm on; 3 tests pass |
 | FC-055 | Calm welcome, honest update check | 2026-10-27 | [FC-055](specs/archive/FC-055-calm-welcome-honest-update-check.md) | v0.08a |  |
 | FC-054 | Cursor and maintenance mode agree | 2026-10-27 | [FC-054](specs/archive/FC-054-cursor-and-maintenance-mode-agree.md) | v0.08a |  |
 | FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) | v0.08a |  |

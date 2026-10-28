@@ -1,6 +1,6 @@
 # FC-057 — Cursor edits see maintenance mode
 
-Size: S · Status: in progress · Started: 2026-10-28 · Done: -
+Size: S · Status: done · Started: 2026-10-28 · Done: 2026-10-28
 Area: safety
 
 Found on 2026-10-28 after FC-054: in Cursor on `dev`, `sh bin/afc maintain status` said the branch
@@ -58,3 +58,5 @@ Slice 1:
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-28. Slices: 1. Criteria: 0 of 3 proven.

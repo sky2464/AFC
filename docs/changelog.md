@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-28 — FC-057 Cursor edits see maintenance mode
+
+With `/afc mm` on for the branch, Cursor edits to Flight Control's files are allowed, the same as Cursor shell commands. Claude Code sessions keep their per-session rule.
+
+- Cursor edits see the branch switch
+
 ## v0.08a
 
 - FC-053 Health drift after a release: The health check on Flight Control reports no plan or architecture problems: FC-018 has its row in the archive index and the four FC-051 modules are in the architecture notes.
