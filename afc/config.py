@@ -36,16 +36,16 @@ def valid_session(value: object) -> str | None:
     return value if isinstance(value, str) and SESSION_ID.match(value) else None
 
 
-# Conversation IDs from tools other than Claude Code (FC-054). Checked after Claude's own ID and
-# AFC_SESSION so Claude Code behaviour is unchanged.
+# Conversation IDs from tools other than Claude Code (FC-054). Checked after Claude's own live ID
+# and before AFC_SESSION so a stale saved session cannot hide a live Cursor chat.
 _TOOL_SESSION_ENV = ("CURSOR_CONVERSATION_ID",)
 
 
 def current_session() -> str | None:
-    """The session a command runs in: Claude Code's own ID, else the one the startup hook saved,
-    else a tool conversation ID (Cursor). A plain fork no longer runs the hook's save, so
+    """The session a command runs in: Claude Code's live ID, else a tool conversation ID (Cursor),
+    else the one the startup hook saved. A plain fork no longer runs the hook's save, so
     AFC_SESSION can be the parent's; the live ID wins."""
-    for name in ("CLAUDE_CODE_SESSION_ID", "AFC_SESSION", *_TOOL_SESSION_ENV):
+    for name in ("CLAUDE_CODE_SESSION_ID", *_TOOL_SESSION_ENV, "AFC_SESSION"):
         found = valid_session(os.environ.get(name, "").strip())
         if found:
             return found
@@ -59,6 +59,11 @@ def tool_session() -> str | None:
         if found:
             return found
     return None
+
+
+def _claude_live_session() -> str | None:
+    """Claude Code's own session ID when the process is inside Claude Code, else None."""
+    return valid_session(os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip())
 
 
 def _flags(home: Path) -> Path:
@@ -109,6 +114,18 @@ def maintain_scope(home: Path, session: str | None = None) -> str:
         tool = tool_session()
         if tool and session == tool and _branch_on(home):
             return "branch"
+        # Stale AFC_SESSION while a tool chat is live (Claude's own ID absent): still honour
+        # the branch switch so status, guards and /afc mm agree.
+        afc_saved = valid_session(os.environ.get("AFC_SESSION", "").strip())
+        if (
+            tool
+            and afc_saved
+            and session == afc_saved
+            and session != tool
+            and not _claude_live_session()
+            and _branch_on(home)
+        ):
+            return "branch"
         return "off"
     return "branch" if _branch_on(home) else "off"
 
@@ -146,8 +163,17 @@ def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
     if on and on_main():
         raise ValueError(ON_MAIN)
     tool = tool_session()
-    if session and tool and session == tool:
-        # Tool chat: flip the branch switch; drop any leftover per-chat flag for this ID.
+    # Tool chat uses the branch switch. A stale AFC_SESSION must not leave the branch flag on
+    # when Cursor (etc.) is the live chat and Claude's own ID is absent (FC-054).
+    if tool and not _claude_live_session():
+        for drop in {s for s in (session, tool) if s}:
+            try:
+                (flags / drop).unlink(missing_ok=True)
+                (flags / f"{drop}.ask").unlink(missing_ok=True)
+            except OSError:
+                pass
+        session = None
+    elif session and tool and session == tool:
         try:
             (flags / session).unlink(missing_ok=True)
             (flags / f"{session}.ask").unlink(missing_ok=True)

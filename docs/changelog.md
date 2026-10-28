@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-27 — FC-054 follow-up: Live Cursor ID wins over stale AFC_SESSION
+
+When Cursor is the live chat but `AFC_SESSION` is set to a stale parent session (e.g. after a fork), `maintain status` and the guards now recognize the live Cursor ID. Branch maintenance mode applies cleanly. Turning maintenance off clears any branch flag, so the session and code agree.
+
+- `current_session()` prefers `CURSOR_CONVERSATION_ID` over `AFC_SESSION`
+- Branch fallback works even when `AFC_SESSION` is stale
+- `maintain off` clears leftover branch flags
+
 ## 2026-10-27 — FC-054 Cursor and maintenance mode agree
 
 In Cursor, the welcome, the guards and `sh bin/afc maintain status` agree on whether maintenance mode is on. With it on, delivering an FC slice commits Flight Control itself and leaves no bookkeeping aimed at the active project.

@@ -91,6 +91,28 @@ class BranchMaintenanceTests(unittest.TestCase):
         self.assertIn("branch", result["applies"])
         self.assertFalse((config.afc_home() / "maintain.d" / "cursor-chat-2").exists())
 
+    def test_stale_afc_session_does_not_hide_cursor_branch(self):
+        # FC-054: a leftover AFC_SESSION must not make branch /afc mm look off in Cursor.
+        self.run_cli("maintain", "on")
+        os.environ["AFC_SESSION"] = "stale-parent"
+        os.environ["CURSOR_CONVERSATION_ID"] = "cursor-chat-3"
+        self.addCleanup(os.environ.pop, "AFC_SESSION", None)
+        self.addCleanup(os.environ.pop, "CURSOR_CONVERSATION_ID", None)
+        self.assertEqual(config.current_session(), "cursor-chat-3")
+        self.assertEqual(self.run_cli("maintain", "status")[1]["scope"], "branch")
+        self.assertTrue(config.maintain_enabled(config.afc_home(), config.current_session()))
+
+    def test_stale_afc_session_maintain_off_clears_branch(self):
+        self.run_cli("maintain", "on")
+        os.environ["AFC_SESSION"] = "stale-parent"
+        os.environ["CURSOR_CONVERSATION_ID"] = "cursor-chat-4"
+        self.addCleanup(os.environ.pop, "AFC_SESSION", None)
+        self.addCleanup(os.environ.pop, "CURSOR_CONVERSATION_ID", None)
+        off = self.run_cli("maintain", "off")[1]
+        self.assertEqual(off["scope"], "off")
+        os.environ.pop("AFC_SESSION", None)
+        self.assertEqual(self.run_cli("maintain", "status")[1]["scope"], "off")
+
 
 if __name__ == "__main__":
     unittest.main()
