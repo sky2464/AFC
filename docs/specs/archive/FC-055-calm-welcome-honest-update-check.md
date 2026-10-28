@@ -1,4 +1,4 @@
-    # FC-055 — Calm welcome, honest update check
+# FC-055 — Calm welcome, honest update check
 
 Size: M · Status: done · Started: 2026-10-27 · Done: 2026-10-27
 Area: updates (and welcome wording)

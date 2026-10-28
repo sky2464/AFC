@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.08a
+
+- FC-053 Health drift after a release: The health check on Flight Control reports no plan or architecture problems: FC-018 has its row in the archive index and the four FC-051 modules are in the architecture notes.
+- FC-054 Cursor and maintenance mode agree: In Cursor, the welcome, the guards and `sh bin/afc maintain status` agree on whether maintenance mode is on.
+- FC-055 Calm welcome, honest update check: The first line of every session introduces Flight Control in calm, brand-safe words.
+
 ## 2026-10-27 — FC-055 Calm welcome, honest update check
 
 The first line of every session introduces Flight Control in calm, brand-safe words. When the user asks "is there an update?", Flight Control looks now and says what it found. When an update is refused because of stray files, the reason names those files as new, untracked ones.

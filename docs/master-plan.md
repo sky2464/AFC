@@ -31,9 +31,9 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
-| FC-055 | Calm welcome, honest update check | 2026-10-27 | [FC-055](specs/archive/FC-055-calm-welcome-honest-update-check.md) |  |  |
-| FC-054 | Cursor and maintenance mode agree | 2026-10-27 | [FC-054](specs/archive/FC-054-cursor-and-maintenance-mode-agree.md) |  |  |
-| FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) |  |  |
+| FC-055 | Calm welcome, honest update check | 2026-10-27 | [FC-055](specs/archive/FC-055-calm-welcome-honest-update-check.md) | v0.08a |  |
+| FC-054 | Cursor and maintenance mode agree | 2026-10-27 | [FC-054](specs/archive/FC-054-cursor-and-maintenance-mode-agree.md) | v0.08a |  |
+| FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) | v0.08a |  |
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) | v0.07a |  |
 | FC-051 | Flight Control works in other AI tools | 2026-10-27 | [FC-051](specs/archive/FC-051-flight-control-works-in-other-ai-tools.md) | v0.07a |  |
 | FC-050 | Right model for each job | 2026-10-27 | [FC-050](specs/archive/FC-050-right-model-for-each-job.md) | v0.07a |  |
@@ -46,7 +46,8 @@ Every change must reach the apps Flight Control builds for users.
 
 | Release | Date | Specs |
 |---|---|---|
-| v0.07a | not tagged yet | FC-050, FC-051, FC-052 |
+| v0.08a | not tagged yet | FC-053, FC-054, FC-055 |
+| v0.07a | 2026-10-27 | FC-050, FC-051, FC-052 |
 | v0.06a | 2026-10-26 | - |
 | v0.05b | 2026-10-25 | - |
 | v0.04a | 2026-10-25 | - |
