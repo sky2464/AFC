@@ -25,7 +25,7 @@ from afc.context_brief import brief_path
 from afc.registry import load_registry
 
 INTRO = (
-    "✈️  Flight Control — your AI architect, project manager and security officer in one.\n"
+    "✈️  Flight Control — your AI architect, project manager and calm co-pilot in one.\n"
     "Spec-driven from day one: locks onto your goal, keeps every step on course, "
     "delivers a working app."
 )

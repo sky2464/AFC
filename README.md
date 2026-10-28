@@ -2,7 +2,7 @@
 
 # ✈️ Flight Control
 
-### Your AI architect, project manager and security officer in one.
+### Your AI architect, project manager and calm co-pilot in one.
 
 Spec-driven from day one: Flight Control locks onto your goal, keeps every step on course,<br>
 and delivers a working app.
@@ -57,7 +57,7 @@ claude
 **3. Answer the welcome**
 
 ```
-✈️  Flight Control — your AI architect, project manager and security officer in one.
+✈️  Flight Control — your AI architect, project manager and calm co-pilot in one.
 Spec-driven from day one: locks onto your goal, keeps every step on course, delivers a working app.
 Type 1 to start a new project, 2 to bring in one already on this computer, or just say hi.
 ```
