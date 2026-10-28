@@ -84,7 +84,7 @@ maintenance mode). Removing or moving untracked files on the user's behalf.
 - [x] 2. --check always refreshes — you'll see it by two `sh bin/afc update --check` runs on a
       `main` scratch copy, seconds apart, each changing `checked_at` in `update.json` (2 of 2
       changed), while a second session start the same day leaves it unchanged (proves A2)
-- [ ] 3. Clearer refuse for untracked-only dirt — you'll see it by `sh bin/afc update` on that copy
+- [x] 3. Clearer refuse for untracked-only dirt — you'll see it by `sh bin/afc update` on that copy
       with one untracked file refusing with the untracked-files reason, then with one tracked edit
       refusing with the "local edits" reason, and `git status --short` identical before and after
       both runs (proves A3)
