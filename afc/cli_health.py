@@ -784,11 +784,16 @@ def root_problems(root: Path, git: Callable[..., str | None] | None = None) -> l
             "root_detached", str(root), fixable,
             detail="Flight Control's own copy is on a detached HEAD, not on a branch, so it can't "
                    "update itself. " + how))
-    elif head is not None and head not in ROOT_BRANCHES:
-        found.append(_problem(
-            "root_branch", str(root), False,
-            detail=f"Flight Control's own copy is on the branch {head}, which is neither main nor dev. "
-                   "Switch it back onto main or dev."))
+    else:
+        # a linked worktree (a session's own copy) has a branch of its own by design: the main
+        # checkout is the one that must stay on main or dev
+        main = _main_checkout(root, run)
+        where, head = (main if main is not None else (root, head))
+        if head is not None and head not in ROOT_BRANCHES:
+            found.append(_problem(
+                "root_branch", str(where), False,
+                detail=f"Flight Control's own copy is on the branch {head}, which is neither main nor "
+                       "dev. Switch it back onto main or dev."))
     if dirty:
         found.append(_problem(
             "root_dirty", str(root), False,
@@ -846,6 +851,25 @@ def root_git_note() -> str | None:
     except (OSError, subprocess.SubprocessError):
         return "Git couldn't run, so Flight Control's own folder wasn't checked."
     return None
+
+
+def _main_checkout(root: Path, run: Callable[..., str | None]) -> tuple[Path, str | None] | None:
+    """(main checkout folder, its branch) when root is a linked worktree, else None. The branch is
+    None when the main checkout is not on a branch: nothing is guessed."""
+    git_dir = run(root, "rev-parse", "--absolute-git-dir")
+    common = run(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if not git_dir or not common or git_dir.strip() == common.strip():
+        return None
+    listing = run(root, "worktree", "list", "--porcelain")
+    if not listing:
+        return None
+    lines = listing.split("\n\n")[0].splitlines()
+    path = next((l.removeprefix("worktree ") for l in lines if l.startswith("worktree ")), None)
+    if path is None:
+        return None
+    branch = next((l.removeprefix("branch refs/heads/") for l in lines
+                   if l.startswith("branch refs/heads/")), None)
+    return Path(path), branch
 
 
 def _head_branch(status: str) -> str | None:
