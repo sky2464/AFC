@@ -15,12 +15,12 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-057 | Cursor edits see maintenance mode | S | [spec](specs/FC-057-cursor-edits-see-maintenance-mode.md) | 2026-10-28 |
 
 ## Next
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
-| FC-057 | Cursor edits see maintenance mode | S | [spec](specs/FC-057-cursor-edits-see-maintenance-mode.md) |
 | FC-056 | Nothing about a project before you pick it | M | [spec](specs/FC-056-nothing-about-a-project-before-you-pick.md) |
 
 
