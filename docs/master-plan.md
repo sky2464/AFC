@@ -46,7 +46,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | Release | Date | Specs |
 |---|---|---|
-| v0.08a | not tagged yet | FC-053, FC-054, FC-055 |
+| v0.08a | 2026-10-28 | FC-053, FC-054, FC-055 |
 | v0.07a | 2026-10-27 | FC-050, FC-051, FC-052 |
 | v0.06a | 2026-10-26 | - |
 | v0.05b | 2026-10-25 | - |
@@ -82,6 +82,7 @@ Findings: none open. Full list and history in [docs/findings.md](findings.md).
 
 | Date | Event |
 |---|---|
+| 2026-10-28 | v0.08a tagged and published |
 | 2026-10-24 | FC-016 specced and sliced (3 slices): compaction drops Done rows instead of archiving them, which lost the PC and v0.01a rows; FC-015 depends on it |
 | 2026-10-25 | FC-009 closed: slice 4 measured at 46,010 growth against 24,490, target not met; spec archived |
 | 2026-10-25 | FC-012 slice 3 approved and ticked: the health check sees the A-FC folder; spec stays in Next while FC-009 holds Now |
