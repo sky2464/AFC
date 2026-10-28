@@ -31,6 +31,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) |  |  |
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) | v0.07a |  |
 | FC-051 | Flight Control works in other AI tools | 2026-10-27 | [FC-051](specs/archive/FC-051-flight-control-works-in-other-ai-tools.md) | v0.07a |  |
 | FC-050 | Right model for each job | 2026-10-27 | [FC-050](specs/archive/FC-050-right-model-for-each-job.md) | v0.07a |  |
@@ -89,3 +90,4 @@ Findings: none open. Full list and history in [docs/findings.md](findings.md).
 | 2026-10-25 | FC-027 renamed to Add-ons off at start, quiet health check |
 | 2026-10-26 | waiting: R6: move A-FC-test to current code (973da0c is stale) |
 | 2026-10-26 | waiting: FC-040 release: make the v0.06a tag, push it, and publish re |
+| 2026-10-27 | FC-053 done: archive index has FC-018 row (check 0 plan_archive_not_indexed); architecture.md maps four FC-051 modules (check 0 architecture_unmapped, 0 architecture_dead_pointer) |

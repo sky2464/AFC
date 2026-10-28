@@ -7,6 +7,13 @@
 - In those other tools, Flight Control asks once which model to use for the project (keep what the tool shows, or pick premium, best cost, or hybrid), remembers the choice, and asks again before heavy jobs if you picked a light model.
 - Model ask in Cursor, Codex, and the like reads your tool's config from your home folder, not the Flight Control workspace.
 
+## 2026-10-27 — FC-053 Health drift after a release
+
+After a release, Flight Control's own health check no longer reports plan or architecture bookkeeping drift: the archive index includes FC-018, and the architecture notes name the four FC-051 modules.
+
+- Repair the archive index
+- Map the four modules in the architecture notes
+
 ## 2026-10-27 — FC-052 Ask and suggest a model in other tools
 
 When Flight Control runs in a tool other than Claude Code, it asks in plain words which model to use for this project, once. If the user already has a model in that tool's settings, it can suggest keeping it or switching to a better fit those settings show. If the user does not know which model to pick (or no model is shown), it checks the local environment and a short public look-up for what is current, then offers three numbered choices: top tier (premium), best for cost, and hybrid (best balance of quality and cost). "Cost" here means what that tool usually includes on a subscription plan (Cursor, Copilot, Codex, Antigravity and the like), not pay-per-token API keys. For heavy jobs (architecture and spec planning) it asks again if the chosen model is a light one. It never changes the tool's settings itself; the user switches in the tool's own model picker.

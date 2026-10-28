@@ -26,3 +26,9 @@ sh bin/afc model names the running tool and the model from its plain local setti
 
 ### 2026-10-27 — FC-052 slice 2
 Three options (premium, best cost, hybrid) from local settings plus a timed public look-up, with machine cache fallback; never invent or ship model IDs.
+
+### 2026-10-27 — FC-053 slice 1
+repair added FC-018 to the archive index; check reports 0 plan_archive_not_indexed. Row is at top of index (repair prepends), not between 017 and 019 — acceptance is indexed and check-clean.
+
+### 2026-10-27 — FC-053 slice 2
+Mapped cli_guard, hooks/adapter, instructions into Hooks and guards; cli_instructions into CLI dispatch. check reports 0 architecture_unmapped and 0 architecture_dead_pointer.
