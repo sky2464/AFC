@@ -15,6 +15,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-054 | Cursor and maintenance mode agree | M | [spec](specs/FC-054-cursor-and-maintenance-mode-agree.md) | 2026-10-27 |
 
 ## Next
 

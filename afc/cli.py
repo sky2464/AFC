@@ -212,6 +212,10 @@ def cmd_modules(args: argparse.Namespace) -> dict:
 
 def cmd_set(args: argparse.Namespace) -> dict:
     home = afc_home()
+    from afc.config import current_session, maintain_enabled
+    if maintain_enabled(home, current_session()) and args.field == "last_slice":
+        return {"skipped": True, "field": "last_slice",
+                "reason": "Maintenance mode is on; last_slice is for project work, not Flight Control."}
     reg = load_registry(home)
     project = _active(reg)
     if args.field not in SETTABLE:

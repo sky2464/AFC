@@ -9,7 +9,7 @@ import sqlite3
 from pathlib import Path
 
 from afc import index
-from afc.config import afc_home
+from afc.config import afc_home, current_session, maintain_enabled
 from afc.registry import load_registry
 
 NAMES = ("index", "graph")
@@ -78,6 +78,9 @@ def cmd_rebuild(args: argparse.Namespace) -> dict:
 
 
 def cmd_refresh(args: argparse.Namespace) -> dict:
+    if maintain_enabled(afc_home(), current_session()):
+        return {"skipped": True, "scope": "none",
+                "reason": "Maintenance mode is on; project index refresh is skipped."}
     ws, name = _active()
     return {"index": str(index.refresh_project_index(ws, name)), "scope": name}
 

@@ -32,3 +32,12 @@ repair added FC-018 to the archive index; check reports 0 plan_archive_not_index
 
 ### 2026-10-27 — FC-053 slice 2
 Mapped cli_guard, hooks/adapter, instructions into Hooks and guards; cli_instructions into CLI dispatch. check reports 0 architecture_unmapped and 0 architecture_dead_pointer.
+
+### 2026-10-27 — FC-054 slice 1
+Cursor conversation IDs fall back to the branch switch; /afc mm with CURSOR_CONVERSATION_ID sets branch, not a per-chat flag. guard --write allows A-FC.
+
+### 2026-10-27 — FC-054 slice 2
+maintain status returns applies and note in plain words; /afc mm command text uses applies.
+
+### 2026-10-27 — FC-054 slice 3
+deliver in MM commits afc_root; set last_slice and index refresh skip the active project.

@@ -36,10 +36,25 @@ def valid_session(value: object) -> str | None:
     return value if isinstance(value, str) and SESSION_ID.match(value) else None
 
 
+# Conversation IDs from tools other than Claude Code (FC-054). Checked after Claude's own ID and
+# AFC_SESSION so Claude Code behaviour is unchanged.
+_TOOL_SESSION_ENV = ("CURSOR_CONVERSATION_ID",)
+
+
 def current_session() -> str | None:
-    """The session a command runs in: Claude Code's own ID, else the one the startup hook saved.
-    A plain fork no longer runs the hook's save, so AFC_SESSION can be the parent's; the live ID wins."""
-    for name in ("CLAUDE_CODE_SESSION_ID", "AFC_SESSION"):
+    """The session a command runs in: Claude Code's own ID, else the one the startup hook saved,
+    else a tool conversation ID (Cursor). A plain fork no longer runs the hook's save, so
+    AFC_SESSION can be the parent's; the live ID wins."""
+    for name in ("CLAUDE_CODE_SESSION_ID", "AFC_SESSION", *_TOOL_SESSION_ENV):
+        found = valid_session(os.environ.get(name, "").strip())
+        if found:
+            return found
+    return None
+
+
+def tool_session() -> str | None:
+    """The non-Claude tool conversation ID when one is set (Cursor today), else None."""
+    for name in _TOOL_SESSION_ENV:
         found = valid_session(os.environ.get(name, "").strip())
         if found:
             return found
@@ -78,14 +93,23 @@ def _branch_on(home: Path) -> bool:
 
 
 def maintain_scope(home: Path, session: str | None = None) -> str:
-    """'session' (this session only), 'branch' (no session ID: this copy's branch) or 'off'. A leftover
-    global `maintain` file is ignored, and a copy on `main` is always off. A session with an ID never
-    reads the branch switch, so Claude Code behaves exactly as before."""
+    """'session' (this session only), 'branch' (this copy's branch) or 'off'. A leftover global
+    `maintain` file is ignored, and a copy on `main` is always off.
+
+    Claude Code sessions never fall back to the branch switch (FC-036). A Cursor (or other tool)
+    conversation ID with no session flag still honours an active branch switch, so `/afc mm` on
+    the branch covers every Cursor chat's writes (FC-054)."""
     session = valid_session(session)
     if on_main():
         return "off"
+    if session and (_flags(home) / session).exists():
+        return "session"
     if session:
-        return "session" if (_flags(home) / session).exists() else "off"
+        # Tool chat whose ID matches this session: branch-wide /afc mm applies (FC-054).
+        tool = tool_session()
+        if tool and session == tool and _branch_on(home):
+            return "branch"
+        return "off"
     return "branch" if _branch_on(home) else "off"
 
 
@@ -113,11 +137,23 @@ def undecided(home: Path, session: str | None = None) -> bool:
 def set_maintain(home: Path, on: bool, session: str | None = None) -> None:
     """Turn maintenance mode on or off for one session; either answer ends "undecided" (removes
     the .ask file). With no usable session ID the switch belongs to this copy's branch instead; if the
-    branch can't be told, turning it on raises ValueError. There is no global switch."""
+    branch can't be told, turning it on raises ValueError. There is no global switch.
+
+    A Cursor (or other tool) conversation ID uses the branch switch, not a per-chat flag, so
+    `/afc mm` covers every chat on this copy's branch (FC-054)."""
     session = valid_session(session)
     flags = _flags(home)
     if on and on_main():
         raise ValueError(ON_MAIN)
+    tool = tool_session()
+    if session and tool and session == tool:
+        # Tool chat: flip the branch switch; drop any leftover per-chat flag for this ID.
+        try:
+            (flags / session).unlink(missing_ok=True)
+            (flags / f"{session}.ask").unlink(missing_ok=True)
+        except OSError:
+            pass
+        session = None
     if not session:
         flag = _branch_flag(home)
         if on:

@@ -7,6 +7,14 @@
 - In those other tools, Flight Control asks once which model to use for the project (keep what the tool shows, or pick premium, best cost, or hybrid), remembers the choice, and asks again before heavy jobs if you picked a light model.
 - Model ask in Cursor, Codex, and the like reads your tool's config from your home folder, not the Flight Control workspace.
 
+## 2026-10-27 — FC-054 Cursor and maintenance mode agree
+
+In Cursor, when you turn maintenance mode on with `/afc mm`, the welcome, the guards and `maintain status` all agree instantly, with no manual `AFC_SESSION` step. Delivering an FC slice commits Flight Control itself, not the active project, and leaves no bookkeeping aimed at the project's workspace.
+
+- Cursor conversation ID falls back to the branch switch
+- `maintain status` names which switch applies and warns on main
+- `deliver` in MM commits A-FC; `set last_slice` and `index refresh` skip the project
+
 ## 2026-10-27 — FC-053 Health drift after a release
 
 After a release, Flight Control's own health check no longer reports plan or architecture bookkeeping drift: the archive index includes FC-018, and the architecture notes name the four FC-051 modules.

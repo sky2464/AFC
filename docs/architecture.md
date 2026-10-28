@@ -134,6 +134,9 @@ Nothing personal or secret is logged. Session output stays in Claude Code's own 
 - 2026-10-27 FC-052 slice 5: `tool_coverage` health lines add model shown and kept; `cli_health.check` passes active routing
 - 2026-10-27 FC-053 slice 1: no structural change
 - 2026-10-27 FC-053 slice 2: no structural change — Key files only
+- 2026-10-27 FC-054 slice 1: no structural change
+- 2026-10-27 FC-054 slice 2: no structural change
+- 2026-10-27 FC-054 slice 3: no structural change
 
 ## 10. Maintenance rules
 

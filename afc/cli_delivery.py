@@ -10,8 +10,8 @@ import subprocess
 from pathlib import Path
 
 from afc import git_ops
-from afc.config import afc_home
-from afc.registry import load_registry, save_registry
+from afc.config import afc_home, afc_root, current_session, maintain_enabled
+from afc.registry import Project, load_registry, save_registry
 
 NAMES = ("deliver", "create-remote", "detect-team")
 HOSTS = ("github", "azure")
@@ -65,7 +65,68 @@ def _run(cmd: list[str], code: Path) -> str:
 # ---------------------------------------------------------------- commands
 
 
+def _fc_identity(home) -> tuple[str, str, bool]:
+    """Git name/email for a Flight Control commit: active project, else this repo's git config."""
+    active = load_registry(home).active()
+    if active and active.git_name and active.git_email:
+        return active.git_name, active.git_email, active.ai_trailer
+    root = afc_root()
+    try:
+        name = git_ops._git(root, "config", "user.name")
+        email = git_ops._git(root, "config", "user.email")
+    except RuntimeError:
+        name, email = "", ""
+    return name, email, False
+
+
+def _deliver_flight_control(args: argparse.Namespace) -> dict:
+    """Commit dirty files in the A-FC folder itself (FC-054). Never touches the active project.
+
+    Flight Control is built on `dev` (not `main`), so this commits and optionally pushes the
+    current branch as-is — no switch to the default branch.
+    """
+    home = afc_home()
+    root = afc_root()
+    name, email, trailer = _fc_identity(home)
+    if not name or not email:
+        raise _error("Set git user.name and user.email (or an active project's git identity) "
+                     "before delivering Flight Control.")
+    project = Project(
+        name="flight-control",
+        code_path=str(root),
+        workspace_path=str(home),
+        git_name=name,
+        git_email=email,
+        ai_trailer=trailer,
+        team_mode="solo",
+        remote="github" if git_ops.has_remote(root) else "none",
+    )
+    try:
+        branch = git_ops.current_branch(root)
+        if branch in ("", "HEAD"):
+            raise RuntimeError("Flight Control's copy is not on a branch — switch to dev first.")
+        if branch == "main":
+            raise RuntimeError("Flight Control is not delivered on main — switch to dev first.")
+        sha = git_ops.commit_slice(project, args.message)
+        if not git_ops.has_remote(root):
+            return {"commit": sha, "pushed": False, "pr_needed": False, "brief": "skipped",
+                    "target": "flight-control", "branch": branch}
+        git_ops.push(root, branch)
+    except RuntimeError as exc:
+        raise _error(str(exc)) from None
+    return {
+        "commit": sha,
+        "pushed": True,
+        "branch": branch,
+        "pr_needed": False,
+        "brief": "skipped",
+        "target": "flight-control",
+    }
+
+
 def cmd_deliver(args: argparse.Namespace) -> dict:
+    if maintain_enabled(afc_home(), current_session()):
+        return _deliver_flight_control(args)
     _, _, project = _active()
     code = Path(project.code_path)
     try:
