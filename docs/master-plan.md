@@ -15,7 +15,6 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
-| FC-055 | Calm welcome, honest update check | M | [spec](specs/FC-055-calm-welcome-honest-update-check.md) | 2026-10-27 |
 
 ## Next
 
@@ -32,6 +31,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Done | Spec | Release | Outcome |
 |---|---|---|---|---|---|
+| FC-055 | Calm welcome, honest update check | 2026-10-27 | [FC-055](specs/archive/FC-055-calm-welcome-honest-update-check.md) |  |  |
 | FC-054 | Cursor and maintenance mode agree | 2026-10-27 | [FC-054](specs/archive/FC-054-cursor-and-maintenance-mode-agree.md) |  |  |
 | FC-053 | Health drift after a release | 2026-10-27 | [FC-053](specs/archive/FC-053-health-drift-after-a-release.md) |  |  |
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) | v0.07a |  |
@@ -41,7 +41,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-046 | Findings, parked and waiting in one place | 2026-10-26 | [FC-046](specs/archive/FC-046-findings-parked-and-waiting-in-one-place.md) |  |  |
 | FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
 | FC-045 | Releases and results from the plan | 2026-10-26 | [FC-045](specs/archive/FC-045-releases-and-results-from-the-plan.md) |  |  |
-| FC-044 | The plan can't drift | 2026-10-26 | [FC-044](specs/archive/FC-044-the-plan-can-t-drift.md) |  |  |
 
 ## Releases
 

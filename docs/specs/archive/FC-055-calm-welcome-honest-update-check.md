@@ -1,6 +1,6 @@
     # FC-055 — Calm welcome, honest update check
 
-Size: M · Status: in progress · Started: 2026-10-27 · Done: -
+Size: M · Status: done · Started: 2026-10-27 · Done: 2026-10-27
 Area: updates (and welcome wording)
 
 Found on 2026-10-27 alongside FC-054. The welcome every session prints calls Flight Control "your
@@ -112,3 +112,5 @@ Slice 3:
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-27. Slices: 3. Criteria: 0 of 3 proven.

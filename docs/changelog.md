@@ -2,6 +2,14 @@
 
 ## 2026-10-27 — FC-055 Calm welcome, honest update check
 
+The first line of every session introduces Flight Control in calm, brand-safe words. When the user asks "is there an update?", Flight Control looks now and says what it found. When an update is refused because of stray files, the reason names those files as new, untracked ones.
+
+- Calm SessionStart wording
+- --check always refreshes
+- Clearer refuse for untracked-only dirt
+
+## 2026-10-27 — FC-055 Calm welcome, honest update check
+
 The first line of every session introduces Flight Control in calm, brand-safe words. When the user asks "is there an update?", Flight Control looks now. When an update is refused because of stray files, the reason names those files as new, untracked ones.
 
 - `INTRO` says "your AI architect, project manager and calm co-pilot in one"; security and officer gone outside spec archive
