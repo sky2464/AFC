@@ -15,6 +15,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec | Started |
 |---|---|---|---|---|
+| FC-055 | Calm welcome, honest update check | M | [spec](specs/FC-055-calm-welcome-honest-update-check.md) | 2026-10-27 |
 
 ## Next
 

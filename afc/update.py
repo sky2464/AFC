@@ -4,14 +4,13 @@ A release is a v* tag on the origin remote whose commit is on main: `git ls-remo
 the tags, then main is fetched and each tag is kept only if its commit is part of main's history,
 so a tag that exists only on dev is never offered. The whole look at origin shares one time budget
 (TIMEOUT seconds, however many git calls it takes), and git never prompts for a credential or a
-host key (no terminal, no stdin). It runs at most once a day; the time and the newest tag found
-are kept in the workspace home, with any release the user skipped. A developer copy (on dev, or in
+host key (no terminal, no stdin). A developer copy (on dev, or in
 maintenance mode) never offers. Any failure says nothing.
 
 The welcome never waits for the network. `offer` answers from what is saved and, when the day's
-look is due, claims the day and starts the look as a separate background process (`python -m
-afc.update`) that saves what it finds for the next start. `check` runs the same look in front, for
-`sh bin/afc update --check`.
+look is due (at most once a day), claims the day and starts the look as a separate background
+process (`python -m afc.update`) that saves what it finds for the next start. `check` always looks
+at origin now and waits for the answer, for `sh bin/afc update --check`.
 """
 
 import json
@@ -176,13 +175,11 @@ def refresh(root: Path, home: Path, now: float, budget: float = TIMEOUT) -> dict
 
 
 def check(root: Path, home: Path, now: float, budget: float = TIMEOUT) -> dict:
-    """The answer, looking at origin first (and waiting for it) when the day's look is due."""
+    """The answer, always looking at origin now and waiting for it."""
     current = version.installed(root)
     if developer_copy(root, home):
         return {"update": "none", "current": current}
-    data = _load(home)
-    if _due(data, now):
-        data = refresh(root, home, now, budget)
+    data = refresh(root, home, now, budget)
     return _answer(current, data)
 
 

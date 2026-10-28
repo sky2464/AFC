@@ -41,3 +41,9 @@ maintain status returns applies and note in plain words; /afc mm command text us
 
 ### 2026-10-27 — FC-054 slice 3
 deliver in MM commits afc_root; set last_slice and index refresh skip the active project.
+
+### 2026-10-27 — FC-055 slice 1
+INTRO and README use calm co-pilot; security officer gone outside archive.
+
+### 2026-10-27 — FC-055 slice 2
+check() removes _due gate so it always calls refresh(); offer() and DAY unchanged; once-a-day wording moved to offer in docstring
