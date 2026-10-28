@@ -20,6 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-057 | Cursor edits see maintenance mode | S | [spec](specs/FC-057-cursor-edits-see-maintenance-mode.md) |
 | FC-056 | Nothing about a project before you pick it | M | [spec](specs/FC-056-nothing-about-a-project-before-you-pick.md) |
 
 
@@ -93,3 +94,5 @@ Findings: none open. Full list and history in [docs/findings.md](findings.md).
 | 2026-10-26 | waiting: R6: move A-FC-test to current code (973da0c is stale) |
 | 2026-10-26 | waiting: FC-040 release: make the v0.06a tag, push it, and publish re |
 | 2026-10-27 | FC-053 done: archive index has FC-018 row (check 0 plan_archive_not_indexed); architecture.md maps four FC-051 modules (check 0 architecture_unmapped, 0 architecture_dead_pointer) |
+| 2026-10-28 | FC-057 moved to position 1 |
+| 2026-10-28 | FC-056 waits for FC-057 |

@@ -1,6 +1,6 @@
 # FC-056 — Nothing about a project before you pick it
 
-Size: M · Status: next · Started: - · Done: -
+Size: M · Status: next · Started: - · Done: - · Depends: FC-057
 
 ## Goal
 
