@@ -39,10 +39,6 @@ Every change must reach the apps Flight Control builds for users.
 | FC-052 | Ask and suggest a model in other tools | 2026-10-27 | [FC-052](specs/archive/FC-052-ask-and-suggest-a-model-in-other-tools.md) | v0.07a |  |
 | FC-051 | Flight Control works in other AI tools | 2026-10-27 | [FC-051](specs/archive/FC-051-flight-control-works-in-other-ai-tools.md) | v0.07a |  |
 | FC-050 | Right model for each job | 2026-10-27 | [FC-050](specs/archive/FC-050-right-model-for-each-job.md) | v0.07a |  |
-| FC-049 | Architecture memory for Flight Control | 2026-10-26 | [FC-049](specs/archive/FC-049-architecture-memory-for-flight-control.md) |  |  |
-| FC-046 | Findings, parked and waiting in one place | 2026-10-26 | [FC-046](specs/archive/FC-046-findings-parked-and-waiting-in-one-place.md) |  |  |
-| FC-047 | Apps close out cleanly, and a lean log | 2026-10-26 | [FC-047](specs/archive/FC-047-apps-close-out-cleanly-and-a-lean-log.md) |  |  |
-| FC-045 | Releases and results from the plan | 2026-10-26 | [FC-045](specs/archive/FC-045-releases-and-results-from-the-plan.md) |  |  |
 
 ## Releases
 
@@ -50,12 +46,6 @@ Every change must reach the apps Flight Control builds for users.
 |---|---|---|
 | v0.08a | 2026-10-28 | FC-053, FC-054, FC-055 |
 | v0.07a | 2026-10-27 | FC-050, FC-051, FC-052 |
-| v0.06a | 2026-10-26 | - |
-| v0.05b | 2026-10-25 | - |
-| v0.04a | 2026-10-25 | - |
-| v0.03a | 2026-10-25 | - |
-| v0.02a | 2026-10-24 | - |
-| v0.01a | 2026-10-23 | - |
 
 ## Areas
 
@@ -96,3 +86,4 @@ Findings: none open. Full list and history in [docs/findings.md](findings.md).
 | 2026-10-27 | FC-053 done: archive index has FC-018 row (check 0 plan_archive_not_indexed); architecture.md maps four FC-051 modules (check 0 architecture_unmapped, 0 architecture_dead_pointer) |
 | 2026-10-28 | FC-057 moved to position 1 |
 | 2026-10-28 | FC-056 waits for FC-057 |
+| 2026-10-28 | v0.06a and older moved to the archive (releases-2026.md, done-2026.md); stale FC-055 copy removed from specs/ |
