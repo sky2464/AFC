@@ -116,7 +116,6 @@ class BranchMaintenanceTests(unittest.TestCase):
         os.environ.pop("AFC_SESSION", None)
         self.assertEqual(self.run_cli("maintain", "status")[1]["scope"], "off")
 
-
     def edit(self, **fields):
         """Exit code of the Claude Code edit guard for a write to a Flight Control file."""
         event = {"tool_name": "Write", "tool_input": {"file_path": OWN_FILE, "content": "x"},
