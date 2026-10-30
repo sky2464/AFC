@@ -16,6 +16,7 @@ from datetime import date
 from pathlib import Path
 
 from afc.config import afc_home, afc_root
+from afc.context_brief import brief_path
 from afc.profile import PROFILES, modules_for
 from afc import (
     cli_agents,
@@ -181,6 +182,9 @@ def cmd_status(args: argparse.Namespace) -> dict:
     project = _active(reg)
     data = dataclasses.asdict(project)
     data["now"] = _now_text(Path(project.workspace_path))
+    brief = brief_path(Path(project.workspace_path))
+    if brief.is_file():
+        data["brief"] = str(brief)
     return data
 
 
