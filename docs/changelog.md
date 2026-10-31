@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-31 — FC-056 Nothing about a project before you pick it
+
+Until the user picks a project in a session, Flight Control says and reads nothing about it beyond its name. The details arrive after the pick, from `sh bin/afc status`.
+
+- Only names before the pick
+- The first reply waits for the pick
+
 ## 2026-10-28 — FC-057 Cursor edits see maintenance mode
 
 With `/afc mm` on for the branch, Cursor edits to Flight Control's files are allowed, the same as Cursor shell commands. Claude Code sessions keep their per-session rule.

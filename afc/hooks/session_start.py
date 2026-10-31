@@ -21,7 +21,6 @@ from pathlib import Path
 
 from afc import update, update_apply, version
 from afc.config import afc_home, afc_root, maintain_enabled, needs_choice, seen, undecided as is_undecided, valid_session
-from afc.context_brief import brief_path
 from afc.registry import load_registry
 
 INTRO = (
@@ -32,20 +31,13 @@ INTRO = (
 # Used when the projects can't be read: no options to offer, so a plain start.
 BANNER = f"{INTRO}\nSay hi to start — /afc is the only command you need."
 OR_HI = "or just say hi."
-SLICE_CHARS = 40
-
-
-def _short(text: str) -> str:
-    return text if len(text) <= SLICE_CHARS else text[: SLICE_CHARS - 1].rstrip() + "…"
-
 
 def _choices(reg) -> tuple[str, str, str]:
     """The welcome's question as (one, two, line): what 1 and 2 mean, and the line itself."""
     active = reg.active()
     if active is not None:
-        last = f" (last: {_short(active.last_slice)})" if active.last_slice else ""
         one, two = f"continue {active.name}", "something else"
-        return one, two, f"Welcome back. Type 1 to {one}{last}, 2 for {two}, {OR_HI}"
+        return one, two, f"Welcome back. Type 1 to {one}, 2 for {two}, {OR_HI}"
     if reg.ready():
         one, two = "pick one of your projects", "start a new project"
         return one, two, f"Welcome back. Type 1 to {one}, 2 to {two}, {OR_HI}"
@@ -56,33 +48,25 @@ def _choices(reg) -> tuple[str, str, str]:
     return one, two, f"Type 1 to {one}, 2 to {two}, {OR_HI}"
 
 
-def _spec_note(active) -> str:
-    try:
-        from afc.plan import now_line
-
-        return now_line(Path(active.workspace_path))
-    except Exception:  # the welcome must never break
-        return ""
-
-
 def _project_line(reg) -> str:
+    """The projects by name only: nothing about one goes to Claude before the user picks it (FC-056)."""
     active = reg.active()
     if active is None:
         project = "Active project: none — first run." if not reg.projects else "Active project: none."
     else:
         project = (
-            f"Active project: {active.name} ({active.profile}), code: {active.code_path}, "
-            f"workspace: {active.workspace_path}, last slice: {active.last_slice or 'none'}."
+            f"Active project: {active.name}. Once the user picks it, sh bin/afc status gives its "
+            "folders, last slice, active spec (now) and compact context (brief: read once per "
+            "slice, not intent+architecture separately)."
         )
-    spec = _spec_note(active) if active is not None else ""
-    project += f" Active spec: {spec}." if spec else ""
-    if active is not None:
-        brief = brief_path(Path(active.workspace_path))
-        if brief.is_file():
-            project += f" Compact context: {brief} — read once per slice, not intent+architecture separately."
     others = [n for n in reg.ready() if active is None or n != active.name]
     paused = f" Paused: {', '.join(reg.paused())}." if reg.paused() else ""
-    return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}"
+    before = (
+        " Before they answer the welcome's question: do not run status, plan or read project "
+        "files, and say nothing about a project but its name. If their first message asks "
+        "something else, name the active project only (if any) and ask the welcome's question."
+    )
+    return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}{before}"
 
 
 def _health_line(home: Path) -> str:
@@ -112,8 +96,9 @@ def _health_line(home: Path) -> str:
         parts.append(f"{n} other problem{'' if n == 1 else 's'} (sh bin/afc check)")
     fix = (" Every one is fixable: offer 'fix it' as step 1 (sh bin/afc repair; nothing is deleted)."
            if all(p["fixable"] for p in rest) else " Offer to look at them (sh bin/afc check).")
-    return (f" Health check: {' and '.join(parts)}. After the question, say this in one plain line, once "
-            "this session; a later /afc must not repeat it unless it changed." + fix + extra)
+    return (f" Health check: {' and '.join(parts)}. Once the user has answered the welcome's question, "
+            "say this in one plain line, once this session; never before they answer, and a later "
+            "/afc must not repeat it unless it changed." + fix + extra)
 
 
 def _addons_line(root: Path) -> str:
@@ -312,8 +297,10 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
                 "If the user's first message is 1 or 2, treat it as their answer — do not ask that "
                 "question again — unless the conversation already holds a question with its own "
                 "numbered answers: a bare 1 or 2 then answers that question, not the welcome's "
-                "(if unclear which, ask one question). If they said hi or asked something else, answer briefly, then ask "
-                f"one question: 1 = {one} (recommended) or 2 = {two}."
+                "(if unclear which, ask one question). If they said hi, greet briefly then ask "
+                f"1 = {one} (recommended) or 2 = {two}. If they asked something else before "
+                "answering, do not look up the project: name it only (if any) and ask that same "
+                "question; leave health until after they answer."
             )
         message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}{_connectors_line(reg, afc_root(), home)}", 1)
         context = (
