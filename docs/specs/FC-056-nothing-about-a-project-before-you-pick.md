@@ -52,10 +52,10 @@ project name. The `/afc` command's summary, which the user asks for.
 
 ## Slices
 
-- [ ] 1. Only names before the pick — you'll see it by the session-start output for a project with
+- [x] 1. Only names before the pick — you'll see it by the session-start output for a project with
       a last slice and a brief: the context line and welcome hold its name only, and `status`
       returns the folders, last slice and `brief` (proves A1, A2)
-- [ ] 2. The first reply waits for the pick — you'll see it by a new session opened with "check
+- [x] 2. The first reply waits for the pick — you'll see it by a new session opened with "check
       status": the reply names the project, asks the welcome's question, and the health line
       comes only after the answer (proves A3)
 
