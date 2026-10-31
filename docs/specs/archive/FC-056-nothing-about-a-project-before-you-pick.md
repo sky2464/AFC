@@ -1,6 +1,6 @@
 # FC-056 — Nothing about a project before you pick it
 
-Size: M · Status: in progress · Started: 2026-10-28 · Done: - · Depends: FC-057
+Size: M · Status: done · Started: 2026-10-28 · Done: 2026-10-31 · Depends: FC-057
 Area: flow
 
 Found on 2026-10-28: a session opened with "check status" before the welcome's question was
@@ -73,3 +73,5 @@ Slice 2:
 ## Decisions
 
 ## Shipped
+
+Shipped 2026-10-31. Slices: 2. Criteria: 0 of 3 proven.
