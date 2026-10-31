@@ -62,6 +62,17 @@ class WelcomePickTests(unittest.TestCase):
         self.assertEqual(out["last_slice"], "login page shows the form")
         self.assertEqual(out["brief"], str(self.brief))
 
+    def test_context_waits_for_the_pick_before_status_or_health(self):
+        with mock.patch("afc.hooks.session_start._health_line",
+                        return_value=(" Health check: 1 leftover folder permission. "
+                                      "Once the user has answered the welcome's question, "
+                                      "say this in one plain line, once this session.")):
+            context = build_output(self.home)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("do not run status, plan or read project files", context)
+        self.assertIn("name the active project only", context)
+        self.assertIn("Once the user has answered the welcome's question", context)
+        self.assertNotIn("After the question, say this", context)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -61,7 +61,12 @@ def _project_line(reg) -> str:
         )
     others = [n for n in reg.ready() if active is None or n != active.name]
     paused = f" Paused: {', '.join(reg.paused())}." if reg.paused() else ""
-    return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}"
+    before = (
+        " Before they answer the welcome's question: do not run status, plan or read project "
+        "files, and say nothing about a project but its name. If their first message asks "
+        "something else, name the active project only (if any) and ask the welcome's question."
+    )
+    return f"{project} Other projects: {', '.join(others) or 'none'}.{paused}{before}"
 
 
 def _health_line(home: Path) -> str:
@@ -91,8 +96,9 @@ def _health_line(home: Path) -> str:
         parts.append(f"{n} other problem{'' if n == 1 else 's'} (sh bin/afc check)")
     fix = (" Every one is fixable: offer 'fix it' as step 1 (sh bin/afc repair; nothing is deleted)."
            if all(p["fixable"] for p in rest) else " Offer to look at them (sh bin/afc check).")
-    return (f" Health check: {' and '.join(parts)}. After the question, say this in one plain line, once "
-            "this session; a later /afc must not repeat it unless it changed." + fix + extra)
+    return (f" Health check: {' and '.join(parts)}. Once the user has answered the welcome's question, "
+            "say this in one plain line, once this session; never before they answer, and a later "
+            "/afc must not repeat it unless it changed." + fix + extra)
 
 
 def _addons_line(root: Path) -> str:
@@ -291,8 +297,10 @@ def build_output(home: Path, session: str | None = None, now: float | None = Non
                 "If the user's first message is 1 or 2, treat it as their answer — do not ask that "
                 "question again — unless the conversation already holds a question with its own "
                 "numbered answers: a bare 1 or 2 then answers that question, not the welcome's "
-                "(if unclear which, ask one question). If they said hi or asked something else, answer briefly, then ask "
-                f"one question: 1 = {one} (recommended) or 2 = {two}."
+                "(if unclear which, ask one question). If they said hi, greet briefly then ask "
+                f"1 = {one} (recommended) or 2 = {two}. If they asked something else before "
+                "answering, do not look up the project: name it only (if any) and ask that same "
+                "question; leave health until after they answer."
             )
         message = message.replace(f"{INTRO}\n", f"{INTRO}\n{gone}{_addons_line(afc_root())}{_connectors_line(reg, afc_root(), home)}", 1)
         context = (

@@ -36,8 +36,9 @@ project name. The `/afc` command's summary, which the user asks for.
 
 ## Assumptions to confirm
 
-- [ ] Nothing reads the project details from the context line except the first reply and the
-  slice skill's brief path; `status` can carry them instead.
+- [x] Nothing reads the project details from the context line except the first reply and the
+  slice skill's brief path; `status` can carry them instead. Confirmed in slice 1–2: details live
+  on `status` (`brief` included); `afc-slice` reads `brief` from there.
 
 ## Design notes
 
