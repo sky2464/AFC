@@ -37,10 +37,13 @@ question. Anything else: answer briefly, then ask the update question. Never bot
   `sh bin/afc list`, two at a time), then `sh bin/afc switch <name>`. Never loop back to `/afc`
   for this.
 - **Only paused projects**: 1 = resume one (`sh bin/afc resume <name>`), 2 = start a new one.
-- **Returning** (an active project): "Welcome back — continue *<project>* (last: <last slice>), or
-  something else?" 1. Continue (recommended) 2. Something else. On continue,
-  run `sh bin/afc status`, then `afc-interview` (or `afc-slice` if the intent is agreed). On
-  something else, ask: a new project or another of theirs?
+- **Returning** (an active project): before they answer, say nothing about it but its name — no
+  `status`, `plan` or project files, and no health line. "Welcome back — continue *<project>*, or
+  something else?" 1. Continue (recommended) 2. Something else. If they asked something else first
+  (for example "check status"), name the project only and ask that question. On continue, run
+  `sh bin/afc status`, then `afc-interview` (or `afc-slice` if the intent is agreed); mention any
+  health line from the context after that answer. On something else, ask: a new project or another
+  of theirs?
 - **Model ask (other tools):** only after the welcome's question is answered, never in the same
   message. Run `sh bin/afc model`. If `ask: true` and `options` is present, ask with those three
   numbered answers (recommended first). If `ask: true` with a shown model, ask keep it or the

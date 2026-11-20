@@ -19,8 +19,8 @@ Plain words, at most two next steps. During a build a reply is a status line and
 
 ## Pick the slice
 
-Read `resources/afc-brief.md` once (path in session context) before `plan/intent.md` unless the slice
-needs more.
+Read `resources/afc-brief.md` once (path from `sh bin/afc status` as `brief`) before
+`plan/intent.md` unless the slice needs more.
 
 Run `sh bin/afc plan`; build `next_slice`. No active spec: summarize the top `Next` spec in one
 line and run `sh bin/afc plan start <id>`. No specs: `afc-interview`.
