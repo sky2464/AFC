@@ -20,6 +20,7 @@ Every change must reach the apps Flight Control builds for users.
 
 | ID | Title | Size | Spec |
 |---|---|---|---|
+| FC-058 | Quiet start after hi | M | [spec](specs/FC-058-quiet-start-after-hi.md) |
 
 
 ## Waiting on you
